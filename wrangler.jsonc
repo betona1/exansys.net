@@ -32,7 +32,9 @@
     "GITHUB_CLIENT_ID": "Ov23libf61v7QhFMsEHq",
     "GOOGLE_CLIENT_ID": "903917334782-qnu1oo7obg16o5lhj2c94uuljs0hlcg5.apps.googleusercontent.com",
     // 카카오 REST API 키 (client_id 역할)
-    "KAKAO_CLIENT_ID": "bb0f3b617b481f7cce77b620011e4d8b"
+    "KAKAO_CLIENT_ID": "bb0f3b617b481f7cce77b620011e4d8b",
+    // Turnstile 사이트 키 (공개 값 — 프론트 위젯 렌더링용)
+    "TURNSTILE_SITE_KEY": "0x4AAAAAADx7-dKxbUknGHsX"
   }
   // 시크릿 (대시보드 또는 wrangler secret put 으로만 관리, 커밋 금지):
   // GITHUB_CLIENT_ID / GITHUB_CLIENT_SECRET

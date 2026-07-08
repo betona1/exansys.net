@@ -43,12 +43,12 @@ export default function Header({ me, logout }: { me: Me; logout: () => Promise<v
               <Link className="text-muted transition hover:text-ink" to="/#about">소개</Link>
             </li>
             <li className="hidden sm:block">
-              <a
+              <Link
                 className="rounded-full bg-ink px-4.5 py-2 font-semibold text-white transition hover:bg-green"
-                href="/#contact"
+                to="/contact"
               >
                 개발 문의
-              </a>
+              </Link>
             </li>
             <li className="relative" ref={menuRef}>
               {me ? (

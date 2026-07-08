@@ -9,6 +9,8 @@ export interface Env {
   GOOGLE_CLIENT_SECRET?: string;
   KAKAO_CLIENT_ID?: string;
   KAKAO_CLIENT_SECRET?: string;
+  TURNSTILE_SITE_KEY?: string;
+  TURNSTILE_SECRET_KEY?: string;
 }
 
 export type Role = "member" | "crew" | "staff" | "admin";

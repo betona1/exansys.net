@@ -12,8 +12,10 @@
     "cf-typegen": "wrangler types"
   },
   "dependencies": {
+    "dompurify": "^3.4.11",
     "drizzle-orm": "^0.44.2",
     "hono": "^4.8.3",
+    "marked": "^18.0.5",
     "qrcode": "^1.5.4",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",

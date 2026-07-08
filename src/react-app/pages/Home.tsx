@@ -284,15 +284,16 @@ export default function Home() {
               ))}
             </ul>
           </Reveal>
-          <Reveal className="rounded-[2rem] border border-dashed border-line bg-paper p-8">
-            <h3 className="font-display mb-2 text-lg font-bold">문의게시판</h3>
+          <Reveal className="rounded-[2rem] border border-line bg-card p-8">
+            <h3 className="font-display mb-2 text-lg font-bold">개발 문의게시판</h3>
             <p className="text-sm text-muted">
-              소셜 로그인과 함께 준비 중입니다 (Phase 3). 지금은{" "}
-              <a className="font-semibold text-cobalt hover:underline" href="#contact">
-                이메일로 문의
-              </a>
-              해 주세요.
+              앱 외주 개발·파트너십 문의를 게시판으로 받습니다. 비공개 글도 지원하며,
+              모든 문의에 답변합니다.
             </p>
+            <Link to="/contact"
+              className="mt-4 inline-block rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-green">
+              문의 게시판 가기 →
+            </Link>
           </Reveal>
         </div>
       </section>

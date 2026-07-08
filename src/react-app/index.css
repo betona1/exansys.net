@@ -89,6 +89,68 @@ body {
   }
 }
 
+/* 개인정보처리방침 등 마크다운 문서 스타일 */
+.privacy-doc h1 {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+}
+.privacy-doc h2 {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 1.6rem 0 0.6rem;
+}
+.privacy-doc h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 1.2rem 0 0.4rem;
+}
+.privacy-doc p {
+  margin: 0.6rem 0;
+  font-size: 15px;
+  line-height: 1.75;
+}
+.privacy-doc ul,
+.privacy-doc ol {
+  margin: 0.6rem 0 0.6rem 1.4rem;
+  font-size: 15px;
+  line-height: 1.75;
+}
+.privacy-doc ul {
+  list-style: disc;
+}
+.privacy-doc ol {
+  list-style: decimal;
+}
+.privacy-doc a {
+  color: var(--color-cobalt);
+  text-decoration: underline;
+}
+.privacy-doc hr {
+  margin: 1.4rem 0;
+  border-color: var(--color-line);
+}
+.privacy-doc table {
+  margin: 0.8rem 0;
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.privacy-doc th,
+.privacy-doc td {
+  border: 1px solid var(--color-line);
+  padding: 8px 12px;
+  text-align: left;
+}
+.privacy-doc code {
+  background: var(--color-paper);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 13px;
+}
+
 /* 히어로 떠다니는 칩 */
 .chip-float {
   animation: chip-float 6s ease-in-out infinite;

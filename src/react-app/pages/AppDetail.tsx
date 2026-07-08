@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { api, STATUS_LABEL, type AppRow } from "../lib/api";
+import { api, STATUS_LABEL, type AppRow, type Me } from "../lib/api";
 import CountUp from "../components/CountUp";
+import Comments from "../components/Comments";
 
 type Screenshot = { id: number; imageUrl: string };
 
-export default function AppDetail() {
+export default function AppDetail({ me }: { me: Me }) {
   const { slug } = useParams<{ slug: string }>();
   const [app, setApp] = useState<AppRow | null>(null);
   const [screenshots, setScreenshots] = useState<Screenshot[]>([]);
@@ -104,16 +105,7 @@ export default function AppDetail() {
             </div>
           )}
 
-          <div className="mt-10 rounded-2xl border border-dashed border-line bg-paper p-7">
-            <h3 className="font-display mb-2 text-lg font-bold">앱 문의</h3>
-            <p className="text-sm text-muted">
-              앱별 문의 댓글은 Phase 3에서 열립니다. 지금은{" "}
-              <a className="font-semibold text-cobalt hover:underline" href="mailto:contact@exansys.net">
-                contact@exansys.net
-              </a>
-              으로 보내주세요.
-            </p>
-          </div>
+          {slug && <Comments slug={slug} me={me} />}
         </div>
 
         <aside className="space-y-5">
@@ -146,6 +138,13 @@ export default function AppDetail() {
               )}
             </div>
           </div>
+
+          <Link
+            to={`/apps/${app.slug}/privacy`}
+            className="block rounded-2xl border border-line bg-card p-5 text-sm font-semibold transition hover:border-ink"
+          >
+            📄 개인정보처리방침 →
+          </Link>
 
           {hasQr && (
             <div className="rounded-2xl border border-line bg-card p-6">
