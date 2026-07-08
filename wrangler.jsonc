@@ -25,7 +25,9 @@
   "vars": {
     // GitHub 로그인 시 이 아이디는 자동으로 admin 역할을 받는다 (대표 시드)
     "ADMIN_GITHUB_LOGIN": "betona1",
-    "SITE_URL": "https://exansys.net"
+    "SITE_URL": "https://exansys.net",
+    // OAuth Client ID는 공개 값 — 비밀 아님 (Secret은 대시보드에서 관리)
+    "GITHUB_CLIENT_ID": "Ov23libf61v7QhFMsEHq"
   }
   // 시크릿 (대시보드 또는 wrangler secret put 으로만 관리, 커밋 금지):
   // GITHUB_CLIENT_ID / GITHUB_CLIENT_SECRET
