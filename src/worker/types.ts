@@ -1,6 +1,7 @@
 export interface Env {
   DB: D1Database;
   SESSIONS: KVNamespace;
+  MEDIA: R2Bucket;
   ADMIN_GITHUB_LOGIN: string;
   SITE_URL: string;
   GITHUB_CLIENT_ID?: string;

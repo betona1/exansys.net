@@ -19,6 +19,44 @@ html {
   scroll-behavior: smooth;
 }
 
+/* 다크 모드 — 토큰 오버라이드 (라이트 우선, CLAUDE.md 7절 / Phase 4) */
+:root.dark {
+  --color-paper: #0e1013;
+  --color-card: #16191e;
+  --color-ink: #eceef3;
+  --color-muted: #99a2ae;
+  --color-line: #262b33;
+  --color-lime: #8fd653;
+  --color-cobalt: #7c93ff;
+  color-scheme: dark;
+}
+/* 다크에서 잉크색(원래 어두운) 섹션·버튼이 배경과 겹치지 않게 */
+:root.dark .bg-ink {
+  background-color: #1d232c;
+}
+:root.dark .text-ink {
+  color: var(--color-ink);
+}
+/* 히어로·CTA 그라디언트 패널 */
+.hero-panel {
+  background: linear-gradient(180deg, #f4fbef 0%, #eaf6e2 45%, #d8efc8 100%);
+}
+.cta-panel {
+  background: linear-gradient(180deg, #eaf6e2 0%, #d8efc8 60%, #c9e9b2 100%);
+}
+:root.dark .hero-panel {
+  background: linear-gradient(180deg, #131a12 0%, #16241a 55%, #123020 100%);
+}
+:root.dark .cta-panel {
+  background: linear-gradient(180deg, #16241a 0%, #123020 60%, #0e5741 140%);
+}
+:root.dark .bg-white {
+  background-color: #1d222a;
+}
+:root.dark .bg-white\/70 {
+  background-color: rgba(29, 34, 42, 0.7);
+}
+
 body {
   @apply bg-paper text-ink font-sans antialiased;
   line-height: 1.65;

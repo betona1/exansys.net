@@ -7,6 +7,8 @@ import Admin from "./pages/Admin";
 import Contact from "./pages/Contact";
 import ContactDetail from "./pages/ContactDetail";
 import Privacy from "./pages/Privacy";
+import Crew from "./pages/Crew";
+import CrewDetail from "./pages/CrewDetail";
 import { useMe } from "./lib/useMe";
 
 export default function App() {
@@ -21,6 +23,8 @@ export default function App() {
         <Route path="/apps/:slug/privacy" element={<Privacy me={me} />} />
         <Route path="/contact" element={<Contact me={me} />} />
         <Route path="/contact/:id" element={<ContactDetail me={me} />} />
+        <Route path="/crew" element={<Crew me={me} meLoading={loading} />} />
+        <Route path="/crew/:id" element={<CrewDetail me={me} />} />
         <Route path="/admin" element={<Admin me={me} meLoading={loading} />} />
       </Routes>
       <Footer />

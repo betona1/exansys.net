@@ -12,7 +12,19 @@ const PROVIDER_LABEL: Record<string, string> = {
 export default function Header({ me, logout }: { me: Me; logout: () => Promise<void> }) {
   const [open, setOpen] = useState(false);
   const [providers, setProviders] = useState<string[]>([]);
+  const [dark, setDark] = useState(() => document.documentElement.classList.contains("dark"));
   const menuRef = useRef<HTMLLIElement>(null);
+
+  const toggleTheme = () => {
+    const next = !dark;
+    setDark(next);
+    document.documentElement.classList.toggle("dark", next);
+    try {
+      localStorage.setItem("theme", next ? "dark" : "light");
+    } catch {
+      /* ignore */
+    }
+  };
 
   useEffect(() => {
     void api<{ providers: string[] }>("/api/auth/providers").then((res) => {
@@ -42,6 +54,13 @@ export default function Header({ me, logout }: { me: Me; logout: () => Promise<v
             <li className="hidden sm:block">
               <Link className="text-muted transition hover:text-ink" to="/#about">소개</Link>
             </li>
+            {me && (me.role === "crew" || me.role === "staff" || me.role === "admin") && (
+              <li className="hidden sm:block">
+                <Link className="font-semibold text-green transition hover:text-green-deep" to="/crew">
+                  크루
+                </Link>
+              </li>
+            )}
             <li className="hidden sm:block">
               <Link
                 className="rounded-full bg-ink px-4.5 py-2 font-semibold text-white transition hover:bg-green"
@@ -49,6 +68,16 @@ export default function Header({ me, logout }: { me: Me; logout: () => Promise<v
               >
                 개발 문의
               </Link>
+            </li>
+            <li>
+              <button
+                onClick={toggleTheme}
+                aria-label={dark ? "라이트 모드로 전환" : "다크 모드로 전환"}
+                title={dark ? "라이트 모드" : "다크 모드"}
+                className="grid h-9 w-9 place-items-center rounded-full border border-line bg-card text-base transition hover:border-ink"
+              >
+                {dark ? "☀️" : "🌙"}
+              </button>
             </li>
             <li className="relative" ref={menuRef}>
               {me ? (

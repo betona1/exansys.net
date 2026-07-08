@@ -32,7 +32,7 @@ export default function Turnstile({
         sitekey: siteKey,
         callback: (token: string) => onTokenRef.current(token),
         "expired-callback": () => onTokenRef.current(""),
-        theme: "light",
+        theme: document.documentElement.classList.contains("dark") ? "dark" : "light",
       });
     };
 

@@ -24,6 +24,12 @@
       "id": "4b85f56c5832414bab9a2bbf82b44c53"
     }
   ],
+  "r2_buckets": [
+    {
+      "binding": "MEDIA",
+      "bucket_name": "exansys-media"
+    }
+  ],
   "vars": {
     // GitHub 로그인 시 이 아이디는 자동으로 admin 역할을 받는다 (대표 시드)
     "ADMIN_GITHUB_LOGIN": "betona1",

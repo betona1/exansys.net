@@ -72,13 +72,7 @@ export default function Home() {
     <main id="top">
       {/* ---------- 히어로 (대형 헤드라인 + 폰 목업 패널) ---------- */}
       <section className="px-3 pt-6 sm:px-6">
-        <div
-          className="relative mx-auto max-w-[1400px] overflow-hidden rounded-[2.5rem] px-6 pt-16 text-center sm:pt-24"
-          style={{
-            background:
-              "linear-gradient(180deg, #F4FBEF 0%, #EAF6E2 45%, #D8EFC8 100%)",
-          }}
-        >
+        <div className="hero-panel relative mx-auto max-w-[1400px] overflow-hidden rounded-[2.5rem] px-6 pt-16 text-center sm:pt-24">
           <div className="mb-7 flex justify-center">
             <SnakeLogo size={72} animated wordmark={false} />
           </div>
@@ -331,13 +325,7 @@ export default function Home() {
 
       {/* ---------- 최종 CTA ---------- */}
       <section id="contact" className="scroll-mt-20 px-3 pb-8 sm:px-6">
-        <div
-          className="mx-auto max-w-[1400px] rounded-[2.5rem] px-6 py-24 text-center"
-          style={{
-            background:
-              "linear-gradient(180deg, #EAF6E2 0%, #D8EFC8 60%, #C9E9B2 100%)",
-          }}
-        >
+        <div className="cta-panel mx-auto max-w-[1400px] rounded-[2.5rem] px-6 py-24 text-center">
           <Reveal>
             <div className="mb-6 flex justify-center">
               <SnakeLogo size={64} wordmark={false} />
