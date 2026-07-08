@@ -9,7 +9,9 @@ import {
 
 export const users = sqliteTable("users", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  provider: text("provider", { enum: ["google", "github", "kakao"] }).notNull(),
+  provider: text("provider", {
+    enum: ["google", "github", "kakao", "naver", "email"],
+  }).notNull(),
   providerId: text("provider_id").notNull(),
   name: text("name").notNull(),
   avatarUrl: text("avatar_url"),

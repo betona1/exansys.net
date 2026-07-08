@@ -10,6 +10,9 @@ export interface Env {
   GOOGLE_CLIENT_SECRET?: string;
   KAKAO_CLIENT_ID?: string;
   KAKAO_CLIENT_SECRET?: string;
+  NAVER_CLIENT_ID?: string;
+  NAVER_CLIENT_SECRET?: string;
+  RESEND_API_KEY?: string;
   TURNSTILE_SITE_KEY?: string;
   TURNSTILE_SECRET_KEY?: string;
 }

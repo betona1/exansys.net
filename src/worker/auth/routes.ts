@@ -8,15 +8,26 @@ import { ok, err } from "../types";
 import { enabledProviders, getProvider, type ProviderName } from "./providers";
 import { createSession, destroySession, readSession } from "./session";
 
+import { emailAuthRoutes } from "./email";
+
 const STATE_COOKIE = "oauth_state";
 
 function isProviderName(v: string): v is ProviderName {
-  return v === "google" || v === "github" || v === "kakao";
+  return v === "google" || v === "github" || v === "kakao" || v === "naver";
 }
 
 export const authRoutes = new Hono<{ Bindings: Env }>();
 
-authRoutes.get("/providers", (c) => c.json(ok({ providers: enabledProviders(c.env) })));
+authRoutes.get("/providers", (c) =>
+  c.json(
+    ok({
+      providers: enabledProviders(c.env),
+      emailLogin: Boolean(c.env.RESEND_API_KEY),
+    }),
+  ),
+);
+
+authRoutes.route("/email", emailAuthRoutes);
 
 authRoutes.get("/:provider/start", (c) => {
   const name = c.req.param("provider");

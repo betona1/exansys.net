@@ -1,7 +1,7 @@
 // OAuth 소셜 로그인 3종 (CLAUDE.md 4절) — Google / GitHub / 카카오
 import type { Env } from "../types";
 
-export type ProviderName = "google" | "github" | "kakao";
+export type ProviderName = "google" | "github" | "kakao" | "naver";
 
 export type OAuthProfile = {
   providerId: string;
@@ -24,6 +24,7 @@ export function enabledProviders(env: Env): ProviderName[] {
   if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) list.push("google");
   if (env.GITHUB_CLIENT_ID && env.GITHUB_CLIENT_SECRET) list.push("github");
   if (env.KAKAO_CLIENT_ID) list.push("kakao");
+  if (env.NAVER_CLIENT_ID && env.NAVER_CLIENT_SECRET) list.push("naver");
   return list;
 }
 
@@ -117,6 +118,45 @@ export function getProvider(env: Env, name: ProviderName): ProviderConfig | null
           providerId: String(u.sub),
           name: u.name || "Google 사용자",
           avatarUrl: u.picture ?? null,
+        };
+      },
+    };
+  }
+
+  if (name === "naver") {
+    return {
+      clientId: env.NAVER_CLIENT_ID!,
+      clientSecret: env.NAVER_CLIENT_SECRET!,
+      authorizeUrl: (redirectUri, state) =>
+        `https://nid.naver.com/oauth2.0/authorize?${new URLSearchParams({
+          response_type: "code",
+          client_id: env.NAVER_CLIENT_ID!,
+          redirect_uri: redirectUri,
+          state,
+        })}`,
+      exchange: async (code, redirectUri) => {
+        const json = await postForm("https://nid.naver.com/oauth2.0/token", {
+          grant_type: "authorization_code",
+          client_id: env.NAVER_CLIENT_ID!,
+          client_secret: env.NAVER_CLIENT_SECRET!,
+          code,
+          redirect_uri: redirectUri,
+        });
+        if (!json.access_token) throw new Error("no access_token");
+        return json.access_token;
+      },
+      profile: async (token) => {
+        const res = await fetch("https://openapi.naver.com/v1/nid/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error(`naver profile failed: ${res.status}`);
+        const u: any = await res.json();
+        const p = u.response ?? {};
+        if (!p.id) throw new Error("no naver id");
+        return {
+          providerId: String(p.id),
+          name: p.nickname || p.name || "네이버 사용자",
+          avatarUrl: p.profile_image ?? null,
         };
       },
     };

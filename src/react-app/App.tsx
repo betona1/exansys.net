@@ -9,16 +9,18 @@ import ContactDetail from "./pages/ContactDetail";
 import Privacy from "./pages/Privacy";
 import Crew from "./pages/Crew";
 import CrewDetail from "./pages/CrewDetail";
+import Login from "./pages/Login";
 import { useMe } from "./lib/useMe";
 
 export default function App() {
-  const { me, loading, logout } = useMe();
+  const { me, loading, logout, refresh } = useMe();
 
   return (
     <>
       <Header me={me} logout={logout} />
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login me={me} refresh={refresh} />} />
         <Route path="/apps/:slug" element={<AppDetail me={me} />} />
         <Route path="/apps/:slug/privacy" element={<Privacy me={me} />} />
         <Route path="/contact" element={<Contact me={me} />} />

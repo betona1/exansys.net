@@ -1,17 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import SnakeLogo from "./SnakeLogo";
-import { api, type Me } from "../lib/api";
-
-const PROVIDER_LABEL: Record<string, string> = {
-  google: "Google로 계속하기",
-  github: "GitHub로 계속하기",
-  kakao: "카카오로 계속하기",
-};
+import { type Me } from "../lib/api";
 
 export default function Header({ me, logout }: { me: Me; logout: () => Promise<void> }) {
   const [open, setOpen] = useState(false);
-  const [providers, setProviders] = useState<string[]>([]);
   const [dark, setDark] = useState(() => document.documentElement.classList.contains("dark"));
   const menuRef = useRef<HTMLLIElement>(null);
 
@@ -25,12 +18,6 @@ export default function Header({ me, logout }: { me: Me; logout: () => Promise<v
       /* ignore */
     }
   };
-
-  useEffect(() => {
-    void api<{ providers: string[] }>("/api/auth/providers").then((res) => {
-      if (res.ok) setProviders(res.data.providers);
-    });
-  }, []);
 
   useEffect(() => {
     const close = (e: MouseEvent) => {
@@ -124,33 +111,12 @@ export default function Header({ me, logout }: { me: Me; logout: () => Promise<v
                   )}
                 </>
               ) : (
-                <>
-                  <button
-                    onClick={() => setOpen(!open)}
-                    className="rounded-full border border-line bg-card px-4.5 py-2 text-sm font-semibold transition hover:border-ink"
-                    aria-haspopup="menu"
-                    aria-expanded={open}
-                  >
-                    로그인
-                  </button>
-                  {open && (
-                    <div className="absolute right-0 top-full mt-2 w-56 rounded-xl border border-line bg-card p-1.5 shadow-xl shadow-ink/8">
-                      {providers.length === 0 ? (
-                        <div className="px-3 py-2 text-sm text-muted">로그인 준비 중입니다</div>
-                      ) : (
-                        providers.map((p) => (
-                          <a
-                            key={p}
-                            href={`/api/auth/${p}/start`}
-                            className="block rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-paper"
-                          >
-                            {PROVIDER_LABEL[p] ?? p}
-                          </a>
-                        ))
-                      )}
-                    </div>
-                  )}
-                </>
+                <Link
+                  to="/login"
+                  className="rounded-full border border-line bg-card px-4.5 py-2 text-sm font-semibold transition hover:border-ink"
+                >
+                  로그인
+                </Link>
               )}
             </li>
           </ul>
