@@ -29,7 +29,8 @@
     "ADMIN_GITHUB_LOGIN": "betona1",
     "SITE_URL": "https://exansys.net",
     // OAuth Client ID는 공개 값 — 비밀 아님 (Secret은 대시보드에서 관리)
-    "GITHUB_CLIENT_ID": "Ov23libf61v7QhFMsEHq"
+    "GITHUB_CLIENT_ID": "Ov23libf61v7QhFMsEHq",
+    "GOOGLE_CLIENT_ID": "903917334782-qnu1oo7obg16o5lhj2c94uuljs0hlcg5.apps.googleusercontent.com"
   }
   // 시크릿 (대시보드 또는 wrangler secret put 으로만 관리, 커밋 금지):
   // GITHUB_CLIENT_ID / GITHUB_CLIENT_SECRET
