@@ -3,6 +3,8 @@ import { Link, useLocation } from "react-router-dom";
 import SnakeLogo from "../components/SnakeLogo";
 import Reveal from "../components/Reveal";
 import CountUp from "../components/CountUp";
+import Faq from "../components/Faq";
+import PhoneScene from "../components/PhoneScene";
 import { APPS, NOTICES, STATS, COMPANY } from "../data/site";
 import { api, STATUS_LABEL, type AppRow } from "../lib/api";
 
@@ -12,6 +14,40 @@ const statusStyle: Record<string, string> = {
   released: "bg-cobalt/10 text-cobalt",
   available: "bg-cobalt/10 text-cobalt",
 };
+
+/** 챕터 헤더 — 이모지 뱃지 + 그라디언트 키워드 (alar.my 스타일) */
+function ChapterHead({
+  emoji,
+  label,
+  line1,
+  accent,
+  dark = false,
+}: {
+  emoji: string;
+  label: string;
+  line1: string;
+  accent: string;
+  dark?: boolean;
+}) {
+  return (
+    <Reveal className="mx-auto mb-14 max-w-2xl text-center">
+      <p
+        className={`mb-5 inline-flex items-center gap-2 text-[15px] font-bold ${dark ? "text-white/70" : "text-muted"}`}
+      >
+        <span className="text-xl">{emoji}</span> {label}
+      </p>
+      <h2
+        className={`font-display text-3xl font-extrabold leading-[1.2] tracking-tight sm:text-[2.6rem] ${dark ? "text-white" : ""}`}
+      >
+        {line1}
+        <br />
+        <span className="bg-gradient-to-r from-green to-lime bg-clip-text text-transparent">
+          {accent}
+        </span>
+      </h2>
+    </Reveal>
+  );
+}
 
 export default function Home() {
   const [dbApps, setDbApps] = useState<AppRow[]>([]);
@@ -23,67 +59,77 @@ export default function Home() {
     });
   }, []);
 
-  // /#apps 형태의 해시 이동 지원
   useEffect(() => {
     if (location.hash) {
       document.querySelector(location.hash)?.scrollIntoView({ behavior: "smooth" });
     }
   }, [location.hash]);
 
+  const featured = dbApps[0];
+  const rest = dbApps.slice(1);
+
   return (
     <main id="top">
-      {/* ---------- 히어로 ---------- */}
-      <section className="relative overflow-hidden">
+      {/* ---------- 히어로 (대형 헤드라인 + 폰 목업 패널) ---------- */}
+      <section className="px-3 pt-6 sm:px-6">
         <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -top-40 right-[-10%] h-[520px] w-[520px] rounded-full opacity-60"
-          style={{ background: "radial-gradient(circle, rgba(155,225,93,.22), transparent 65%)" }}
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute bottom-[-30%] left-[-8%] h-[420px] w-[420px] rounded-full opacity-60"
-          style={{ background: "radial-gradient(circle, rgba(14,87,65,.14), transparent 65%)" }}
-        />
-        <div className="mx-auto max-w-6xl px-6 pb-16 pt-20 text-center sm:pt-24">
-          <div className="mb-8 flex justify-center">
-            <SnakeLogo size={88} animated wordmark={false} />
+          className="relative mx-auto max-w-[1400px] overflow-hidden rounded-[2.5rem] px-6 pt-16 text-center sm:pt-24"
+          style={{
+            background:
+              "linear-gradient(180deg, #F4FBEF 0%, #EAF6E2 45%, #D8EFC8 100%)",
+          }}
+        >
+          <div className="mb-7 flex justify-center">
+            <SnakeLogo size={72} animated wordmark={false} />
           </div>
-          <p className="mb-4 text-[13px] font-semibold uppercase tracking-[0.18em] text-green">
-            Mobile App Studio · Seoul
-          </p>
-          <h1 className="font-display mx-auto max-w-3xl text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-6xl">
-            Apps built to be
-            <br />
-            <span className="bg-gradient-to-r from-green to-lime bg-clip-text text-transparent">
-              opened every day.
-            </span>
+          <h1 className="font-display mx-auto max-w-3xl text-[2.5rem] font-extrabold leading-[1.12] tracking-tight sm:text-6xl">
+            매일 열게 되는
+            <br />단 하나의 앱
           </h1>
-          <p className="mx-auto mt-6 max-w-xl text-lg text-muted">
-            엑사엔시스는 홈 화면에 남을 자격이 있는 앱을 만듭니다.
-            작고, 빠르고, 믿을 수 있게 — 10년의 인프라 운영 경험 위에서.
+          <p className="mx-auto mt-5 max-w-xl text-base text-muted sm:text-lg">
+            한국에서 만들고 매일 쓰이는 — Apps built to be opened every day.
           </p>
-          <div className="mt-9 flex flex-wrap justify-center gap-3.5">
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
             <a
               href="#apps"
-              className="rounded-full bg-green px-7 py-3.5 font-semibold text-white shadow-lg shadow-green/25 transition hover:bg-green-deep"
+              className="rounded-xl bg-ink px-6 py-3.5 text-[15px] font-semibold text-white transition hover:bg-green"
             >
               우리 앱 보기
             </a>
             <a
               href="#contact"
-              className="rounded-full border-[1.5px] border-line bg-card px-7 py-3.5 font-semibold transition hover:border-ink"
+              className="rounded-xl border border-ink/15 bg-white/70 px-6 py-3.5 text-[15px] font-semibold backdrop-blur transition hover:border-ink"
             >
               개발 문의하기
             </a>
           </div>
+
+          <PhoneScene />
         </div>
+        <p className="mt-6 text-center text-[11px] font-bold tracking-[0.2em] text-muted">
+          SCROLL DOWN ↓
+        </p>
       </section>
 
-      {/* ---------- 대시보드: 지표 ---------- */}
-      <section className="border-y border-line bg-card">
-        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-px sm:grid-cols-3">
+      {/* ---------- 소셜 프루프 + 지표 ---------- */}
+      <section className="px-6 py-24 text-center sm:py-32">
+        <Reveal className="mx-auto max-w-3xl">
+          <h2 className="font-display text-3xl font-extrabold leading-[1.25] tracking-tight sm:text-[2.6rem]">
+            2016년부터 시스템을 지켜온 팀이 만드는
+            <br />
+            <span className="bg-gradient-to-r from-green to-lime bg-clip-text text-transparent">
+              신뢰할 수 있는 앱
+            </span>
+          </h2>
+          <p className="mt-5 text-muted">
+            하루의 시작과 끝에 함께할 앱을 준비하고 있습니다.
+            <br />
+            10년의 IT 인프라 운영 규율을 그대로 모바일에 담습니다.
+          </p>
+        </Reveal>
+        <div className="mx-auto mt-14 grid max-w-4xl grid-cols-1 gap-4 sm:grid-cols-3">
           {STATS.map((s) => (
-            <Reveal key={s.label} className="px-6 py-10 text-center">
+            <Reveal key={s.label} className="rounded-3xl border border-line bg-card px-6 py-9">
               <div className="font-display text-4xl font-extrabold text-green">
                 {s.plain ? s.value : <CountUp value={s.value} suffix={s.suffix ?? ""} />}
               </div>
@@ -93,158 +139,223 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ---------- 대시보드: 앱 + 소식 ---------- */}
-      <section id="apps" className="mx-auto max-w-6xl scroll-mt-20 px-6 py-20">
-        <Reveal className="mb-12 max-w-xl">
-          <p className="mb-3 text-[13px] font-semibold uppercase tracking-[0.18em] text-green">
-            Our Apps
-          </p>
-          <h2 className="font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
-            집중된 도구, 군더더기 없이.
-          </h2>
-          <p className="mt-4 text-muted">
-            Android와 iOS에서 직접 설계하고 출시하는 앱들입니다. 매일 쓰는 단순한
-            도구가, 한 번 쓰고 마는 복잡한 도구를 이깁니다.
-          </p>
-        </Reveal>
+      {/* ---------- 챕터 1: 앱 (벤토 그리드) ---------- */}
+      <section id="apps" className="scroll-mt-20 px-6 pb-24">
+        <div className="mx-auto max-w-6xl">
+          <ChapterHead
+            emoji="📱"
+            label="OUR APPS"
+            line1="군더더기 없이"
+            accent="확실하게 쓰이니까"
+          />
 
-        <div className="grid gap-6 lg:grid-cols-3">
-          <div className="grid gap-5 sm:grid-cols-2 lg:col-span-2 lg:grid-cols-2">
-            {dbApps.length > 0
-              ? dbApps.map((app) => (
-                  <Reveal
-                    key={app.id}
-                    className="rounded-2xl border border-line bg-card p-7 transition hover:-translate-y-1 hover:shadow-xl hover:shadow-ink/8"
-                  >
-                    <Link to={`/apps/${app.slug}`} className="block">
-                      <div className="mb-5 grid h-13 w-13 place-items-center overflow-hidden rounded-xl bg-lime/15 text-2xl">
-                        {app.iconUrl?.startsWith("http") ? (
-                          <img src={app.iconUrl} alt="" className="h-full w-full object-cover" />
-                        ) : (
-                          <span>{app.iconUrl || "📱"}</span>
-                        )}
+          <div className="grid gap-5 lg:grid-cols-2">
+            {/* 큰 카드: 대표 앱 */}
+            <Reveal className="rounded-[2rem] bg-paper-deep bg-card p-9 shadow-sm ring-1 ring-line lg:row-span-2">
+              {featured ? (
+                <Link to={`/apps/${featured.slug}`} className="block">
+                  <p className="mb-2 text-sm font-bold text-green">⏰ {STATUS_LABEL[featured.status]}</p>
+                  <h3 className="font-display text-2xl font-extrabold leading-snug">
+                    {featured.name}
+                  </h3>
+                  <p className="mt-3 max-w-md text-[15px] text-muted">{featured.tagline}</p>
+                  <div className="mt-8 grid h-64 place-items-center overflow-hidden rounded-2xl bg-gradient-to-b from-paper to-lime/15 text-7xl">
+                    {featured.iconUrl?.startsWith("http") ? (
+                      <img src={featured.iconUrl} alt="" className="h-28 w-28 rounded-3xl object-cover shadow-xl" />
+                    ) : (
+                      <span>{featured.iconUrl || "📱"}</span>
+                    )}
+                  </div>
+                </Link>
+              ) : (
+                <>
+                  <p className="mb-2 text-sm font-bold text-green">⏰ 개발 중 · 2026 출시 목표</p>
+                  <h3 className="font-display text-2xl font-extrabold leading-snug">
+                    눈이 저절로 가는
+                    <br />
+                    데일리 생산성 컴패니언
+                  </h3>
+                  <p className="mt-3 max-w-md text-[15px] text-muted">
+                    오프라인 우선, 광고 없음, 다크 패턴 없음. 홈 화면 첫 줄에 남는
+                    것이 목표입니다.
+                  </p>
+                  <div className="mt-8 grid grid-cols-4 gap-3">
+                    {[
+                      ["✅", "할 일"],
+                      ["⏱️", "루틴"],
+                      ["📊", "리포트"],
+                      ["🔔", "리마인더"],
+                      ["📆", "일정"],
+                      ["🌙", "집중"],
+                      ["📝", "메모"],
+                      ["☁️", "동기화"],
+                    ].map(([icon, name]) => (
+                      <div key={name} className="text-center">
+                        <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-paper text-2xl shadow-sm ring-1 ring-line">
+                          {icon}
+                        </div>
+                        <div className="mt-1.5 text-xs font-medium text-muted">{name}</div>
                       </div>
-                      <h3 className="font-display mb-2 text-xl font-bold">{app.name}</h3>
-                      <p className="mb-4 text-[15px] text-muted">{app.tagline}</p>
-                      <div className="flex items-center gap-2.5">
-                        <span
-                          className={`inline-block rounded-full px-3 py-1 text-xs font-semibold ${statusStyle[app.status]}`}
-                        >
-                          {STATUS_LABEL[app.status]}
-                        </span>
-                        {app.status === "released" && (
-                          <span className="text-xs font-semibold text-muted">
-                            ⬇ <CountUp value={app.downloadCount} />
-                          </span>
-                        )}
-                      </div>
-                    </Link>
-                  </Reveal>
-                ))
-              : APPS.map((app) => (
-                  <Reveal
-                    key={app.name}
-                    className="rounded-2xl border border-line bg-card p-7 transition hover:-translate-y-1 hover:shadow-xl hover:shadow-ink/8"
-                  >
-                    <div
-                      className="mb-5 grid h-13 w-13 place-items-center rounded-xl text-2xl"
-                      style={{ background: app.tint }}
-                    >
-                      {app.emoji}
-                    </div>
-                    <h3 className="font-display mb-2 text-xl font-bold">{app.name}</h3>
-                    <p className="mb-4 text-[15px] text-muted">{app.description}</p>
-                    <span
-                      className={`inline-block rounded-full px-3 py-1 text-xs font-semibold ${statusStyle[app.status]}`}
-                    >
-                      {app.statusLabel}
+                    ))}
+                  </div>
+                </>
+              )}
+            </Reveal>
+
+            {/* 작은 카드들 */}
+            {rest.length > 0 ? (
+              rest.slice(0, 2).map((app) => (
+                <Reveal key={app.id} className="rounded-[2rem] bg-card p-8 shadow-sm ring-1 ring-line">
+                  <Link to={`/apps/${app.slug}`} className="block">
+                    <span className={`mb-3 inline-block rounded-full px-3 py-1 text-xs font-semibold ${statusStyle[app.status]}`}>
+                      {STATUS_LABEL[app.status]}
                     </span>
-                  </Reveal>
-                ))}
-          </div>
-
-          <div className="flex flex-col gap-5">
-            <Reveal className="rounded-2xl border border-line bg-card p-7">
-              <h3 className="font-display mb-4 text-lg font-bold">공지</h3>
-              <ul className="space-y-3.5">
-                {NOTICES.map((n) => (
-                  <li key={n.text} className="flex gap-3 text-sm">
-                    <span className="shrink-0 font-semibold text-green">{n.date}</span>
-                    <span className="text-muted">{n.text}</span>
-                  </li>
-                ))}
-              </ul>
-            </Reveal>
-            <Reveal className="rounded-2xl border border-dashed border-line bg-paper p-7">
-              <h3 className="font-display mb-2 text-lg font-bold">문의게시판</h3>
-              <p className="text-sm text-muted">
-                Phase 3에서 열립니다. 지금은{" "}
-                <a className="font-semibold text-cobalt hover:underline" href="#contact">
-                  이메일로 문의
-                </a>
-                해 주세요.
-              </p>
-            </Reveal>
+                    <h3 className="font-display text-xl font-extrabold">{app.name}</h3>
+                    <p className="mt-2 text-[15px] text-muted">{app.tagline}</p>
+                  </Link>
+                </Reveal>
+              ))
+            ) : (
+              APPS.slice(1).map((app) => (
+                <Reveal key={app.name} className="rounded-[2rem] bg-card p-8 shadow-sm ring-1 ring-line">
+                  <span className={`mb-3 inline-block rounded-full px-3 py-1 text-xs font-semibold ${statusStyle[app.status]}`}>
+                    {app.statusLabel}
+                  </span>
+                  <h3 className="font-display text-xl font-extrabold">
+                    {app.emoji} {app.name}
+                  </h3>
+                  <p className="mt-2 text-[15px] text-muted">{app.description}</p>
+                </Reveal>
+              ))
+            )}
           </div>
         </div>
       </section>
 
-      {/* ---------- 소개 ---------- */}
-      <section id="about" className="scroll-mt-20 border-y border-line bg-card">
-        <div className="mx-auto max-w-6xl px-6 py-20">
-          <Reveal className="mb-12 max-w-2xl">
-            <p className="mb-3 text-[13px] font-semibold uppercase tracking-[0.18em] text-green">
-              About EXANSYS
-            </p>
-            <h2 className="font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
-              10년간 시스템을 지켜온 손으로,
-              <br />
-              이제 앱을 만듭니다.
-            </h2>
-            <p className="mt-4 text-muted">
-              2016년 서울에서 창립한 엑사엔시스는 컴퓨터 시스템 유지보수, 통신망
-              구축 등 비즈니스가 기대는 인프라를 오래 다뤄왔습니다. 그 신뢰성의
-              감각이 지금 우리가 만드는 모든 모바일 앱에 담깁니다.
-            </p>
-          </Reveal>
+      {/* ---------- 챕터 2: 원칙 (다크 섹션) ---------- */}
+      <section id="about" className="scroll-mt-20 bg-ink px-6 py-24 sm:py-28">
+        <div className="mx-auto max-w-6xl">
+          <ChapterHead
+            emoji="🌙"
+            label="OUR CRAFT"
+            line1="오래 쓰여야"
+            accent="좋은 앱이니까"
+            dark
+          />
           <div className="grid gap-5 sm:grid-cols-3">
             {[
-              { title: "작고 빠르게", body: "빨리 열리고 바로 쓰이는 앱. 기능 욕심보다 완성도." },
-              { title: "광고 없이, 공정하게", body: "광고와 다크 패턴 없이 정직한 가격으로 운영합니다." },
-              { title: "오래 가게", body: "인프라를 지켜온 규율로, 출시 후에도 꾸준히 관리합니다." },
+              {
+                icon: "🚫",
+                title: "광고 없음, 영원히",
+                body: "광고와 다크 패턴 없이 정직한 가격으로만 운영합니다. 사용자의 아침을 광고로 시작하게 하지 않습니다.",
+              },
+              {
+                icon: "⚡",
+                title: "오프라인 우선",
+                body: "네트워크가 없어도 바로 열리고 바로 쓰입니다. 빠른 실행 속도는 협상하지 않습니다.",
+              },
+              {
+                icon: "🔧",
+                title: "출시 후가 진짜",
+                body: "10년간 인프라를 지켜온 규율로, 출시한 앱은 꾸준히 업데이트하고 관리합니다.",
+              },
             ].map((p) => (
-              <Reveal key={p.title} className="rounded-2xl border border-line bg-paper p-7">
-                <h3 className="font-display mb-2 text-lg font-bold text-green">{p.title}</h3>
-                <p className="text-sm text-muted">{p.body}</p>
+              <Reveal key={p.title} className="rounded-[2rem] bg-white/[0.06] p-8 ring-1 ring-white/10">
+                <div className="mb-4 text-3xl">{p.icon}</div>
+                <h3 className="font-display text-lg font-bold text-white">{p.title}</h3>
+                <p className="mt-2.5 text-sm leading-relaxed text-white/60">{p.body}</p>
               </Reveal>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ---------- 문의 ---------- */}
-      <section id="contact" className="scroll-mt-20 bg-ink text-white">
-        <div className="mx-auto max-w-6xl px-6 py-20">
-          <Reveal className="max-w-xl">
-            <p className="mb-3 text-[13px] font-semibold uppercase tracking-[0.18em] text-lime">
-              Contact
+      {/* ---------- 공지 + 문의게시판 ---------- */}
+      <section className="px-6 py-20">
+        <div className="mx-auto grid max-w-6xl gap-5 sm:grid-cols-2">
+          <Reveal className="rounded-[2rem] border border-line bg-card p-8">
+            <h3 className="font-display mb-4 text-lg font-bold">공지</h3>
+            <ul className="space-y-3.5">
+              {NOTICES.map((n) => (
+                <li key={n.text} className="flex gap-3 text-sm">
+                  <span className="shrink-0 font-semibold text-green">{n.date}</span>
+                  <span className="text-muted">{n.text}</span>
+                </li>
+              ))}
+            </ul>
+          </Reveal>
+          <Reveal className="rounded-[2rem] border border-dashed border-line bg-paper p-8">
+            <h3 className="font-display mb-2 text-lg font-bold">문의게시판</h3>
+            <p className="text-sm text-muted">
+              소셜 로그인과 함께 준비 중입니다 (Phase 3). 지금은{" "}
+              <a className="font-semibold text-cobalt hover:underline" href="#contact">
+                이메일로 문의
+              </a>
+              해 주세요.
             </p>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ---------- FAQ ---------- */}
+      <section className="px-6 pb-24">
+        <div className="mx-auto max-w-3xl">
+          <ChapterHead emoji="💬" label="FAQ" line1="자주 묻는" accent="질문들" />
+          <Faq
+            items={[
+              {
+                q: "EXANSYS는 어떤 회사인가요?",
+                a: "2016년 서울에서 창립한 모바일 앱 전문 개발사입니다. 10년간 컴퓨터 시스템 유지보수와 통신망 구축 등 IT 인프라를 다뤄왔고, 지금은 그 신뢰성의 감각으로 모바일 앱을 만드는 데 집중하고 있습니다.",
+              },
+              {
+                q: "첫 앱은 언제 출시되나요?",
+                a: "데일리 생산성 컴패니언 앱을 2026년 출시 목표로 개발하고 있습니다. 출시 소식은 이 홈페이지 공지에서 가장 먼저 알려드립니다.",
+              },
+              {
+                q: "앱 외주 개발도 하나요?",
+                a: "네. 아이디어 정리부터 기획·디자인·개발·스토어 출시까지 전 과정을 함께합니다. 아래 이메일로 만들고 싶은 앱을 알려주세요.",
+              },
+              {
+                q: "앱은 정말 광고가 없나요?",
+                a: "네. 저희가 직접 만드는 앱에는 광고와 다크 패턴을 넣지 않습니다. 필요한 경우 정직한 구독/구매 모델로만 운영합니다.",
+              },
+              {
+                q: "출시된 앱의 개인정보처리방침은 어디서 보나요?",
+                a: "각 앱 상세 페이지에서 공개 문서로 제공할 예정입니다 (Phase 3). Google Play·App Store 등록 정보에서도 같은 링크를 확인할 수 있게 됩니다.",
+              },
+            ]}
+          />
+        </div>
+      </section>
+
+      {/* ---------- 최종 CTA ---------- */}
+      <section id="contact" className="scroll-mt-20 px-3 pb-8 sm:px-6">
+        <div
+          className="mx-auto max-w-[1400px] rounded-[2.5rem] px-6 py-24 text-center"
+          style={{
+            background:
+              "linear-gradient(180deg, #EAF6E2 0%, #D8EFC8 60%, #C9E9B2 100%)",
+          }}
+        >
+          <Reveal>
+            <div className="mb-6 flex justify-center">
+              <SnakeLogo size={64} wordmark={false} />
+            </div>
             <h2 className="font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
-              앱 이야기를 나눠요.
+              함께 만들 앱이 있나요?
             </h2>
-            <p className="mt-4 text-white/65">
-              앱에 대한 질문, 파트너십, 만들고 싶은 프로젝트 — 모든 메일에
-              답장합니다.
+            <p className="mx-auto mt-4 max-w-md text-muted">
+              앱에 대한 질문, 파트너십, 만들고 싶은 프로젝트 — 모든 메일에 답장합니다.
             </p>
             <div className="mt-8">
               <a
-                className="inline-block rounded-full bg-lime px-7 py-3.5 font-bold text-green-deep transition hover:brightness-95"
+                className="inline-block rounded-xl bg-ink px-7 py-4 font-semibold text-white transition hover:bg-green"
                 href={`mailto:${COMPANY.email}`}
               >
                 {COMPANY.email}
               </a>
             </div>
-            <p className="mt-5 text-sm text-white/45">{COMPANY.addressEn}</p>
+            <p className="mt-6 text-xs text-ink/40">{COMPANY.addressEn}</p>
           </Reveal>
         </div>
       </section>
