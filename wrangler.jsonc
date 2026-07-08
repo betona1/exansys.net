@@ -8,10 +8,28 @@
   },
   "observability": {
     "enabled": true
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "exansys-db",
+      "database_id": "3b793a9b-4974-4a9a-a874-62ff1f079779"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "SESSIONS",
+      "id": "4b85f56c5832414bab9a2bbf82b44c53"
+    }
+  ],
+  "vars": {
+    // GitHub 로그인 시 이 아이디는 자동으로 admin 역할을 받는다 (대표 시드)
+    "ADMIN_GITHUB_LOGIN": "betona1",
+    "SITE_URL": "https://exansys.net"
   }
-  // Phase 2에서 추가 예정:
-  // - d1_databases (DB 이름: exansys-db) — 회원/앱/게시판 데이터
-  // - kv_namespaces (SESSIONS) — 로그인 세션
-  // - r2_buckets (MEDIA) — 앱 아이콘/스크린샷/갤러리 이미지
-  // 시크릿(OAuth 클라이언트 등)은 wrangler secret put 으로만 관리한다.
+  // 시크릿 (대시보드 또는 wrangler secret put 으로만 관리, 커밋 금지):
+  // GITHUB_CLIENT_ID / GITHUB_CLIENT_SECRET
+  // GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET
+  // KAKAO_CLIENT_ID / KAKAO_CLIENT_SECRET
+  // Phase 4에서 추가 예정: r2_buckets (MEDIA) — R2는 결제수단 등록 필요해 보류
 }
