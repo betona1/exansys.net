@@ -11,7 +11,7 @@ import { crewRoutes } from "./routes/crew";
 
 const app = new Hono<{ Bindings: Env }>();
 
-app.get("/api/health", (c) => c.json(ok({ service: "exansys-site", phase: 3 })));
+app.get("/api/health", (c) => c.json(ok({ service: "exansys-site", phase: 4 })));
 
 // 프론트에서 필요한 공개 설정 값
 app.get("/api/config", (c) =>
