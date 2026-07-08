@@ -1,0 +1,118 @@
+@import "tailwindcss";
+
+@theme {
+  --color-paper: #f6f7fa;
+  --color-card: #ffffff;
+  --color-ink: #12141c;
+  --color-muted: #5b6472;
+  --color-line: #e4e7ee;
+  --color-green: #0e5741;
+  --color-green-deep: #093c2d;
+  --color-lime: #9be15d;
+  --color-cobalt: #2742f5;
+  --font-display: "Bricolage Grotesque", "Pretendard Variable", Pretendard,
+    sans-serif;
+  --font-sans: "Pretendard Variable", Pretendard, -apple-system, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-paper text-ink font-sans antialiased;
+  line-height: 1.65;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-green);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* 스크롤 진입 애니메이션 */
+.reveal {
+  opacity: 0;
+  transform: translateY(26px);
+  transition:
+    opacity 0.6s ease,
+    transform 0.6s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* 로고 뱀 draw 애니메이션 (CSS라서 reduced-motion 대응이 쉬움) */
+.snake-animated .snake-body {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: snake-draw 1.6s cubic-bezier(0.65, 0.05, 0.3, 1) 0.15s forwards;
+}
+.snake-animated .snake-head {
+  opacity: 0;
+  animation: snake-appear 0.4s ease 1.55s forwards;
+}
+/* 이후 은은한 하이라이트 루프 */
+.snake-animated .snake-shine {
+  stroke-dasharray: 0.14 0.86;
+  stroke-dashoffset: 1;
+  opacity: 0;
+  animation: snake-shine 5.5s linear 2.2s infinite;
+}
+
+@keyframes snake-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes snake-appear {
+  to {
+    opacity: 1;
+  }
+}
+@keyframes snake-shine {
+  0% {
+    stroke-dashoffset: 1;
+    opacity: 0;
+  }
+  8% {
+    opacity: 0.5;
+  }
+  30% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .snake-animated .snake-body {
+    stroke-dashoffset: 0;
+    animation: none;
+  }
+  .snake-animated .snake-head {
+    opacity: 1;
+    animation: none;
+  }
+  .snake-animated .snake-shine {
+    display: none;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}

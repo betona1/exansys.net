@@ -1,0 +1,17 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "exansys-site",
+  "main": "src/worker/index.ts",
+  "compatibility_date": "2026-06-01",
+  "assets": {
+    "not_found_handling": "single-page-application"
+  },
+  "observability": {
+    "enabled": true
+  }
+  // Phase 2에서 추가 예정:
+  // - d1_databases (DB 이름: exansys-db) — 회원/앱/게시판 데이터
+  // - kv_namespaces (SESSIONS) — 로그인 세션
+  // - r2_buckets (MEDIA) — 앱 아이콘/스크린샷/갤러리 이미지
+  // 시크릿(OAuth 클라이언트 등)은 wrangler secret put 으로만 관리한다.
+}
