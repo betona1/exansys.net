@@ -242,7 +242,7 @@ export default function Admin({ me, meLoading }: { me: Me; meLoading: boolean })
             {apps.map((app) => (
               <div key={app.id} className="flex items-center gap-4 rounded-2xl border border-line bg-card p-4">
                 <div className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-xl bg-lime/15 text-xl">
-                  {app.iconUrl?.startsWith("http") ? (
+                  {/^(https?:\/\/|\/)/.test(app.iconUrl ?? "") ? (
                     <img src={app.iconUrl} alt="" className="h-full w-full object-cover" />
                   ) : (
                     <span>{app.iconUrl || "📱"}</span>

@@ -154,7 +154,7 @@ export default function Home() {
                   </h3>
                   <p className="mt-3 max-w-md text-[15px] text-muted">{featured.tagline}</p>
                   <div className="mt-8 grid h-64 place-items-center overflow-hidden rounded-2xl bg-gradient-to-b from-paper to-lime/15 text-7xl">
-                    {featured.iconUrl?.startsWith("http") ? (
+                    {/^(https?:\/\/|\/)/.test(featured.iconUrl ?? "") ? (
                       <img src={featured.iconUrl} alt="" className="h-28 w-28 rounded-3xl object-cover shadow-xl" />
                     ) : (
                       <span>{featured.iconUrl || "📱"}</span>

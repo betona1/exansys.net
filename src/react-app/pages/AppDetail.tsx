@@ -76,7 +76,7 @@ export default function AppDetail({ me }: { me: Me }) {
 
       <div className="mt-6 flex flex-wrap items-start gap-6">
         <div className="grid h-20 w-20 place-items-center overflow-hidden rounded-2xl border border-line bg-lime/15 text-4xl">
-          {app.iconUrl?.startsWith("http") ? (
+          {/^(https?:\/\/|\/)/.test(app.iconUrl ?? "") ? (
             <img src={app.iconUrl} alt="" className="h-full w-full object-cover" />
           ) : (
             <span>{app.iconUrl || "📱"}</span>
