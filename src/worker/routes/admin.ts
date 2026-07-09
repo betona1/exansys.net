@@ -2,7 +2,17 @@ import { Hono } from "hono";
 import { drizzle } from "drizzle-orm/d1";
 import { asc, eq, gte, lt, sql } from "drizzle-orm";
 import { z } from "zod";
-import { apps, appBuilds, appScreenshots, users, visitLogs, visitStats } from "../../db/schema";
+import {
+  apps,
+  appBuilds,
+  appComments,
+  appScreenshots,
+  downloadLogs,
+  privacyPolicies,
+  users,
+  visitLogs,
+  visitStats,
+} from "../../db/schema";
 import type { Env } from "../types";
 import { ok, err } from "../types";
 import { requireRole, type AuthedUser } from "../middleware";
@@ -85,8 +95,29 @@ adminRoutes.delete("/apps/:id", requireRole("admin"), async (c) => {
   const id = Number(c.req.param("id"));
   if (!Number.isInteger(id)) return c.json(err("invalid_id"), 400);
   const db = drizzle(c.env.DB);
-  const deleted = await db.delete(apps).where(eq(apps.id, id)).returning({ id: apps.id });
-  if (deleted.length === 0) return c.json(err("not_found"), 404);
+  const found = await db.select().from(apps).where(eq(apps.id, id)).limit(1);
+  if (found.length === 0) return c.json(err("not_found"), 404);
+
+  // R2 파일 정리: 스크린샷·아이콘·APK 빌드
+  const shots = await db.select().from(appScreenshots).where(eq(appScreenshots.appId, id));
+  for (const s of shots) {
+    const key = s.imageUrl.replace(/^\/api\/media\//, "");
+    if (key.startsWith("shots/")) await c.env.MEDIA.delete(key);
+  }
+  const iconKey = (found[0].iconUrl ?? "").replace(/^\/api\/media\//, "");
+  if (iconKey.startsWith("shots/")) await c.env.MEDIA.delete(iconKey);
+  const builds = await db.select().from(appBuilds).where(eq(appBuilds.appId, id));
+  for (const b of builds) {
+    await c.env.MEDIA.delete(b.fileKey);
+  }
+
+  // 자식 행부터 삭제 (FK 제약 — 방침·댓글·카운터 로그가 남아 있으면 앱 삭제가 실패한다)
+  await db.delete(appScreenshots).where(eq(appScreenshots.appId, id));
+  await db.delete(appBuilds).where(eq(appBuilds.appId, id));
+  await db.delete(appComments).where(eq(appComments.appId, id));
+  await db.delete(privacyPolicies).where(eq(privacyPolicies.appId, id));
+  await db.delete(downloadLogs).where(eq(downloadLogs.appId, id));
+  await db.delete(apps).where(eq(apps.id, id));
   return c.json(ok({ deleted: id }));
 });
 

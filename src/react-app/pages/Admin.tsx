@@ -116,9 +116,14 @@ export default function Admin({ me, meLoading }: { me: Me; meLoading: boolean })
   };
 
   const deleteApp = async (id: number) => {
-    if (!window.confirm("이 앱을 삭제할까요? 되돌릴 수 없습니다.")) return;
+    if (!window.confirm("이 앱을 삭제할까요? 스크린샷·빌드·댓글·방침이 모두 삭제되며 되돌릴 수 없습니다.")) return;
     const res = await api(`/api/admin/apps/${id}`, { method: "DELETE" });
-    if (res.ok) void loadApps();
+    if (res.ok) {
+      if (assetsApp?.id === id) setAssetsApp(null);
+      void loadApps();
+    } else {
+      window.alert(`삭제 실패: ${(res as { error: string }).error}`);
+    }
   };
 
   const changeRole = async (id: number, role: string) => {
