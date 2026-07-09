@@ -1,11 +1,12 @@
 import { Hono } from "hono";
 import { drizzle } from "drizzle-orm/d1";
-import { asc, eq } from "drizzle-orm";
+import { asc, eq, gte, lt, sql } from "drizzle-orm";
 import { z } from "zod";
-import { apps, users } from "../../db/schema";
+import { apps, users, visitLogs, visitStats } from "../../db/schema";
 import type { Env } from "../types";
 import { ok, err } from "../types";
 import { requireRole, type AuthedUser } from "../middleware";
+import { kstDate } from "./visits";
 
 const appSchema = z.object({
   slug: z
@@ -104,6 +105,46 @@ adminRoutes.get("/users", requireRole("admin"), async (c) => {
     .from(users)
     .orderBy(asc(users.id));
   return c.json(ok({ users: rows }));
+});
+
+// 방문자/사이트 통계 — staff 이상 열람
+adminRoutes.get("/stats", requireRole("staff"), async (c) => {
+  const db = drizzle(c.env.DB);
+  const today = kstDate();
+  const from = kstDate(-13); // 오늘 포함 최근 14일
+
+  const days = await db
+    .select()
+    .from(visitStats)
+    .where(gte(visitStats.date, from))
+    .orderBy(asc(visitStats.date));
+
+  const totalsRow = await db
+    .select({
+      visitors: sql<number>`coalesce(sum(${visitStats.visitors}), 0)`,
+      pageviews: sql<number>`coalesce(sum(${visitStats.pageviews}), 0)`,
+      since: sql<string | null>`min(${visitStats.date})`,
+    })
+    .from(visitStats);
+
+  const memberCountRow = await db.select({ n: sql<number>`count(*)` }).from(users);
+  const downloadRow = await db
+    .select({ n: sql<number>`coalesce(sum(${apps.downloadCount}), 0)` })
+    .from(apps);
+
+  // 오래된 방문 로그 정리 (35일 이전 — 집계는 visit_stats에 영구 보존)
+  await db.delete(visitLogs).where(lt(visitLogs.date, kstDate(-35)));
+
+  const todayRow = days.find((d) => d.date === today);
+  return c.json(
+    ok({
+      today: { date: today, visitors: todayRow?.visitors ?? 0, pageviews: todayRow?.pageviews ?? 0 },
+      days,
+      totals: totalsRow[0],
+      memberCount: memberCountRow[0].n,
+      downloadTotal: downloadRow[0].n,
+    }),
+  );
 });
 
 adminRoutes.put("/users/:id/role", requireRole("admin"), async (c) => {

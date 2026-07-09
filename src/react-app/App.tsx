@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
@@ -12,8 +13,17 @@ import CrewDetail from "./pages/CrewDetail";
 import Login from "./pages/Login";
 import { useMe } from "./lib/useMe";
 
+// 페이지 로드당 1회만 방문 집계 (StrictMode 이중 실행 방지용 모듈 플래그)
+let visitTracked = false;
+
 export default function App() {
   const { me, loading, logout, refresh } = useMe();
+
+  useEffect(() => {
+    if (visitTracked) return;
+    visitTracked = true;
+    void fetch("/api/visits/track", { method: "POST" }).catch(() => {});
+  }, []);
 
   return (
     <>

@@ -5,6 +5,7 @@ import {
   text,
   integer,
   index,
+  uniqueIndex,
 } from "drizzle-orm/sqlite-core";
 
 export const users = sqliteTable("users", {
@@ -134,6 +135,24 @@ export const galleryComments = sqliteTable("gallery_comments", {
     .references(() => users.id),
   body: text("body").notNull(),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+});
+
+// 방문자 카운트 — 하루 단위 유니크 방문자 중복 방지 (IP/UA 원문 저장 금지 — 해시만)
+export const visitLogs = sqliteTable(
+  "visit_logs",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    date: text("date").notNull(), // YYYY-MM-DD (KST), 35일 후 정리
+    visitorHash: text("visitor_hash").notNull(),
+  },
+  (t) => [uniqueIndex("idx_visit_logs_dedupe").on(t.date, t.visitorHash)],
+);
+
+// 일별 집계 (로그 정리 후에도 통계는 영구 보존)
+export const visitStats = sqliteTable("visit_stats", {
+  date: text("date").primaryKey(), // YYYY-MM-DD (KST)
+  pageviews: integer("pageviews").notNull().default(0),
+  visitors: integer("visitors").notNull().default(0),
 });
 
 // 다운로드 카운터 중복 방지용 (IP/UA는 원문 저장 금지 — 해시만)

@@ -10,6 +10,14 @@ type UserRow = {
   role: "member" | "crew" | "staff" | "admin";
 };
 
+type StatsData = {
+  today: { date: string; visitors: number; pageviews: number };
+  days: { date: string; visitors: number; pageviews: number }[];
+  totals: { visitors: number; pageviews: number; since: string | null };
+  memberCount: number;
+  downloadTotal: number;
+};
+
 const EMPTY_FORM = {
   slug: "",
   name: "",
@@ -22,9 +30,10 @@ const EMPTY_FORM = {
 };
 
 export default function Admin({ me, meLoading }: { me: Me; meLoading: boolean }) {
-  const [tab, setTab] = useState<"apps" | "users">("apps");
+  const [tab, setTab] = useState<"apps" | "users" | "stats">("apps");
   const [apps, setApps] = useState<AppRow[]>([]);
   const [members, setMembers] = useState<UserRow[]>([]);
+  const [stats, setStats] = useState<StatsData | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [msg, setMsg] = useState("");
@@ -42,11 +51,17 @@ export default function Admin({ me, meLoading }: { me: Me; meLoading: boolean })
     if (res.ok) setMembers(res.data.users);
   }, []);
 
+  const loadStats = useCallback(async () => {
+    const res = await api<StatsData>("/api/admin/stats");
+    if (res.ok) setStats(res.data);
+  }, []);
+
   useEffect(() => {
     if (!canView) return;
     void loadApps();
+    void loadStats();
     if (isAdmin) void loadUsers();
-  }, [canView, isAdmin, loadApps, loadUsers]);
+  }, [canView, isAdmin, loadApps, loadUsers, loadStats]);
 
   if (meLoading) {
     return <main className="mx-auto max-w-6xl px-6 py-24 text-center text-muted">확인 중…</main>;
@@ -133,6 +148,12 @@ export default function Admin({ me, meLoading }: { me: Me; meLoading: boolean })
             회원 관리
           </button>
         )}
+        <button
+          onClick={() => setTab("stats")}
+          className={`rounded-t-lg px-4 py-2.5 text-sm font-semibold ${tab === "stats" ? "border border-b-0 border-line bg-card" : "text-muted"}`}
+        >
+          방문 통계
+        </button>
       </div>
 
       {tab === "apps" && (
@@ -279,6 +300,64 @@ export default function Admin({ me, meLoading }: { me: Me; meLoading: boolean })
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {tab === "stats" && (
+        <div className="mt-8 space-y-8">
+          {!stats ? (
+            <p className="text-sm text-muted">통계를 불러오는 중…</p>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+                {[
+                  { label: "오늘 방문자", value: stats.today.visitors },
+                  { label: "오늘 페이지뷰", value: stats.today.pageviews },
+                  { label: "누적 방문자", value: stats.totals.visitors },
+                  { label: "누적 페이지뷰", value: stats.totals.pageviews },
+                  { label: "회원 수", value: stats.memberCount },
+                  { label: "앱 다운로드", value: stats.downloadTotal },
+                ].map((s) => (
+                  <div key={s.label} className="rounded-2xl border border-line bg-card p-5">
+                    <div className="text-xs font-semibold text-muted">{s.label}</div>
+                    <div className="font-display mt-1.5 text-2xl font-extrabold tabular-nums">
+                      {s.value.toLocaleString()}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="rounded-2xl border border-line bg-card p-6">
+                <h2 className="font-display text-lg font-bold">최근 14일 방문자</h2>
+                <p className="mt-0.5 text-xs text-muted">
+                  {stats.totals.since
+                    ? `${stats.totals.since}부터 집계 (하루 1회, IP·기기 기준 중복 제거)`
+                    : "아직 집계된 방문이 없습니다."}
+                </p>
+                {stats.days.length > 0 && (
+                  <div className="mt-6 flex h-40 items-end gap-1.5">
+                    {stats.days.map((d) => {
+                      const max = Math.max(...stats.days.map((x) => x.visitors), 1);
+                      return (
+                        <div key={d.date} className="group relative flex-1">
+                          <div
+                            className="w-full rounded-t-md bg-green transition group-hover:bg-green-deep"
+                            style={{ height: `${Math.max((d.visitors / max) * 144, 3)}px` }}
+                          />
+                          <div className="mt-1.5 truncate text-center text-[10px] text-muted">
+                            {d.date.slice(5)}
+                          </div>
+                          <div className="pointer-events-none absolute -top-9 left-1/2 hidden -translate-x-1/2 whitespace-nowrap rounded-lg bg-ink px-2.5 py-1 text-[11px] font-semibold text-white group-hover:block">
+                            방문 {d.visitors} · 뷰 {d.pageviews}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </div>
       )}
     </main>

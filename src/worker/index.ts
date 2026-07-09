@@ -8,6 +8,7 @@ import { inquiryRoutes } from "./routes/inquiries";
 import { commentRoutes } from "./routes/comments";
 import { privacyRoutes } from "./routes/privacy";
 import { crewRoutes } from "./routes/crew";
+import { visitRoutes } from "./routes/visits";
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -23,6 +24,7 @@ app.route("/api/inquiries", inquiryRoutes);
 app.route("/api", commentRoutes); // /api/apps/:slug/comments, /api/comments/:id
 app.route("/api", privacyRoutes); // /api/apps/:slug/privacy
 app.route("/api", crewRoutes); // /api/crew/*, /api/media/gallery/*
+app.route("/api/visits", visitRoutes);
 app.route("/api/apps", appRoutes);
 app.route("/api/admin", adminRoutes);
 
