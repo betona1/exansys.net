@@ -52,11 +52,10 @@
   </head>
   <body>
     <script>
-      // 다크 모드 FOUC 방지: 저장된 테마(없으면 시스템 설정)를 렌더 전에 적용
+      // 다크 모드 FOUC 방지 — 기본은 라이트 모드, 사용자가 토글로 선택한 경우에만 다크
       (function () {
         try {
-          var t = localStorage.getItem("theme");
-          if (t === "dark" || (!t && matchMedia("(prefers-color-scheme: dark)").matches)) {
+          if (localStorage.getItem("theme") === "dark") {
             document.documentElement.classList.add("dark");
           }
         } catch (e) {}

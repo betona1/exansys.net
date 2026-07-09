@@ -210,10 +210,12 @@ export default function AppDetail({ me }: { me: Me }) {
                     </details>
                   )}
                   <div className="rounded-xl border border-line p-4 text-center">
+                    {/* 다크 모드에서도 QR은 흰 배경 유지 (스캔 안정성) — bg-white는 다크에서 오버라이드되므로 인라인 지정 */}
                     <img
                       src={`/api/apps/${app.slug}/builds/${builds[0].id}/qr`}
                       alt="테스트 APK 다운로드 QR 코드"
-                      className="mx-auto w-36 rounded-lg"
+                      className="mx-auto w-40 rounded-lg p-2"
+                      style={{ background: "#ffffff" }}
                     />
                     <p className="mt-2 text-xs font-semibold">📱 핸드폰 카메라로 스캔</p>
                     <p className="mt-0.5 text-[11px] text-muted">
@@ -257,7 +259,8 @@ export default function AppDetail({ me }: { me: Me }) {
               <img
                 src={`/api/apps/${app.slug}/qr?platform=${qrPlatform}`}
                 alt={`${app.name} ${qrPlatform} 스토어 QR 코드`}
-                className="mx-auto w-44 rounded-xl border border-line"
+                className="mx-auto w-44 rounded-xl border border-line p-2"
+                style={{ background: "#ffffff" }}
               />
               <a
                 href={`/api/apps/${app.slug}/qr?platform=${qrPlatform}`}

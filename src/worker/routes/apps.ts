@@ -90,7 +90,7 @@ appRoutes.get("/:slug/builds/:id/qr", requireRole("member"), async (c) => {
   const svg = await QRCode.toString(url, {
     type: "svg",
     errorCorrectionLevel: "M",
-    margin: 2,
+    margin: 4, // 다크 배경에서도 스캔되도록 넉넉한 quiet zone
     width: 512,
     color: { dark: "#12141C", light: "#FFFFFF" },
   });
@@ -201,7 +201,7 @@ appRoutes.get("/:slug/qr", async (c) => {
   const svg = await QRCode.toString(url, {
     type: "svg",
     errorCorrectionLevel: "M",
-    margin: 2,
+    margin: 4, // 다크 배경에서도 스캔되도록 넉넉한 quiet zone
     width: 512,
     color: { dark: "#12141C", light: "#FFFFFF" },
   });
