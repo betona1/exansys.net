@@ -209,6 +209,17 @@ export default function AppDetail({ me }: { me: Me }) {
                       </ul>
                     </details>
                   )}
+                  <div className="rounded-xl border border-line p-4 text-center">
+                    <img
+                      src={`/api/apps/${app.slug}/builds/${builds[0].id}/qr`}
+                      alt="테스트 APK 다운로드 QR 코드"
+                      className="mx-auto w-36 rounded-lg"
+                    />
+                    <p className="mt-2 text-xs font-semibold">📱 핸드폰 카메라로 스캔</p>
+                    <p className="mt-0.5 text-[11px] text-muted">
+                      폰에서 로그인 없이 바로 다운로드 (QR은 30분간 유효)
+                    </p>
+                  </div>
                   <p className="text-xs text-muted">
                     설치 시 "출처를 알 수 없는 앱" 허용이 필요합니다. 사용해 보시고 아래{" "}
                     <b className="text-ink">댓글로 피드백</b>을 남겨주세요! 🙏

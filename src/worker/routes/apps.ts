@@ -6,6 +6,7 @@ import { apps, appBuilds, appScreenshots, downloadLogs } from "../../db/schema";
 import type { Env } from "../types";
 import { ok, err } from "../types";
 import { requireRole } from "../middleware";
+import { readSession } from "../auth/session";
 
 export const appRoutes = new Hono<{ Bindings: Env }>();
 
@@ -65,9 +66,57 @@ appRoutes.get("/:slug/builds", requireRole("member"), async (c) => {
   return c.json(ok({ builds }));
 });
 
-appRoutes.get("/:slug/builds/:id/download", requireRole("member"), async (c) => {
+// 베타 APK QR — 30분 유효 다운로드 토큰을 담은 QR (회원이 발급, 폰에서 스캔하면 로그인 없이 다운로드)
+appRoutes.get("/:slug/builds/:id/qr", requireRole("member"), async (c) => {
   const buildId = Number(c.req.param("id"));
   if (!Number.isInteger(buildId)) return c.json(err("invalid_id"), 400);
+  const db = drizzle(c.env.DB);
+  const appRows = await db
+    .select()
+    .from(apps)
+    .where(eq(apps.slug, c.req.param("slug") ?? ""))
+    .limit(1);
+  if (appRows.length === 0) return c.json(err("not_found"), 404);
+  const builds = await db
+    .select({ id: appBuilds.id })
+    .from(appBuilds)
+    .where(and(eq(appBuilds.id, buildId), eq(appBuilds.appId, appRows[0].id)))
+    .limit(1);
+  if (builds.length === 0) return c.json(err("not_found"), 404);
+
+  const token = crypto.randomUUID();
+  await c.env.SESSIONS.put(`dlt:${token}`, String(buildId), { expirationTtl: 1800 });
+  const url = `${c.env.SITE_URL}/api/apps/${appRows[0].slug}/builds/${buildId}/download?t=${token}`;
+  const svg = await QRCode.toString(url, {
+    type: "svg",
+    errorCorrectionLevel: "M",
+    margin: 2,
+    width: 512,
+    color: { dark: "#12141C", light: "#FFFFFF" },
+  });
+  return c.body(svg, 200, {
+    "Content-Type": "image/svg+xml",
+    "Cache-Control": "private, no-store", // 토큰이 담기므로 캐시 금지
+  });
+});
+
+// 다운로드 — 로그인 회원 또는 QR 토큰(?t=) 소지자
+appRoutes.get("/:slug/builds/:id/download", async (c) => {
+  const buildId = Number(c.req.param("id"));
+  if (!Number.isInteger(buildId)) return c.json(err("invalid_id"), 400);
+
+  let authorized = false;
+  const t = c.req.query("t");
+  if (t && /^[a-f0-9-]{36}$/.test(t)) {
+    const v = await c.env.SESSIONS.get(`dlt:${t}`);
+    if (v === String(buildId)) authorized = true;
+  }
+  if (!authorized) {
+    const sess = await readSession(c);
+    if (sess) authorized = true; // 모든 로그인 역할이 member 이상
+  }
+  if (!authorized) return c.json(err("unauthorized"), 401);
+
   const db = drizzle(c.env.DB);
   const appRows = await db
     .select()
