@@ -1,10 +1,11 @@
 import { Hono } from "hono";
 import { drizzle } from "drizzle-orm/d1";
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, sql } from "drizzle-orm";
 import QRCode from "qrcode/lib/browser";
-import { apps, appScreenshots, downloadLogs } from "../../db/schema";
+import { apps, appBuilds, appScreenshots, downloadLogs } from "../../db/schema";
 import type { Env } from "../types";
 import { ok, err } from "../types";
+import { requireRole } from "../middleware";
 
 export const appRoutes = new Hono<{ Bindings: Env }>();
 
@@ -36,7 +37,66 @@ appRoutes.get("/:slug", async (c) => {
     .from(appScreenshots)
     .where(eq(appScreenshots.appId, rows[0].id))
     .orderBy(asc(appScreenshots.sort));
-  return c.json(ok({ app: rows[0], screenshots: shots }));
+  // 베타 테스트 빌드 존재 여부 (목록/다운로드는 member 이상)
+  const buildCount = await db
+    .select({ n: sql<number>`count(*)` })
+    .from(appBuilds)
+    .where(eq(appBuilds.appId, rows[0].id));
+  return c.json(ok({ app: rows[0], screenshots: shots, betaAvailable: buildCount[0].n > 0 }));
+});
+
+// ── 베타 테스트 빌드 — 회원(member 이상) 전용 ──
+appRoutes.get("/:slug/builds", requireRole("member"), async (c) => {
+  const db = drizzle(c.env.DB);
+  const rows = await db.select().from(apps).where(eq(apps.slug, c.req.param("slug") ?? "")).limit(1);
+  if (rows.length === 0) return c.json(err("not_found"), 404);
+  const builds = await db
+    .select({
+      id: appBuilds.id,
+      version: appBuilds.version,
+      fileSize: appBuilds.fileSize,
+      notes: appBuilds.notes,
+      downloadCount: appBuilds.downloadCount,
+      createdAt: appBuilds.createdAt,
+    })
+    .from(appBuilds)
+    .where(eq(appBuilds.appId, rows[0].id))
+    .orderBy(desc(appBuilds.id));
+  return c.json(ok({ builds }));
+});
+
+appRoutes.get("/:slug/builds/:id/download", requireRole("member"), async (c) => {
+  const buildId = Number(c.req.param("id"));
+  if (!Number.isInteger(buildId)) return c.json(err("invalid_id"), 400);
+  const db = drizzle(c.env.DB);
+  const appRows = await db
+    .select()
+    .from(apps)
+    .where(eq(apps.slug, c.req.param("slug") ?? ""))
+    .limit(1);
+  if (appRows.length === 0) return c.json(err("not_found"), 404);
+  const builds = await db
+    .select()
+    .from(appBuilds)
+    .where(and(eq(appBuilds.id, buildId), eq(appBuilds.appId, appRows[0].id)))
+    .limit(1);
+  if (builds.length === 0) return c.json(err("not_found"), 404);
+
+  const obj = await c.env.MEDIA.get(builds[0].fileKey);
+  if (!obj) return c.json(err("file_missing"), 404);
+
+  await db
+    .update(appBuilds)
+    .set({ downloadCount: sql`${appBuilds.downloadCount} + 1` })
+    .where(eq(appBuilds.id, buildId));
+
+  const filename = `${appRows[0].slug}-${builds[0].version}.apk`.replace(/[^\w.-]/g, "_");
+  return c.body(obj.body, 200, {
+    "Content-Type": "application/vnd.android.package-archive",
+    "Content-Length": String(builds[0].fileSize),
+    "Content-Disposition": `attachment; filename="${filename}"`,
+    "Cache-Control": "private, no-store",
+  });
 });
 
 async function sha256Hex(input: string): Promise<string> {

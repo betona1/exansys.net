@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { drizzle } from "drizzle-orm/d1";
 import { asc, eq, gte, lt, sql } from "drizzle-orm";
 import { z } from "zod";
-import { apps, users, visitLogs, visitStats } from "../../db/schema";
+import { apps, appBuilds, appScreenshots, users, visitLogs, visitStats } from "../../db/schema";
 import type { Env } from "../types";
 import { ok, err } from "../types";
 import { requireRole, type AuthedUser } from "../middleware";
@@ -105,6 +105,143 @@ adminRoutes.get("/users", requireRole("admin"), async (c) => {
     .from(users)
     .orderBy(asc(users.id));
   return c.json(ok({ users: rows }));
+});
+
+// ── 앱 스크린샷 관리 (admin) — webp 원본 바이트 업로드, R2 shots/ 저장 ──
+const MAX_SHOT_BYTES = 5 * 1024 * 1024;
+
+adminRoutes.post("/apps/:id/screenshots", requireRole("admin"), async (c) => {
+  const id = Number(c.req.param("id"));
+  if (!Number.isInteger(id)) return c.json(err("invalid_id"), 400);
+  const type = c.req.header("Content-Type") ?? "";
+  if (!type.startsWith("image/webp")) return c.json(err("webp_only"), 400);
+  const body = await c.req.arrayBuffer();
+  if (!body.byteLength || body.byteLength > MAX_SHOT_BYTES) return c.json(err("max_5mb"), 400);
+
+  const db = drizzle(c.env.DB);
+  const app = await db.select({ id: apps.id }).from(apps).where(eq(apps.id, id)).limit(1);
+  if (app.length === 0) return c.json(err("not_found"), 404);
+
+  const key = `shots/${crypto.randomUUID()}.webp`;
+  await c.env.MEDIA.put(key, body, { httpMetadata: { contentType: "image/webp" } });
+
+  const maxSort = await db
+    .select({ n: sql<number>`coalesce(max(${appScreenshots.sort}), 0)` })
+    .from(appScreenshots)
+    .where(eq(appScreenshots.appId, id));
+  const inserted = await db
+    .insert(appScreenshots)
+    .values({ appId: id, imageUrl: `/api/media/${key}`, sort: maxSort[0].n + 1 })
+    .returning();
+  return c.json(ok({ screenshot: inserted[0] }));
+});
+
+adminRoutes.delete("/screenshots/:id", requireRole("admin"), async (c) => {
+  const id = Number(c.req.param("id"));
+  if (!Number.isInteger(id)) return c.json(err("invalid_id"), 400);
+  const db = drizzle(c.env.DB);
+  const rows = await db.select().from(appScreenshots).where(eq(appScreenshots.id, id)).limit(1);
+  if (rows.length === 0) return c.json(err("not_found"), 404);
+  const key = rows[0].imageUrl.replace(/^\/api\/media\//, "");
+  if (key.startsWith("shots/")) await c.env.MEDIA.delete(key);
+  await db.delete(appScreenshots).where(eq(appScreenshots.id, id));
+  return c.json(ok({ deleted: id }));
+});
+
+// ── 테스트 APK 빌드 관리 (admin) — R2 멀티파트 분할 업로드 ──
+// 워커 요청 본문 100MB 제한 때문에 클라이언트가 25MB 조각으로 나눠 올린다
+const MAX_APK_BYTES = 300 * 1024 * 1024; // 게임 APK 여유 있게 300MB
+const BUILD_KEY_RE = /^builds\/[a-z0-9-]+\.apk$/;
+
+const buildStartSchema = z.object({
+  version: z.string().min(1).max(40),
+  size: z.number().int().positive().max(MAX_APK_BYTES),
+});
+
+adminRoutes.post("/apps/:id/builds/start", requireRole("admin"), async (c) => {
+  const id = Number(c.req.param("id"));
+  if (!Number.isInteger(id)) return c.json(err("invalid_id"), 400);
+  const parsed = buildStartSchema.safeParse(await c.req.json().catch(() => null));
+  if (!parsed.success) return c.json(err("invalid_input"), 400);
+  const db = drizzle(c.env.DB);
+  const app = await db.select({ id: apps.id }).from(apps).where(eq(apps.id, id)).limit(1);
+  if (app.length === 0) return c.json(err("not_found"), 404);
+
+  const key = `builds/${crypto.randomUUID()}.apk`;
+  const mpu = await c.env.MEDIA.createMultipartUpload(key, {
+    httpMetadata: { contentType: "application/vnd.android.package-archive" },
+  });
+  return c.json(ok({ key, uploadId: mpu.uploadId }));
+});
+
+adminRoutes.put("/builds/part", requireRole("admin"), async (c) => {
+  const key = c.req.query("key") ?? "";
+  const uploadId = c.req.query("uploadId") ?? "";
+  const part = Number(c.req.query("part"));
+  if (!BUILD_KEY_RE.test(key) || !uploadId || !Number.isInteger(part) || part < 1)
+    return c.json(err("invalid_input"), 400);
+  const body = await c.req.arrayBuffer();
+  if (!body.byteLength) return c.json(err("empty_part"), 400);
+  const mpu = c.env.MEDIA.resumeMultipartUpload(key, uploadId);
+  const uploaded = await mpu.uploadPart(part, body);
+  return c.json(ok({ partNumber: uploaded.partNumber, etag: uploaded.etag }));
+});
+
+const buildCompleteSchema = z.object({
+  key: z.string().regex(BUILD_KEY_RE),
+  uploadId: z.string().min(1),
+  parts: z
+    .array(z.object({ partNumber: z.number().int().positive(), etag: z.string().min(1) }))
+    .min(1)
+    .max(50),
+  version: z.string().min(1).max(40),
+  notes: z.string().max(2000).optional().nullable(),
+  size: z.number().int().positive().max(MAX_APK_BYTES),
+});
+
+adminRoutes.post("/apps/:id/builds/complete", requireRole("admin"), async (c) => {
+  const id = Number(c.req.param("id"));
+  if (!Number.isInteger(id)) return c.json(err("invalid_id"), 400);
+  const parsed = buildCompleteSchema.safeParse(await c.req.json().catch(() => null));
+  if (!parsed.success) return c.json(err("invalid_input"), 400);
+  const d = parsed.data;
+
+  const mpu = c.env.MEDIA.resumeMultipartUpload(d.key, d.uploadId);
+  await mpu.complete(d.parts);
+
+  const db = drizzle(c.env.DB);
+  const inserted = await db
+    .insert(appBuilds)
+    .values({
+      appId: id,
+      version: d.version,
+      fileKey: d.key,
+      fileSize: d.size,
+      notes: d.notes || null,
+      createdAt: new Date(),
+    })
+    .returning();
+  return c.json(ok({ build: inserted[0] }));
+});
+
+adminRoutes.post("/builds/abort", requireRole("admin"), async (c) => {
+  const body = (await c.req.json().catch(() => null)) as { key?: string; uploadId?: string } | null;
+  if (!body?.key || !BUILD_KEY_RE.test(body.key) || !body.uploadId)
+    return c.json(err("invalid_input"), 400);
+  const mpu = c.env.MEDIA.resumeMultipartUpload(body.key, body.uploadId);
+  await mpu.abort().catch(() => {});
+  return c.json(ok({ aborted: true }));
+});
+
+adminRoutes.delete("/builds/:id", requireRole("admin"), async (c) => {
+  const id = Number(c.req.param("id"));
+  if (!Number.isInteger(id)) return c.json(err("invalid_id"), 400);
+  const db = drizzle(c.env.DB);
+  const rows = await db.select().from(appBuilds).where(eq(appBuilds.id, id)).limit(1);
+  if (rows.length === 0) return c.json(err("not_found"), 404);
+  await c.env.MEDIA.delete(rows[0].fileKey);
+  await db.delete(appBuilds).where(eq(appBuilds.id, id));
+  return c.json(ok({ deleted: id }));
 });
 
 // 방문자/사이트 통계 — staff 이상 열람

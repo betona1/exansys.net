@@ -137,6 +137,24 @@ export const galleryComments = sqliteTable("gallery_comments", {
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
 });
 
+// 출시 전 테스트용 APK 빌드 (R2 저장, member 이상 다운로드)
+export const appBuilds = sqliteTable(
+  "app_builds",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    appId: integer("app_id")
+      .notNull()
+      .references(() => apps.id),
+    version: text("version").notNull(),
+    fileKey: text("file_key").notNull(), // R2 키 (builds/….apk)
+    fileSize: integer("file_size").notNull(),
+    notes: text("notes"), // 테스트 안내/변경 사항
+    downloadCount: integer("download_count").notNull().default(0),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  },
+  (t) => [index("idx_app_builds_app").on(t.appId)],
+);
+
 // 방문자 카운트 — 하루 단위 유니크 방문자 중복 방지 (IP/UA 원문 저장 금지 — 해시만)
 export const visitLogs = sqliteTable(
   "visit_logs",

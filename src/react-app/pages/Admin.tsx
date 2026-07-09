@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, STATUS_LABEL, type AppRow, type Me } from "../lib/api";
+import AppAssets from "../components/AppAssets";
 
 type UserRow = {
   id: number;
@@ -36,6 +37,7 @@ export default function Admin({ me, meLoading }: { me: Me; meLoading: boolean })
   const [stats, setStats] = useState<StatsData | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [assetsApp, setAssetsApp] = useState<AppRow | null>(null);
   const [msg, setMsg] = useState("");
 
   const isAdmin = me?.role === "admin";
@@ -252,6 +254,12 @@ export default function Admin({ me, meLoading }: { me: Me; meLoading: boolean })
                 </Link>
                 {isAdmin && (
                   <>
+                    <button
+                      onClick={() => setAssetsApp(assetsApp?.id === app.id ? null : app)}
+                      className="text-xs font-semibold text-green hover:underline"
+                    >
+                      베타·스샷
+                    </button>
                     <button onClick={() => startEdit(app)} className="text-xs font-semibold text-muted hover:text-ink">
                       수정
                     </button>
@@ -262,6 +270,7 @@ export default function Admin({ me, meLoading }: { me: Me; meLoading: boolean })
                 )}
               </div>
             ))}
+            {assetsApp && <AppAssets app={assetsApp} onClose={() => setAssetsApp(null)} />}
           </div>
         </div>
       )}
