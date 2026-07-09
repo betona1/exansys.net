@@ -45,18 +45,32 @@ export default function AppAssets({ app, onClose }: { app: AppRow; onClose: () =
 
   const uploadShots = async (files: FileList | null) => {
     if (!files?.length) return;
-    setMsg("스크린샷 변환·업로드 중…");
+    setMsg("미디어 변환·업로드 중…");
     for (const file of Array.from(files)) {
       try {
-        const webp = await toWebp(file, 2000);
-        if (webp.size > 5 * 1024 * 1024) {
-          setMsg(`오류: ${file.name} — 변환 후에도 5MB 초과`);
-          continue;
+        // gif(움짤)·mp4(영상)는 원본 그대로, 일반 이미지는 webp 변환
+        let blob: Blob;
+        let type: string;
+        if (file.type === "image/gif" || file.type === "video/mp4") {
+          blob = file;
+          type = file.type;
+          const max = file.type === "video/mp4" ? 30 * 1024 * 1024 : 5 * 1024 * 1024;
+          if (file.size > max) {
+            setMsg(`오류: ${file.name} — 용량 초과`);
+            continue;
+          }
+        } else {
+          blob = await toWebp(file, 2000);
+          type = "image/webp";
+          if (blob.size > 5 * 1024 * 1024) {
+            setMsg(`오류: ${file.name} — 변환 후에도 5MB 초과`);
+            continue;
+          }
         }
         const res = await fetch(`/api/admin/apps/${app.id}/screenshots`, {
           method: "POST",
-          headers: { "Content-Type": "image/webp" },
-          body: webp,
+          headers: { "Content-Type": type },
+          body: blob,
         });
         const j = (await res.json()) as { ok: boolean; error?: string };
         if (!j.ok) setMsg(`오류: ${j.error}`);
@@ -64,7 +78,7 @@ export default function AppAssets({ app, onClose }: { app: AppRow; onClose: () =
         setMsg(`오류: ${file.name} 변환 실패`);
       }
     }
-    setMsg("스크린샷 업로드 완료");
+    setMsg("미디어 업로드 완료");
     if (shotInputRef.current) shotInputRef.current.value = "";
     void load();
   };
@@ -166,19 +180,23 @@ export default function AppAssets({ app, onClose }: { app: AppRow; onClose: () =
           <input
             ref={shotInputRef}
             type="file"
-            accept="image/*"
+            accept="image/*,video/mp4"
             multiple
             onChange={(e) => void uploadShots(e.target.files)}
             className="block w-full text-sm text-muted file:mr-3 file:rounded-full file:border-0 file:bg-lime/25 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-green-deep"
           />
           <p className="mt-1.5 text-xs text-muted">
-            여러 장 선택 가능 · 자동으로 webp 변환 (장당 최대 5MB) · 앱 상세 페이지에 공개 표시
+            이미지(자동 webp 변환, 5MB)·GIF(5MB)·MP4 영상(30MB) — 앱 상세 페이지에 공개 표시
           </p>
           {shots.length > 0 && (
             <div className="mt-4 flex gap-3 overflow-x-auto pb-2">
               {shots.map((s) => (
                 <div key={s.id} className="relative shrink-0">
-                  <img src={s.imageUrl} alt="" className="h-40 rounded-xl border border-line" />
+                  {s.imageUrl.endsWith(".mp4") ? (
+                    <video src={s.imageUrl} muted className="h-40 rounded-xl border border-line" />
+                  ) : (
+                    <img src={s.imageUrl} alt="" className="h-40 rounded-xl border border-line" />
+                  )}
                   <button
                     onClick={() => void deleteShot(s.id)}
                     className="absolute right-1.5 top-1.5 rounded-full bg-ink/80 px-2 py-0.5 text-xs font-bold text-white hover:bg-red-600"

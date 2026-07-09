@@ -108,14 +108,26 @@ export default function AppDetail({ me }: { me: Me }) {
 
           {screenshots.length > 0 && (
             <div className="mt-8 flex gap-4 overflow-x-auto pb-2">
-              {screenshots.map((s) => (
-                <img
-                  key={s.id}
-                  src={s.imageUrl}
-                  alt=""
-                  className="h-96 rounded-2xl border border-line object-cover"
-                />
-              ))}
+              {screenshots.map((s) =>
+                s.imageUrl.endsWith(".mp4") ? (
+                  <video
+                    key={s.id}
+                    src={s.imageUrl}
+                    controls
+                    loop
+                    muted
+                    playsInline
+                    className="h-96 rounded-2xl border border-line"
+                  />
+                ) : (
+                  <img
+                    key={s.id}
+                    src={s.imageUrl}
+                    alt=""
+                    className="h-96 rounded-2xl border border-line object-cover"
+                  />
+                ),
+              )}
             </div>
           )}
 

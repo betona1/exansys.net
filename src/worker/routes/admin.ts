@@ -107,23 +107,29 @@ adminRoutes.get("/users", requireRole("admin"), async (c) => {
   return c.json(ok({ users: rows }));
 });
 
-// ── 앱 스크린샷 관리 (admin) — webp 원본 바이트 업로드, R2 shots/ 저장 ──
-const MAX_SHOT_BYTES = 5 * 1024 * 1024;
+// ── 앱 스크린샷/미디어 관리 (admin) — R2 shots/ 저장 ──
+// webp·gif(움짤)는 5MB, mp4(홍보 영상)는 30MB까지
+const SHOT_TYPES: Record<string, { ext: string; max: number }> = {
+  "image/webp": { ext: "webp", max: 5 * 1024 * 1024 },
+  "image/gif": { ext: "gif", max: 5 * 1024 * 1024 },
+  "video/mp4": { ext: "mp4", max: 30 * 1024 * 1024 },
+};
 
 adminRoutes.post("/apps/:id/screenshots", requireRole("admin"), async (c) => {
   const id = Number(c.req.param("id"));
   if (!Number.isInteger(id)) return c.json(err("invalid_id"), 400);
-  const type = c.req.header("Content-Type") ?? "";
-  if (!type.startsWith("image/webp")) return c.json(err("webp_only"), 400);
+  const type = (c.req.header("Content-Type") ?? "").split(";")[0].trim();
+  const spec = SHOT_TYPES[type];
+  if (!spec) return c.json(err("webp_gif_mp4_only"), 400);
   const body = await c.req.arrayBuffer();
-  if (!body.byteLength || body.byteLength > MAX_SHOT_BYTES) return c.json(err("max_5mb"), 400);
+  if (!body.byteLength || body.byteLength > spec.max) return c.json(err("too_large"), 400);
 
   const db = drizzle(c.env.DB);
   const app = await db.select({ id: apps.id }).from(apps).where(eq(apps.id, id)).limit(1);
   if (app.length === 0) return c.json(err("not_found"), 404);
 
-  const key = `shots/${crypto.randomUUID()}.webp`;
-  await c.env.MEDIA.put(key, body, { httpMetadata: { contentType: "image/webp" } });
+  const key = `shots/${crypto.randomUUID()}.${spec.ext}`;
+  await c.env.MEDIA.put(key, body, { httpMetadata: { contentType: type } });
 
   const maxSort = await db
     .select({ n: sql<number>`coalesce(max(${appScreenshots.sort}), 0)` })
