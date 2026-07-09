@@ -89,6 +89,30 @@ export default function Header({ me, logout }: { me: Me; logout: () => Promise<v
                       <div className="px-3 py-2 text-xs text-muted">
                         {me.role === "admin" ? "관리자" : me.role === "staff" ? "직원" : me.role === "crew" ? "크루" : "회원"} 계정
                       </div>
+                      {/* 모바일에선 상단 메뉴가 숨겨지므로 프로필 메뉴에서 이동 */}
+                      <Link
+                        to="/#apps"
+                        onClick={() => setOpen(false)}
+                        className="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-paper sm:hidden"
+                      >
+                        앱
+                      </Link>
+                      {(me.role === "crew" || me.role === "staff" || me.role === "admin") && (
+                        <Link
+                          to="/crew"
+                          onClick={() => setOpen(false)}
+                          className="block rounded-lg px-3 py-2 text-sm font-medium text-green hover:bg-paper sm:hidden"
+                        >
+                          크루 갤러리
+                        </Link>
+                      )}
+                      <Link
+                        to="/contact"
+                        onClick={() => setOpen(false)}
+                        className="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-paper sm:hidden"
+                      >
+                        개발 문의
+                      </Link>
                       {(me.role === "admin" || me.role === "staff") && (
                         <Link
                           to="/admin"
