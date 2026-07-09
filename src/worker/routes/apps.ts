@@ -115,7 +115,13 @@ appRoutes.get("/:slug/builds/:id/download", async (c) => {
     const sess = await readSession(c);
     if (sess) authorized = true; // 모든 로그인 역할이 member 이상
   }
-  if (!authorized) return c.json(err("unauthorized"), 401);
+  if (!authorized) {
+    // 폰 브라우저로 직접 연 경우(만료된 QR 등): 오류 JSON을 파일로 저장하게 두지 말고 앱 페이지로 안내
+    if (c.req.header("Sec-Fetch-Mode") === "navigate") {
+      return c.redirect(`/apps/${c.req.param("slug") ?? ""}?beta=expired`);
+    }
+    return c.json(err("unauthorized"), 401);
+  }
 
   const db = drizzle(c.env.DB);
   const appRows = await db

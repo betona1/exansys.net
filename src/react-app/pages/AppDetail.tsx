@@ -169,6 +169,11 @@ export default function AppDetail({ me }: { me: Me }) {
             <div className="rounded-2xl border-2 border-green/40 bg-card p-6">
               <h3 className="font-display mb-1 text-lg font-bold">🧪 베타 테스트</h3>
               <p className="text-xs text-muted">출시 전 테스트 버전입니다. 회원 전용.</p>
+              {new URLSearchParams(window.location.search).get("beta") === "expired" && (
+                <p className="mt-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs font-semibold text-red-600">
+                  QR 링크가 만료됐습니다 (30분 유효). 아래 새 QR로 다시 스캔해 주세요.
+                </p>
+              )}
               {!me ? (
                 <Link
                   to="/login"
