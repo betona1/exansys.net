@@ -1,7 +1,7 @@
 // App Review 분석 API — 외부 스토어 리뷰 수집·분석·엑셀 추출 (crew 이상 전용)
 import { Hono } from "hono";
 import { drizzle } from "drizzle-orm/d1";
-import { and, asc, desc, eq, inArray, lt } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, lt, sql } from "drizzle-orm";
 import { z } from "zod";
 import { reviewCaches, reviewItems } from "../../db/schema";
 import type { Env } from "../types";
@@ -25,6 +25,32 @@ appReviewRoutes.use("*", requireRole("crew"));
 
 const CACHE_DAYS = 7;
 const CACHE_MS = CACHE_DAYS * 24 * 60 * 60 * 1000;
+
+// 리뷰 캐시 테이블 자동 생성 (마이그레이션 수동 적용 없이 동작하도록, 아이소레이트당 1회)
+// D1 마이그레이션(drizzle/0003_*.sql)과 동일한 스키마 — IF NOT EXISTS 라 이미 있으면 무시됨
+let tablesReady = false;
+async function ensureTables(db: ReturnType<typeof drizzle>) {
+  if (tablesReady) return;
+  await db.run(sql`CREATE TABLE IF NOT EXISTS review_caches (
+    id integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+    store text NOT NULL, app_id text NOT NULL, region text NOT NULL,
+    title text NOT NULL, icon_url text, score real, ratings integer,
+    installs text, real_installs integer,
+    review_count integer DEFAULT 0 NOT NULL, fetched_at integer NOT NULL
+  )`);
+  await db.run(
+    sql`CREATE UNIQUE INDEX IF NOT EXISTS idx_review_caches_key ON review_caches (store, app_id, region)`,
+  );
+  await db.run(sql`CREATE TABLE IF NOT EXISTS review_items (
+    id integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+    cache_id integer NOT NULL, score integer DEFAULT 0 NOT NULL,
+    content text NOT NULL, at integer, thumbs_up integer DEFAULT 0 NOT NULL,
+    user_name text, version text,
+    FOREIGN KEY (cache_id) REFERENCES review_caches(id)
+  )`);
+  await db.run(sql`CREATE INDEX IF NOT EXISTS idx_review_items_cache ON review_items (cache_id)`);
+  tablesReady = true;
+}
 
 const storeSchema = z.enum(["play", "apple"]);
 const regionSchema = z.enum(SUPPORTED_REGIONS as [string, ...string[]]);
@@ -79,6 +105,7 @@ appReviewRoutes.post("/collect", async (c) => {
   const limit = Math.min(parsed.data.limit ?? 300, store === "apple" ? 500 : 1000);
 
   const db = drizzle(c.env.DB);
+  await ensureTables(db);
   await cleanupStale(db);
 
   const existing = await db
@@ -176,6 +203,7 @@ appReviewRoutes.get("/export", async (c) => {
   const { store, appId, region } = parsed.data;
 
   const db = drizzle(c.env.DB);
+  await ensureTables(db);
   const rows = await db
     .select()
     .from(reviewCaches)
