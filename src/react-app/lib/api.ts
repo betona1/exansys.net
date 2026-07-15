@@ -103,6 +103,55 @@ export type CollectResult = {
   analysis: ReviewAnalysis;
 };
 
+// ── AI교육 게시판 ──
+export type EduKind = "html" | "image" | "pdf" | "link";
+
+export type EduPostCard = {
+  id: number;
+  title: string;
+  createdAt: string;
+  authorName: string | null;
+  authorAvatar: string | null;
+  thumbnail: string | null;
+  kinds: EduKind[];
+  commentCount: number;
+};
+
+export type EduAttachment = {
+  id: number;
+  kind: EduKind;
+  name: string;
+  size: number | null;
+  src: string | null;
+};
+
+export type EduComment = {
+  id: number;
+  body: string;
+  createdAt: string;
+  userId: number;
+  authorName: string | null;
+  authorAvatar: string | null;
+  mine: boolean;
+};
+
+export type EduPostDetail = {
+  post: {
+    id: number;
+    userId: number;
+    title: string;
+    body: string | null;
+    createdAt: string;
+    updatedAt: string;
+    authorName: string | null;
+    authorAvatar: string | null;
+  };
+  attachments: EduAttachment[];
+  comments: EduComment[];
+  canComment: boolean;
+  canManage: boolean;
+};
+
 export const REVIEW_REGIONS: { code: string; label: string }[] = [
   { code: "kr", label: "한국" },
   { code: "us", label: "미국" },

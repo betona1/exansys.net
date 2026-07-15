@@ -212,6 +212,52 @@ export const reviewItems = sqliteTable(
   (t) => [index("idx_review_items_cache").on(t.cacheId)],
 );
 
+// AI교육 게시판 — 교육 자료 게시(작성/업로드는 admin 전용, 열람은 공개)
+export const eduPosts = sqliteTable("edu_posts", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id),
+  title: text("title").notNull(),
+  body: text("body"), // 마크다운
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+});
+
+// 게시글 첨부 — 다이나믹 HTML / 이미지 / PDF / 외부 링크
+export const eduAttachments = sqliteTable(
+  "edu_attachments",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    postId: integer("post_id")
+      .notNull()
+      .references(() => eduPosts.id),
+    kind: text("kind", { enum: ["html", "image", "pdf", "link"] }).notNull(),
+    fileKey: text("file_key"), // R2 키 (html/image/pdf), link이면 null
+    url: text("url"), // 외부 링크 (kind=link), 아니면 null
+    name: text("name").notNull(), // 표시용 이름/라벨
+    size: integer("size"),
+    sort: integer("sort").notNull().default(0),
+  },
+  (t) => [index("idx_edu_attachments_post").on(t.postId)],
+);
+
+export const eduComments = sqliteTable(
+  "edu_comments",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    postId: integer("post_id")
+      .notNull()
+      .references(() => eduPosts.id),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id),
+    body: text("body").notNull(),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  },
+  (t) => [index("idx_edu_comments_post").on(t.postId)],
+);
+
 // 다운로드 카운터 중복 방지용 (IP/UA는 원문 저장 금지 — 해시만)
 export const downloadLogs = sqliteTable(
   "download_logs",
