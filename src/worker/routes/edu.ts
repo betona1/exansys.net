@@ -1,6 +1,6 @@
 // AI교육 게시판 — 교육 자료 게시 (열람 공개, 작성/업로드/삭제는 admin 전용)
 // 첨부: 다이나믹 HTML(샌드박스 렌더) / 이미지(webp) / PDF / 외부 링크
-import { Hono } from "hono";
+import { Hono, type Context } from "hono";
 import { drizzle } from "drizzle-orm/d1";
 import { asc, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
@@ -10,6 +10,7 @@ import { ok, err, ROLE_LEVEL } from "../types";
 import { requireRole, type AuthedUser } from "../middleware";
 import { readSession } from "../auth/session";
 import glossaryHtml from "../resources/ai-glossary.html?raw";
+import guideHtml from "../resources/claude-code-guide.html?raw";
 
 type Vars = { Variables: { user: AuthedUser } };
 export const eduRoutes = new Hono<{ Bindings: Env } & Vars>();
@@ -334,31 +335,27 @@ eduRoutes.post("/edu/posts", requireRole("admin"), async (c) => {
   return c.json(ok({ id: postId }));
 });
 
-// 용어집 시드 (admin 전용, 멱등) — 큰 HTML을 브라우저로 전송하지 않고 번들에서 R2+DB에 직접 등록
-const GLOSSARY_TITLE = "AI · 앱 개발 용어집 (필수 용어 177개)";
-eduRoutes.post("/edu/seed/glossary", requireRole("admin"), async (c) => {
+// 번들 자료 시드 (admin 전용, 멱등) — 큰 HTML을 브라우저로 전송하지 않고 번들에서 R2+DB에 직접 등록
+async function seedDoc(
+  c: Context<{ Bindings: Env } & Vars>,
+  opts: { title: string; body: string; fileName: string; html: string },
+) {
   const db = drizzle(c.env.DB);
   await ensureTables(db);
   const existing = await db
     .select({ id: eduPosts.id })
     .from(eduPosts)
-    .where(eq(eduPosts.title, GLOSSARY_TITLE))
+    .where(eq(eduPosts.title, opts.title))
     .limit(1);
   if (existing.length) return c.json(ok({ id: existing[0].id, already: true }));
 
   const key = `edu/html/${crypto.randomUUID()}.html`;
-  await c.env.MEDIA.put(key, glossaryHtml, { httpMetadata: { contentType: "text/html; charset=utf-8" } });
+  await c.env.MEDIA.put(key, opts.html, { httpMetadata: { contentType: "text/html; charset=utf-8" } });
 
   const now = new Date();
   const inserted = await db
     .insert(eduPosts)
-    .values({
-      userId: c.get("user").id,
-      title: GLOSSARY_TITLE,
-      body: "클로드코드로 앱을 만들 때 만나는 필수 용어 177개를 한곳에 모았습니다. 아래 자료에서 검색하거나 18개 분류로 필터링해 찾아보세요.",
-      createdAt: now,
-      updatedAt: now,
-    })
+    .values({ userId: c.get("user").id, title: opts.title, body: opts.body, createdAt: now, updatedAt: now })
     .returning({ id: eduPosts.id });
   const postId = inserted[0].id;
   await db.insert(eduAttachments).values({
@@ -366,11 +363,29 @@ eduRoutes.post("/edu/seed/glossary", requireRole("admin"), async (c) => {
     kind: "html",
     fileKey: key,
     url: null,
-    name: "AI·앱 개발 용어집.html",
+    name: opts.fileName,
     sort: 0,
   });
-  return c.json(ok({ id: postId, key, bytes: glossaryHtml.length }));
-});
+  return c.json(ok({ id: postId, key, chars: opts.html.length }));
+}
+
+eduRoutes.post("/edu/seed/glossary", requireRole("admin"), (c) =>
+  seedDoc(c, {
+    title: "AI · 앱 개발 용어집 (필수 용어 177개)",
+    body: "클로드코드로 앱을 만들 때 만나는 필수 용어 177개를 한곳에 모았습니다. 아래 자료에서 검색하거나 18개 분류로 필터링해 찾아보세요.",
+    fileName: "AI·앱 개발 용어집.html",
+    html: glossaryHtml,
+  }),
+);
+
+eduRoutes.post("/edu/seed/guide", requireRole("admin"), (c) =>
+  seedDoc(c, {
+    title: "클로드코드 설치·사용 가이드 (터미널·VS Code·GitHub·WSL)",
+    body: "설치부터 터미널·VS Code 사용법, GitHub·WSL 개념과 설치까지 그림 위주로 정리한 가이드입니다. 자세한 내용은 강의에서 설명합니다.",
+    fileName: "클로드코드 설치·사용 가이드.html",
+    html: guideHtml,
+  }),
+);
 
 // 수정 (admin) — 제목/본문만 (첨부는 삭제 후 재작성)
 eduRoutes.put("/edu/posts/:id", requireRole("admin"), async (c) => {

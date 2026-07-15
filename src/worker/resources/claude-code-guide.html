@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>클로드코드 설치·사용 가이드</title>
+<style>
+  :root{--paper:#F6F7FA;--card:#fff;--ink:#12141C;--muted:#5B6472;--line:#E7EAF0;
+    --green:#0E5741;--green2:#0b3f30;--lime:#9BE15D;--blue:#3A6EA5;--amber:#b7791f;
+    --r:18px;--shadow:0 8px 30px rgba(18,20,28,.07)}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI","Malgun Gothic",sans-serif;line-height:1.55}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+  code,kbd{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+
+  /* HERO */
+  .hero{background:radial-gradient(1000px 340px at 82% -30%,rgba(155,225,93,.28),transparent 60%),
+    linear-gradient(160deg,#0E5741,#0b3f30);color:#fff;border-radius:0 0 32px 32px;overflow:hidden}
+  .hero .wrap{padding:52px 20px 46px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;opacity:.92;font-size:14px;letter-spacing:.01em}
+  .brand .dot{width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,var(--lime),#4bd08a);
+    display:grid;place-items:center;color:#0b3f30;font-size:15px}
+  .hero h1{font-size:clamp(30px,5.4vw,50px);font-weight:900;letter-spacing:-.03em;margin:20px 0 10px;line-height:1.08}
+  .hero h1 em{font-style:normal;color:var(--lime)}
+  .hero p{margin:0;color:#dff3e8;font-weight:600;font-size:clamp(15px,2.4vw,18px);max-width:640px}
+  .toc{display:flex;gap:8px;flex-wrap:wrap;margin-top:26px}
+  .toc a{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.12);color:#fff;
+    border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:9px 15px;font-size:13.5px;font-weight:700;
+    text-decoration:none;backdrop-filter:blur(4px);transition:.14s}
+  .toc a:hover{background:rgba(255,255,255,.22)}
+
+  /* SECTION */
+  section{padding:44px 0 8px}
+  .sec-head{display:flex;align-items:center;gap:14px;margin-bottom:22px}
+  .sec-num{flex:none;width:46px;height:46px;border-radius:14px;display:grid;place-items:center;
+    font-weight:900;font-size:20px;color:#fff;background:linear-gradient(135deg,var(--green),#147a5c);
+    box-shadow:0 6px 16px rgba(14,87,65,.25)}
+  .sec-head h2{margin:0;font-size:clamp(21px,3.4vw,28px);font-weight:900;letter-spacing:-.02em}
+  .sec-head .sub{color:var(--muted);font-weight:600;font-size:14px;margin-top:2px}
+
+  .grid{display:grid;gap:16px}
+  .g2{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+  .g3{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:22px;box-shadow:var(--shadow)}
+  .card .ic{font-size:30px;line-height:1;margin-bottom:12px}
+  .card h3{margin:0 0 6px;font-size:17.5px;font-weight:800}
+  .card p{margin:0;color:#3a4150;font-size:14px;font-weight:500}
+  .card .tag{display:inline-block;margin-bottom:10px;font-size:11.5px;font-weight:800;letter-spacing:.03em;
+    padding:4px 10px;border-radius:999px;text-transform:uppercase}
+  .tag.best{background:#eafbef;color:#15803d}
+  .tag.alt{background:#eef3fa;color:var(--blue)}
+
+  /* TERMINAL MOCK */
+  .term{background:#0d1117;border-radius:14px;overflow:hidden;border:1px solid #20262e;margin-top:14px}
+  .term .bar{display:flex;align-items:center;gap:7px;padding:11px 14px;background:#161b22;border-bottom:1px solid #20262e}
+  .term .bar i{width:12px;height:12px;border-radius:50%;display:inline-block}
+  .term .bar i:nth-child(1){background:#ff5f56}.term .bar i:nth-child(2){background:#ffbd2e}.term .bar i:nth-child(3){background:#27c93f}
+  .term .bar span{margin-left:8px;color:#8b949e;font-size:12px;font-weight:600;font-family:inherit}
+  .term pre{margin:0;padding:16px 18px;color:#e6edf3;font-size:13.5px;line-height:1.7;overflow-x:auto;
+    font-family:"JetBrains Mono",ui-monospace,Consolas,monospace}
+  .term pre .c{color:#7ee787}.term pre .d{color:#8b949e}.term pre .p{color:#79c0ff}.term pre .y{color:#ffd166}
+
+  /* STEP FLOW */
+  .steps{display:grid;gap:12px;counter-reset:s}
+  .step{display:flex;gap:16px;align-items:flex-start;background:var(--card);border:1px solid var(--line);
+    border-radius:14px;padding:16px 18px;box-shadow:var(--shadow)}
+  .step .n{flex:none;counter-increment:s;width:34px;height:34px;border-radius:10px;background:var(--green);color:#fff;
+    display:grid;place-items:center;font-weight:900;font-size:15px}
+  .step .n::before{content:counter(s)}
+  .step .b{flex:1;min-width:0}
+  .step h4{margin:0 0 3px;font-size:15.5px;font-weight:800}
+  .step p{margin:0;color:#4a5160;font-size:13.5px;font-weight:500}
+  .step code{background:#eef1f6;color:#0b3f30;padding:2px 7px;border-radius:6px;font-size:12.5px;font-weight:600}
+
+  /* DIAGRAM (git flow) */
+  .flow{display:flex;align-items:stretch;gap:0;flex-wrap:wrap;justify-content:center;margin-top:6px}
+  .node{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:18px 20px;text-align:center;
+    min-width:150px;box-shadow:var(--shadow)}
+  .node .ic{font-size:32px}
+  .node b{display:block;margin-top:6px;font-size:15px;font-weight:800}
+  .node small{color:var(--muted);font-size:12px;font-weight:600}
+  .arrow{display:grid;place-items:center;padding:0 6px;color:var(--green);font-weight:900;font-size:15px;min-width:96px}
+  .arrow span{display:block;text-align:center}
+  .arrow .lab{font-size:11.5px;color:var(--muted);font-weight:700}
+  .arrow .cmd{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--green);font-weight:800}
+
+  /* KEY CAP */
+  kbd{background:#fff;border:1px solid #d5dae3;border-bottom-width:2px;border-radius:7px;padding:3px 8px;
+    font-size:12.5px;font-weight:700;color:#333;box-shadow:0 1px 0 rgba(0,0,0,.04)}
+
+  /* CALLOUT */
+  .note{display:flex;gap:12px;background:#f2f9f4;border:1px solid #d5ecdd;border-radius:14px;padding:14px 16px;margin-top:14px}
+  .note.warn{background:#fff8ee;border-color:#f3e2c3}
+  .note .em{font-size:20px;line-height:1.2}
+  .note div{font-size:13.5px;font-weight:600;color:#276749}
+  .note.warn div{color:#8a5a12}
+  .note b{font-weight:800}
+
+  .pill{display:inline-block;background:#eef1f6;color:#2b2f3a;border-radius:8px;padding:3px 9px;font-size:12.5px;
+    font-weight:700;margin:3px 4px 0 0;font-family:"JetBrains Mono",monospace}
+
+  footer{text-align:center;color:var(--muted);font-size:13px;font-weight:600;padding:40px 0 50px}
+  hr{border:none;border-top:1px solid var(--line);margin:0}
+  @media (max-width:560px){ .arrow{transform:rotate(90deg);min-width:auto;padding:8px 0} .flow{gap:8px} }
+</style>
+</head>
+<body>
+
+<header class="hero"><div class="wrap">
+  <div class="brand"><span class="dot">🐍</span> EXANSYS · AI 교육</div>
+  <h1>클로드코드 <em>설치·사용</em> 가이드</h1>
+  <p>설치부터 터미널·VS Code·GitHub·WSL까지 — 그림으로 흐름만 잡으세요. 자세한 건 강의에서 설명합니다.</p>
+  <nav class="toc">
+    <a href="#s1">① 클로드코드란</a>
+    <a href="#s2">② 설치</a>
+    <a href="#s3">③ 터미널</a>
+    <a href="#s4">④ VS Code</a>
+    <a href="#s5">⑤ GitHub</a>
+    <a href="#s6">⑥ WSL</a>
+  </nav>
+</div></header>
+
+<main class="wrap">
+
+<!-- 1. WHAT -->
+<section id="s1">
+  <div class="sec-head"><div class="sec-num">1</div>
+    <div><h2>클로드코드란?</h2><div class="sub">터미널에서 대화로 코딩하는 AI 개발 도구</div></div></div>
+  <div class="grid g3">
+    <div class="card"><div class="ic">💬</div><h3>대화로 지시</h3><p>"로그인 화면 만들어줘"처럼 한국어로 시키면 AI가 코드를 씁니다.</p></div>
+    <div class="card"><div class="ic">📂</div><h3>내 폴더를 읽음</h3><p>프로젝트 파일 전체를 이해하고 여러 파일을 한 번에 고칩니다.</p></div>
+    <div class="card"><div class="ic">⚡</div><h3>직접 실행</h3><p>파일 생성·수정, 명령 실행, 깃 커밋까지 스스로 처리합니다.</p></div>
+  </div>
+  <div class="note"><span class="em">🧭</span><div>한 줄 요약 — <b>클로드코드 = 터미널 안에 사는 AI 개발 파트너.</b> 창(터미널)을 하나 열고, 말로 시키면 됩니다.</div></div>
+</section>
+
+<!-- 2. INSTALL -->
+<section id="s2">
+  <div class="sec-head"><div class="sec-num">2</div>
+    <div><h2>설치하기</h2><div class="sub">셋 중 하나만 — Windows 기준</div></div></div>
+
+  <div class="grid g3">
+    <div class="card">
+      <span class="tag best">추천 · 가장 쉬움</span>
+      <h3>① PowerShell 한 줄</h3>
+      <p>파워셸을 열고 아래를 붙여넣기. 자동으로 다 깔립니다.</p>
+      <div class="term"><div class="bar"><i></i><i></i><i></i><span>PowerShell</span></div>
+        <pre><span class="p">PS&gt;</span> irm https://claude.ai/install.ps1 | iex</pre></div>
+    </div>
+    <div class="card">
+      <span class="tag alt">Windows 패키지</span>
+      <h3>② winget</h3>
+      <p>Windows 기본 패키지 관리자로 설치.</p>
+      <div class="term"><div class="bar"><i></i><i></i><i></i><span>PowerShell</span></div>
+        <pre><span class="p">PS&gt;</span> winget install Anthropic.ClaudeCode</pre></div>
+    </div>
+    <div class="card">
+      <span class="tag alt">Node 사용자</span>
+      <h3>③ npm</h3>
+      <p><b>Node.js 22 이상</b> 필요. 이미 Node가 있으면 이 방법.</p>
+      <div class="term"><div class="bar"><i></i><i></i><i></i><span>Terminal</span></div>
+        <pre><span class="p">$</span> npm install -g <span class="y">@anthropic-ai/claude-code</span></pre></div>
+    </div>
+  </div>
+
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card"><div class="ic">🔑</div><h3>로그인</h3>
+      <p>설치 후 터미널에 <code>claude</code> 입력 → 브라우저가 열리면 로그인 한 번. 이후 자동 유지.</p>
+      <div class="term"><div class="bar"><i></i><i></i><i></i><span>Terminal</span></div>
+        <pre><span class="p">$</span> claude
+<span class="d"># 처음이면 자동으로 /login 안내 → 브라우저에서 로그인</span></pre></div>
+    </div>
+    <div class="card"><div class="ic">🎫</div><h3>필요한 것</h3>
+      <p style="margin-bottom:8px">사용하려면 유료 구독이 있어야 합니다.</p>
+      <span class="pill">Claude Pro</span><span class="pill">Max</span><span class="pill">Team</span>
+      <div class="note warn" style="margin-top:12px"><span class="em">⚠️</span><div>무료 요금제로는 클로드코드를 쓸 수 없습니다. Pro 이상 구독이 필요해요.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 3. TERMINAL -->
+<section id="s3">
+  <div class="sec-head"><div class="sec-num">3</div>
+    <div><h2>터미널에서 쓰기</h2><div class="sub">명령창을 열고 말로 시키기</div></div></div>
+
+  <div class="term"><div class="bar"><i></i><i></i><i></i><span>내 프로젝트 폴더 — Terminal</span></div>
+    <pre><span class="d"># 대화 시작 (그냥 실행)</span>
+<span class="p">$</span> claude
+
+<span class="d"># 할 일을 바로 던지기</span>
+<span class="p">$</span> claude <span class="c">"버튼 색을 초록으로 바꿔줘"</span>
+
+<span class="d"># 이전 대화 이어서</span>
+<span class="p">$</span> claude -c</pre></div>
+
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card"><div class="ic">⌨️</div><h3>대화 중 자주 쓰는 명령</h3>
+      <p style="margin-bottom:10px">채팅 안에서 <code>/</code> 를 치면 명령 목록이 뜹니다.</p>
+      <span class="pill">/login</span><span class="pill">/clear</span><span class="pill">/help</span>
+      <p style="margin-top:10px;color:var(--muted)">/clear = 대화 초기화 · /help = 도움말</p>
+    </div>
+    <div class="card"><div class="ic">🚪</div><h3>기본 흐름</h3>
+      <div class="steps" style="margin-top:4px">
+        <div class="step" style="padding:11px 13px"><div class="n"></div><div class="b"><h4>폴더로 이동</h4><p><code>cd 내프로젝트</code></p></div></div>
+        <div class="step" style="padding:11px 13px"><div class="n"></div><div class="b"><h4>클로드 실행</h4><p><code>claude</code> 입력</p></div></div>
+        <div class="step" style="padding:11px 13px"><div class="n"></div><div class="b"><h4>말로 지시</h4><p>원하는 걸 한국어로</p></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="note"><span class="em">💡</span><div>터미널이 무섭게 느껴져도 괜찮아요. <b>실제로 외울 명령은 <code>cd</code>, <code>claude</code> 둘뿐</b>입니다. 나머지는 클로드에게 물어보세요.</div></div>
+</section>
+
+<!-- 4. VS CODE -->
+<section id="s4">
+  <div class="sec-head"><div class="sec-num">4</div>
+    <div><h2>VS Code에서 쓰기</h2><div class="sub">코드 에디터 안에서 나란히 보며 작업</div></div></div>
+
+  <div class="steps">
+    <div class="step"><div class="n"></div><div class="b"><h4>VS Code 설치</h4><p>code.visualstudio.com 에서 내려받아 설치. (버전 1.98 이상 권장)</p></div></div>
+    <div class="step"><div class="n"></div><div class="b"><h4>확장 탭 열기</h4><p>왼쪽 블록 아이콘 클릭 또는 <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>X</kbd></p></div></div>
+    <div class="step"><div class="n"></div><div class="b"><h4>"Claude Code" 검색 → 설치</h4><p>Anthropic 공식 확장을 설치합니다.</p></div></div>
+    <div class="step"><div class="n"></div><div class="b"><h4>사이드 패널에서 대화</h4><p>에디터 오른쪽에 클로드 패널이 열리고, 코드와 결과를 나란히 보며 작업합니다.</p></div></div>
+  </div>
+  <div class="note"><span class="em">🖥️</span><div>터미널 방식과 <b>같은 클로드코드</b>입니다. 화면에서 코드 변화를 눈으로 보며 하고 싶으면 VS Code, 빠르게 치고 빠지려면 터미널.</div></div>
+</section>
+
+<!-- 5. GITHUB -->
+<section id="s5">
+  <div class="sec-head"><div class="sec-num">5</div>
+    <div><h2>GitHub 란?</h2><div class="sub">코드의 클라우드 저장소 + 버전 기록</div></div></div>
+
+  <div class="grid g2">
+    <div class="card"><div class="ic">☁️</div><h3>무엇인가</h3>
+      <p>내 코드를 인터넷에 안전하게 보관하고, <b>언제 무엇을 바꿨는지 전부 기록</b>하는 곳. 협업·백업·배포의 중심.</p></div>
+    <div class="card"><div class="ic">⏱️</div><h3>왜 쓰나</h3>
+      <p>실수해도 이전으로 되돌리고, 여러 기기·여러 사람이 같은 코드를 공유. EXANSYS 사이트도 GitHub에 올리면 자동 배포됩니다.</p></div>
+  </div>
+
+  <h3 style="font-size:15px;font-weight:800;margin:22px 0 10px;color:var(--muted)">핵심 흐름 — 내 컴퓨터 ↔ GitHub</h3>
+  <div class="flow">
+    <div class="node"><div class="ic">💻</div><b>내 컴퓨터</b><small>코드 작성·수정</small></div>
+    <div class="arrow"><span class="lab">저장 기록</span><span>→</span><span class="cmd">commit</span></div>
+    <div class="node"><div class="ic">📦</div><b>로컬 저장소</b><small>변경 이력 쌓임</small></div>
+    <div class="arrow"><span class="lab">올리기</span><span>→</span><span class="cmd">push</span></div>
+    <div class="node"><div class="ic">☁️</div><b>GitHub</b><small>온라인 보관</small></div>
+  </div>
+  <div class="note" style="margin-top:18px"><span class="em">🔁</span><div>반대로 GitHub의 최신 코드를 내 컴퓨터로 가져오는 건 <b><code>pull</code></b>. 커밋·푸시·풀 이 셋이 GitHub의 전부라고 봐도 됩니다.</div></div>
+
+  <div class="card" style="margin-top:16px"><div class="ic">🤝</div><h3>클로드코드 + GitHub</h3>
+    <p style="margin-bottom:10px">복잡한 깃 명령도 클로드가 대신 처리합니다. 계정 연결은 <code>gh</code>(GitHub CLI)로 한 번만.</p>
+    <div class="term"><div class="bar"><i></i><i></i><i></i><span>Terminal</span></div>
+      <pre><span class="p">$</span> gh auth login        <span class="d"># GitHub 계정 연결 (최초 1회)</span>
+<span class="p">$</span> claude <span class="c">"방금 바꾼 거 커밋하고 올려줘"</span>  <span class="d"># 커밋·푸시 자동</span></pre></div>
+  </div>
+</section>
+
+<!-- 6. WSL -->
+<section id="s6">
+  <div class="sec-head"><div class="sec-num">6</div>
+    <div><h2>WSL 이란? (Windows용 리눅스)</h2><div class="sub">윈도우 안에서 리눅스를 돌리는 기능</div></div></div>
+
+  <div class="grid g2">
+    <div class="card"><div class="ic">🐧</div><h3>무엇인가</h3>
+      <p><b>W</b>indows <b>S</b>ubsystem for <b>L</b>inux — 윈도우를 끄지 않고 그 안에서 리눅스(우분투)를 쓰는 기능.</p></div>
+    <div class="card"><div class="ic">🛠️</div><h3>왜 필요한가</h3>
+      <p>많은 개발 도구가 리눅스 기준으로 만들어져 있어, WSL을 쓰면 <b>명령어가 깔끔하게 맞아떨어지고</b> 오류가 줄어듭니다.</p></div>
+  </div>
+
+  <h3 style="font-size:15px;font-weight:800;margin:22px 0 10px;color:var(--muted)">설치 — 관리자 PowerShell에서</h3>
+  <div class="steps">
+    <div class="step"><div class="n"></div><div class="b"><h4>PowerShell을 관리자로 실행</h4><p>시작 메뉴 → PowerShell 우클릭 → <b>관리자 권한으로 실행</b></p></div></div>
+    <div class="step"><div class="n"></div><div class="b"><h4>한 줄 설치</h4><p>아래 명령이 WSL + 우분투를 한 번에 깔아줍니다.</p></div></div>
+  </div>
+  <div class="term"><div class="bar"><i></i><i></i><i></i><span>관리자 PowerShell</span></div>
+    <pre><span class="p">PS&gt;</span> wsl --install</pre></div>
+  <div class="steps" style="margin-top:12px">
+    <div class="step"><div class="n" style="counter-increment:s"></div><div class="b"><h4>재부팅 후 우분투 첫 설정</h4><p>컴퓨터를 다시 켜면 우분투 창이 열립니다. 사용할 <b>아이디·비밀번호</b>를 정하면 끝.</p></div></div>
+    <div class="step"><div class="n"></div><div class="b"><h4>WSL 안에서 클로드코드 설치</h4><p>우분투 터미널에서 아래 한 줄.</p></div></div>
+  </div>
+  <div class="term"><div class="bar"><i></i><i></i><i></i><span>Ubuntu (WSL)</span></div>
+    <pre><span class="p">$</span> curl -fsSL https://claude.ai/install.sh | bash</pre></div>
+
+  <div class="note warn"><span class="em">🧩</span><div><b>꼭 WSL이 필요한 건 아니에요.</b> 윈도우에서 바로 써도 됩니다. 리눅스 기준 강의를 그대로 따라 하고 싶을 때 WSL을 쓰면 편합니다.</div></div>
+</section>
+
+<hr style="margin:36px 0 0"/>
+</main>
+<footer>EXANSYS Co., Ltd. · 클로드코드 설치·사용 가이드 · 자세한 설명은 강의에서</footer>
+</body>
+</html>
