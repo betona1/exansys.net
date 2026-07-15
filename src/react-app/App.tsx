@@ -10,6 +10,7 @@ import ContactDetail from "./pages/ContactDetail";
 import Privacy from "./pages/Privacy";
 import Crew from "./pages/Crew";
 import CrewDetail from "./pages/CrewDetail";
+import AppReview from "./pages/AppReview";
 import Login from "./pages/Login";
 import { useMe } from "./lib/useMe";
 
@@ -37,6 +38,7 @@ export default function App() {
         <Route path="/contact/:id" element={<ContactDetail me={me} />} />
         <Route path="/crew" element={<Crew me={me} meLoading={loading} />} />
         <Route path="/crew/:id" element={<CrewDetail me={me} />} />
+        <Route path="/appreview" element={<AppReview me={me} meLoading={loading} />} />
         <Route path="/admin" element={<Admin me={me} meLoading={loading} />} />
       </Routes>
       <Footer />

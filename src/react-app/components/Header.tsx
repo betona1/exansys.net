@@ -42,11 +42,18 @@ export default function Header({ me, logout }: { me: Me; logout: () => Promise<v
               <Link className="text-muted transition hover:text-ink" to="/#about">소개</Link>
             </li>
             {me && (me.role === "crew" || me.role === "staff" || me.role === "admin") && (
-              <li className="hidden sm:block">
-                <Link className="font-semibold text-green transition hover:text-green-deep" to="/crew">
-                  크루
-                </Link>
-              </li>
+              <>
+                <li className="hidden sm:block">
+                  <Link className="font-semibold text-green transition hover:text-green-deep" to="/crew">
+                    크루
+                  </Link>
+                </li>
+                <li className="hidden sm:block">
+                  <Link className="text-muted transition hover:text-ink" to="/appreview">
+                    앱리뷰
+                  </Link>
+                </li>
+              </>
             )}
             <li className="hidden sm:block">
               <Link
@@ -98,13 +105,22 @@ export default function Header({ me, logout }: { me: Me; logout: () => Promise<v
                         앱
                       </Link>
                       {(me.role === "crew" || me.role === "staff" || me.role === "admin") && (
-                        <Link
-                          to="/crew"
-                          onClick={() => setOpen(false)}
-                          className="block rounded-lg px-3 py-2 text-sm font-medium text-green hover:bg-paper sm:hidden"
-                        >
-                          크루 갤러리
-                        </Link>
+                        <>
+                          <Link
+                            to="/crew"
+                            onClick={() => setOpen(false)}
+                            className="block rounded-lg px-3 py-2 text-sm font-medium text-green hover:bg-paper sm:hidden"
+                          >
+                            크루 갤러리
+                          </Link>
+                          <Link
+                            to="/appreview"
+                            onClick={() => setOpen(false)}
+                            className="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-paper"
+                          >
+                            앱 리뷰 분석
+                          </Link>
+                        </>
                       )}
                       <Link
                         to="/contact"

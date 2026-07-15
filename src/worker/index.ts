@@ -10,6 +10,7 @@ import { privacyRoutes } from "./routes/privacy";
 import { crewRoutes } from "./routes/crew";
 import { visitRoutes } from "./routes/visits";
 import { mediaRoutes } from "./routes/media";
+import { appReviewRoutes } from "./routes/appreview";
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -27,6 +28,7 @@ app.route("/api", privacyRoutes); // /api/apps/:slug/privacy
 app.route("/api", crewRoutes); // /api/crew/*, /api/media/gallery/*
 app.route("/api", mediaRoutes); // /api/media/shots/* (공개 스크린샷)
 app.route("/api/visits", visitRoutes);
+app.route("/api/appreview", appReviewRoutes);
 app.route("/api/apps", appRoutes);
 app.route("/api/admin", adminRoutes);
 

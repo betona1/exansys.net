@@ -4,6 +4,7 @@ import {
   sqliteTable,
   text,
   integer,
+  real,
   index,
   uniqueIndex,
 } from "drizzle-orm/sqlite-core";
@@ -172,6 +173,44 @@ export const visitStats = sqliteTable("visit_stats", {
   pageviews: integer("pageviews").notNull().default(0),
   visitors: integer("visitors").notNull().default(0),
 });
+
+// App Review 분석 — 외부 스토어(구글플레이/앱스토어)에서 수집한 리뷰 캐시
+// 용량 절약을 위해 7일 뒤 자동 정리 (crew 이상만 접근, CLAUDE.md 무료 한도 준수)
+export const reviewCaches = sqliteTable(
+  "review_caches",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    store: text("store", { enum: ["play", "apple"] }).notNull(),
+    appId: text("app_id").notNull(), // play: 패키지명, apple: trackId
+    region: text("region").notNull(), // kr, us, jp ...
+    title: text("title").notNull(),
+    iconUrl: text("icon_url"),
+    score: real("score"), // 스토어 평균 별점
+    ratings: integer("ratings"), // 총 평가 수
+    installs: text("installs"), // 표시용 다운로드 수 (play 전용, 예: "1,000,000+")
+    realInstalls: integer("real_installs"), // 추정 실제 설치 수 (play)
+    reviewCount: integer("review_count").notNull().default(0), // 수집한 리뷰 개수
+    fetchedAt: integer("fetched_at", { mode: "timestamp" }).notNull(),
+  },
+  (t) => [uniqueIndex("idx_review_caches_key").on(t.store, t.appId, t.region)],
+);
+
+export const reviewItems = sqliteTable(
+  "review_items",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    cacheId: integer("cache_id")
+      .notNull()
+      .references(() => reviewCaches.id),
+    score: integer("score").notNull().default(0), // 1~5
+    content: text("content").notNull(),
+    at: integer("at", { mode: "timestamp" }), // 작성일
+    thumbsUp: integer("thumbs_up").notNull().default(0),
+    userName: text("user_name"),
+    version: text("version"), // 앱 버전 (play만 제공)
+  },
+  (t) => [index("idx_review_items_cache").on(t.cacheId)],
+);
 
 // 다운로드 카운터 중복 방지용 (IP/UA는 원문 저장 금지 — 해시만)
 export const downloadLogs = sqliteTable(
