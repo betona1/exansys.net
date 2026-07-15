@@ -9,6 +9,7 @@ import type { Env } from "../types";
 import { ok, err, ROLE_LEVEL } from "../types";
 import { requireRole, type AuthedUser } from "../middleware";
 import { readSession } from "../auth/session";
+import glossaryHtml from "../resources/ai-glossary.html?raw";
 
 type Vars = { Variables: { user: AuthedUser } };
 export const eduRoutes = new Hono<{ Bindings: Env } & Vars>();
@@ -331,6 +332,44 @@ eduRoutes.post("/edu/posts", requireRole("admin"), async (c) => {
     }
   }
   return c.json(ok({ id: postId }));
+});
+
+// 용어집 시드 (admin 전용, 멱등) — 큰 HTML을 브라우저로 전송하지 않고 번들에서 R2+DB에 직접 등록
+const GLOSSARY_TITLE = "AI · 앱 개발 용어집 (필수 용어 177개)";
+eduRoutes.post("/edu/seed/glossary", requireRole("admin"), async (c) => {
+  const db = drizzle(c.env.DB);
+  await ensureTables(db);
+  const existing = await db
+    .select({ id: eduPosts.id })
+    .from(eduPosts)
+    .where(eq(eduPosts.title, GLOSSARY_TITLE))
+    .limit(1);
+  if (existing.length) return c.json(ok({ id: existing[0].id, already: true }));
+
+  const key = `edu/html/${crypto.randomUUID()}.html`;
+  await c.env.MEDIA.put(key, glossaryHtml, { httpMetadata: { contentType: "text/html; charset=utf-8" } });
+
+  const now = new Date();
+  const inserted = await db
+    .insert(eduPosts)
+    .values({
+      userId: c.get("user").id,
+      title: GLOSSARY_TITLE,
+      body: "클로드코드로 앱을 만들 때 만나는 필수 용어 177개를 한곳에 모았습니다. 아래 자료에서 검색하거나 18개 분류로 필터링해 찾아보세요.",
+      createdAt: now,
+      updatedAt: now,
+    })
+    .returning({ id: eduPosts.id });
+  const postId = inserted[0].id;
+  await db.insert(eduAttachments).values({
+    postId,
+    kind: "html",
+    fileKey: key,
+    url: null,
+    name: "AI·앱 개발 용어집.html",
+    sort: 0,
+  });
+  return c.json(ok({ id: postId, key, bytes: glossaryHtml.length }));
 });
 
 // 수정 (admin) — 제목/본문만 (첨부는 삭제 후 재작성)
