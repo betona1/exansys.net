@@ -340,14 +340,15 @@ async function loadItems(db: ReturnType<typeof drizzle>, cacheId: number): Promi
     .orderBy(desc(reviewItems.at), asc(reviewItems.id));
 }
 
-// D1 바인딩 변수 한도(999)를 넘지 않도록 40행씩 나눠 삽입 (7컬럼 × 40 = 280).
+// D1 는 쿼리당 바인딩 파라미터가 최대 100개다(SQLite 999가 아님!). 컬럼 7개 × 14행 = 98 ≤ 100 이 되도록
+// 14행씩 나눠 삽입한다. (이전 40행=280개는 한도 초과로 insert가 항상 실패 → items 0 "껍데기"의 원인이었음)
 // 값은 스키마 제약(정수 score, NOT NULL content 등)에 맞게 정규화한다. 저장된 건수를 반환.
 async function insertItems(
   db: ReturnType<typeof drizzle>,
   cacheId: number,
   reviews: ReviewRow[],
 ): Promise<number> {
-  const CHUNK = 40;
+  const CHUNK = 14;
   let stored = 0;
   for (let i = 0; i < reviews.length; i += CHUNK) {
     const slice = reviews.slice(i, i + CHUNK).map((r) => {
