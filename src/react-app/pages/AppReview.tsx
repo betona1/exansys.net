@@ -32,7 +32,8 @@ function stars(score: number | null | undefined) {
 }
 
 export default function AppReview({ me, meLoading }: { me: Me; meLoading: boolean }) {
-  const [store, setStore] = useState<StoreKind>("play");
+  // 애플 App Store는 iTunes가 Cloudflare 데이터센터 IP를 레이트리밋해 서버 수집 불가 → 구글플레이 전용
+  const store: StoreKind = "play";
   const [region, setRegion] = useState("kr");
   const [query, setQuery] = useState("");
   const [hits, setHits] = useState<AppHit[]>([]);
@@ -127,20 +128,9 @@ export default function AppReview({ me, meLoading }: { me: Me; meLoading: boolea
 
       {/* 검색 바 */}
       <form onSubmit={onSearch} className="mb-6 flex flex-wrap items-center gap-3">
-        <div className="inline-flex rounded-full border border-line bg-card p-1">
-          {(["play", "apple"] as StoreKind[]).map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => setStore(s)}
-              className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${
-                store === s ? "bg-ink text-white" : "text-muted hover:text-ink"
-              }`}
-            >
-              {STORE_LABEL[s]}
-            </button>
-          ))}
-        </div>
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-card px-4 py-1.5 text-sm font-semibold">
+          <span className="text-base">🤖</span> Google Play
+        </span>
         <select
           value={region}
           onChange={(e) => setRegion(e.target.value)}
@@ -233,7 +223,7 @@ export default function AppReview({ me, meLoading }: { me: Me; meLoading: boolea
               {n}건
             </button>
           ))}
-          <span className="text-xs">· 앱스토어는 최대 500건</span>
+          <span className="text-xs">· 많을수록 정확하지만 느립니다</span>
         </div>
       )}
 
