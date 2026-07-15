@@ -116,78 +116,81 @@ appReviewRoutes.post("/collect", async (c) => {
     )
     .limit(1);
 
-  const fresh =
-    existing.length > 0 &&
-    existing[0].reviewCount > 0 &&
-    Date.now() - existing[0].fetchedAt.getTime() < CACHE_MS;
-
-  // 캐시 적중 (강제 새로고침 아님)
-  if (fresh && !refresh) {
+  // 캐시 적중 (강제 새로고침 아님) — 단, 실제 저장된 리뷰가 있을 때만.
+  // (과거 수집이 아이템 삽입 단계에서 실패하면 reviewCount>0 이지만 items 0 인 불일치 캐시가
+  //  남아 "껍데기"만 표시될 수 있으므로, 실제 items 개수로 판정한다.)
+  if (existing.length > 0 && !refresh && Date.now() - existing[0].fetchedAt.getTime() < CACHE_MS) {
     const cache = existing[0];
     const items = await loadItems(db, cache.id);
-    const rows = items.map(itemToJson);
-    return c.json(
-      ok({
-        cached: true,
-        fetchedAt: cache.fetchedAt.getTime(),
-        app: cacheMeta(cache),
-        reviews: rows,
-        analysis: analyze(rows),
-      }),
-    );
+    if (items.length > 0) {
+      const rows = items.map(itemToJson);
+      return c.json(
+        ok({
+          cached: true,
+          fetchedAt: cache.fetchedAt.getTime(),
+          app: cacheMeta(cache),
+          reviews: rows,
+          analysis: analyze(rows),
+        }),
+      );
+    }
+    // items 0 → 불일치 캐시. 아래에서 재수집.
   }
 
-  // 새로 수집
-  let info;
-  let reviews: ReviewRow[];
+  // 새로 수집 (외부 fetch + DB 저장 전 과정을 감싸 실제 오류 메시지를 노출)
   try {
-    [info, reviews] = await Promise.all([
+    const [info, reviews] = await Promise.all([
       fetchAppInfo(store, appId, region),
       fetchReviews(store, appId, region, limit),
     ]);
+    if (reviews.length === 0) {
+      return c.json(err("no_reviews"), 404);
+    }
+
+    const now = new Date();
+    const meta = {
+      store,
+      appId,
+      region,
+      title: info.title,
+      iconUrl: info.iconUrl,
+      score: info.score,
+      ratings: info.ratings,
+      installs: info.installs,
+      realInstalls: info.realInstalls,
+      reviewCount: reviews.length,
+      fetchedAt: now,
+    };
+
+    // 캐시 upsert + 아이템 교체.
+    // 아이템을 먼저 넣고 reviewCount 는 성공 후 확정해, 실패 시 불일치 캐시가 남지 않도록 한다.
+    let cacheId: number;
+    if (existing.length > 0) {
+      cacheId = existing[0].id;
+      await db.delete(reviewItems).where(eq(reviewItems.cacheId, cacheId));
+      await db.update(reviewCaches).set({ ...meta, reviewCount: 0 }).where(eq(reviewCaches.id, cacheId));
+    } else {
+      const inserted = await db
+        .insert(reviewCaches)
+        .values({ ...meta, reviewCount: 0 })
+        .returning({ id: reviewCaches.id });
+      cacheId = inserted[0].id;
+    }
+    const stored = await insertItems(db, cacheId, reviews);
+    await db.update(reviewCaches).set({ reviewCount: stored }).where(eq(reviewCaches.id, cacheId));
+
+    return c.json(
+      ok({
+        cached: false,
+        fetchedAt: now.getTime(),
+        app: { ...meta, reviewCount: stored, fetchedAt: now.getTime() },
+        reviews: reviews.map((r) => ({ ...r })),
+        analysis: analyze(reviews),
+      }),
+    );
   } catch (e) {
-    return c.json(err(`collect_failed:${(e as Error).message}`), 502);
+    return c.json(err(`collect_failed:${(e as Error)?.message ?? String(e)}`), 502);
   }
-  if (reviews.length === 0) {
-    return c.json(err("no_reviews"), 404);
-  }
-
-  const now = new Date();
-  const meta = {
-    store,
-    appId,
-    region,
-    title: info.title,
-    iconUrl: info.iconUrl,
-    score: info.score,
-    ratings: info.ratings,
-    installs: info.installs,
-    realInstalls: info.realInstalls,
-    reviewCount: reviews.length,
-    fetchedAt: now,
-  };
-
-  // 캐시 upsert + 아이템 교체
-  let cacheId: number;
-  if (existing.length > 0) {
-    cacheId = existing[0].id;
-    await db.delete(reviewItems).where(eq(reviewItems.cacheId, cacheId));
-    await db.update(reviewCaches).set(meta).where(eq(reviewCaches.id, cacheId));
-  } else {
-    const inserted = await db.insert(reviewCaches).values(meta).returning({ id: reviewCaches.id });
-    cacheId = inserted[0].id;
-  }
-  await insertItems(db, cacheId, reviews);
-
-  return c.json(
-    ok({
-      cached: false,
-      fetchedAt: now.getTime(),
-      app: { ...meta, fetchedAt: now.getTime() },
-      reviews: reviews.map((r) => ({ ...r })),
-      analysis: analyze(reviews),
-    }),
-  );
 });
 
 // ── 엑셀(.xlsx) 추출 — 마지막 수집 데이터 기준 ──
@@ -337,19 +340,31 @@ async function loadItems(db: ReturnType<typeof drizzle>, cacheId: number): Promi
     .orderBy(desc(reviewItems.at), asc(reviewItems.id));
 }
 
-// D1 바인딩 변수 한도(999)를 넘지 않도록 40행씩 나눠 삽입 (7컬럼 × 40 = 280)
-async function insertItems(db: ReturnType<typeof drizzle>, cacheId: number, reviews: ReviewRow[]) {
+// D1 바인딩 변수 한도(999)를 넘지 않도록 40행씩 나눠 삽입 (7컬럼 × 40 = 280).
+// 값은 스키마 제약(정수 score, NOT NULL content 등)에 맞게 정규화한다. 저장된 건수를 반환.
+async function insertItems(
+  db: ReturnType<typeof drizzle>,
+  cacheId: number,
+  reviews: ReviewRow[],
+): Promise<number> {
   const CHUNK = 40;
+  let stored = 0;
   for (let i = 0; i < reviews.length; i += CHUNK) {
-    const slice = reviews.slice(i, i + CHUNK).map((r) => ({
-      cacheId,
-      score: r.score,
-      content: r.content.slice(0, 5000),
-      at: r.at ? new Date(r.at) : null,
-      thumbsUp: r.thumbsUp,
-      userName: r.userName,
-      version: r.version,
-    }));
+    const slice = reviews.slice(i, i + CHUNK).map((r) => {
+      const s = Math.round(Number(r.score));
+      const at = r.at != null && Number.isFinite(r.at) ? new Date(r.at) : null;
+      return {
+        cacheId,
+        score: Number.isFinite(s) ? Math.min(5, Math.max(0, s)) : 0,
+        content: String(r.content ?? "").slice(0, 5000),
+        at: at && !Number.isNaN(at.getTime()) ? at : null,
+        thumbsUp: Number.isFinite(Number(r.thumbsUp)) ? Math.round(Number(r.thumbsUp)) : 0,
+        userName: r.userName ? String(r.userName).slice(0, 200) : null,
+        version: r.version ? String(r.version).slice(0, 60) : null,
+      };
+    });
     await db.insert(reviewItems).values(slice);
+    stored += slice.length;
   }
+  return stored;
 }
