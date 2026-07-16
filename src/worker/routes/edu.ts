@@ -11,6 +11,7 @@ import { requireRole, type AuthedUser } from "../middleware";
 import { readSession } from "../auth/session";
 import glossaryHtml from "../resources/ai-glossary.html?raw";
 import guideHtml from "../resources/claude-code-guide.html?raw";
+import vibeBeginningHtml from "../resources/ai-vibe-beginning.html?raw";
 
 type Vars = { Variables: { user: AuthedUser } };
 export const eduRoutes = new Hono<{ Bindings: Env } & Vars>();
@@ -384,6 +385,15 @@ eduRoutes.post("/edu/seed/guide", requireRole("admin"), (c) =>
     body: "설치부터 터미널·VS Code 사용법, GitHub·WSL 개념과 설치까지 그림 위주로 정리한 가이드입니다. 자세한 내용은 강의에서 설명합니다.",
     fileName: "클로드코드 설치·사용 가이드.html",
     html: guideHtml,
+  }),
+);
+
+eduRoutes.post("/edu/seed/vibe-beginning", requireRole("admin"), (c) =>
+  seedDoc(c, {
+    title: "AI 바이브코딩 BEGINNING",
+    body: "AI 기초 교육 첫 걸음 — 용어·역사·에이전트·AGI/ASI·클로드 AI·바이브코딩 시작법을 그림 위주 슬라이드로 담았습니다. 세로로 스크롤하며 보세요. 자세한 내용은 강의에서 설명합니다.",
+    fileName: "AI 바이브코딩 BEGINNING.html",
+    html: vibeBeginningHtml,
   }),
 );
 
