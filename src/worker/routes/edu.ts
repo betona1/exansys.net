@@ -12,6 +12,7 @@ import { readSession } from "../auth/session";
 import glossaryHtml from "../resources/ai-glossary.html?raw";
 import guideHtml from "../resources/claude-code-guide.html?raw";
 import vibeBeginningHtml from "../resources/ai-vibe-beginning.html?raw";
+import appTermsHtml from "../resources/app-dev-terms.html?raw";
 
 type Vars = { Variables: { user: AuthedUser } };
 export const eduRoutes = new Hono<{ Bindings: Env } & Vars>();
@@ -394,6 +395,15 @@ eduRoutes.post("/edu/seed/vibe-beginning", requireRole("admin"), (c) =>
     body: "AI 기초 교육 첫 걸음 — 용어·역사·에이전트·AGI/ASI·클로드 AI·바이브코딩 시작법을 그림 위주 슬라이드로 담았습니다. 세로로 스크롤하며 보세요. 자세한 내용은 강의에서 설명합니다.",
     fileName: "AI 바이브코딩 BEGINNING.html",
     html: vibeBeginningHtml,
+  }),
+);
+
+eduRoutes.post("/edu/seed/app-terms", requireRole("admin"), (c) =>
+  seedDoc(c, {
+    title: "앱 개발 용어집 · 초보자용 (화면·UI·배포 154개)",
+    body: "화면·UI 컴포넌트·내비게이션·디자인·상태·배포·협업까지, 앱 개발을 처음 배우는 사람 기준으로 정리한 필수 용어 154개입니다. 아래 자료에서 검색하거나 12개 분류로 필터링해 찾아보세요.",
+    fileName: "앱 개발 용어집 · 초보자용.html",
+    html: appTermsHtml,
   }),
 );
 
