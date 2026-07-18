@@ -1,6 +1,6 @@
 // AI교육 게시판 — 교육 자료 게시 (열람 공개, 작성/업로드/삭제는 admin 전용)
 // 첨부: 다이나믹 HTML(샌드박스 렌더) / 이미지(webp) / PDF / 외부 링크
-import { Hono, type Context } from "hono";
+import { Hono } from "hono";
 import { drizzle } from "drizzle-orm/d1";
 import { asc, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
@@ -9,10 +9,6 @@ import type { Env } from "../types";
 import { ok, err, ROLE_LEVEL } from "../types";
 import { requireRole, type AuthedUser } from "../middleware";
 import { readSession } from "../auth/session";
-import glossaryHtml from "../resources/ai-glossary.html?raw";
-import guideHtml from "../resources/claude-code-guide.html?raw";
-import vibeBeginningHtml from "../resources/ai-vibe-beginning.html?raw";
-import appTermsHtml from "../resources/app-dev-terms.html?raw";
 
 type Vars = { Variables: { user: AuthedUser } };
 export const eduRoutes = new Hono<{ Bindings: Env } & Vars>();
@@ -337,75 +333,9 @@ eduRoutes.post("/edu/posts", requireRole("admin"), async (c) => {
   return c.json(ok({ id: postId }));
 });
 
-// 번들 자료 시드 (admin 전용, 멱등) — 큰 HTML을 브라우저로 전송하지 않고 번들에서 R2+DB에 직접 등록
-async function seedDoc(
-  c: Context<{ Bindings: Env } & Vars>,
-  opts: { title: string; body: string; fileName: string; html: string },
-) {
-  const db = drizzle(c.env.DB);
-  await ensureTables(db);
-  const existing = await db
-    .select({ id: eduPosts.id })
-    .from(eduPosts)
-    .where(eq(eduPosts.title, opts.title))
-    .limit(1);
-  if (existing.length) return c.json(ok({ id: existing[0].id, already: true }));
-
-  const key = `edu/html/${crypto.randomUUID()}.html`;
-  await c.env.MEDIA.put(key, opts.html, { httpMetadata: { contentType: "text/html; charset=utf-8" } });
-
-  const now = new Date();
-  const inserted = await db
-    .insert(eduPosts)
-    .values({ userId: c.get("user").id, title: opts.title, body: opts.body, createdAt: now, updatedAt: now })
-    .returning({ id: eduPosts.id });
-  const postId = inserted[0].id;
-  await db.insert(eduAttachments).values({
-    postId,
-    kind: "html",
-    fileKey: key,
-    url: null,
-    name: opts.fileName,
-    sort: 0,
-  });
-  return c.json(ok({ id: postId, key, chars: opts.html.length }));
-}
-
-eduRoutes.post("/edu/seed/glossary", requireRole("admin"), (c) =>
-  seedDoc(c, {
-    title: "AI · 앱 개발 용어집 (필수 용어 177개)",
-    body: "클로드코드로 앱을 만들 때 만나는 필수 용어 177개를 한곳에 모았습니다. 아래 자료에서 검색하거나 18개 분류로 필터링해 찾아보세요.",
-    fileName: "AI·앱 개발 용어집.html",
-    html: glossaryHtml,
-  }),
-);
-
-eduRoutes.post("/edu/seed/guide", requireRole("admin"), (c) =>
-  seedDoc(c, {
-    title: "클로드코드 설치·사용 가이드 (터미널·VS Code·GitHub·WSL)",
-    body: "설치부터 터미널·VS Code 사용법, GitHub·WSL 개념과 설치까지 그림 위주로 정리한 가이드입니다. 자세한 내용은 강의에서 설명합니다.",
-    fileName: "클로드코드 설치·사용 가이드.html",
-    html: guideHtml,
-  }),
-);
-
-eduRoutes.post("/edu/seed/vibe-beginning", requireRole("admin"), (c) =>
-  seedDoc(c, {
-    title: "AI 바이브코딩 BEGINNING",
-    body: "AI 기초 교육 첫 걸음 — 용어·역사·에이전트·AGI/ASI·클로드 AI·바이브코딩 시작법을 그림 위주 슬라이드로 담았습니다. 세로로 스크롤하며 보세요. 자세한 내용은 강의에서 설명합니다.",
-    fileName: "AI 바이브코딩 BEGINNING.html",
-    html: vibeBeginningHtml,
-  }),
-);
-
-eduRoutes.post("/edu/seed/app-terms", requireRole("admin"), (c) =>
-  seedDoc(c, {
-    title: "앱 개발 용어집 · 초보자용 (화면·UI·배포 154개)",
-    body: "화면·UI 컴포넌트·내비게이션·디자인·상태·배포·협업까지, 앱 개발을 처음 배우는 사람 기준으로 정리한 필수 용어 154개입니다. 아래 자료에서 검색하거나 12개 분류로 필터링해 찾아보세요.",
-    fileName: "앱 개발 용어집 · 초보자용.html",
-    html: appTermsHtml,
-  }),
-);
+// 참고: 초기 교육 자료(용어집·가이드·바이브코딩 슬라이드 등)는 이미 R2+D1에 시드되어
+// `/api/edu/media/html/:file` 로 서빙된다. 워커 번들을 가볍게 유지하기 위해 일회성 시드 라우트와
+// 번들 HTML(?raw import)은 제거했다. 새 자료가 필요하면 관리자 업로드(/edu/upload/html)를 쓴다.
 
 // 수정 (admin) — 제목/본문만 (첨부는 삭제 후 재작성)
 eduRoutes.put("/edu/posts/:id", requireRole("admin"), async (c) => {
