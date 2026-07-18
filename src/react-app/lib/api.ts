@@ -152,6 +152,42 @@ export type EduPostDetail = {
   canManage: boolean;
 };
 
+// ── TechDex (용어 학습 게임) ──
+export type TechdexCollection = "ai" | "app" | "vibe";
+
+export type TechdexTerm = {
+  id: number;
+  slug: string;
+  term: string;
+  sub: string | null;
+  def: string;
+  collection: TechdexCollection;
+  category: string;
+  difficulty: number;
+  vibeCore: boolean;
+};
+
+export type TechdexQuizQuestion = {
+  slug: string;
+  prompt: string;
+  choices: string[];
+  answer: string;
+  answerIndex: number;
+  reveal: { term: string; sub: string | null; category: string; collection: TechdexCollection };
+};
+
+export type TechdexStats = {
+  total: number;
+  byCollection: { collection: TechdexCollection; count: number }[];
+  vibeCore: number;
+};
+
+export const TECHDEX_COLLECTION_LABEL: Record<TechdexCollection, string> = {
+  ai: "AI·앱 용어",
+  app: "앱 개발 용어",
+  vibe: "바이브코딩 용어",
+};
+
 export const REVIEW_REGIONS: { code: string; label: string }[] = [
   { code: "kr", label: "한국" },
   { code: "us", label: "미국" },

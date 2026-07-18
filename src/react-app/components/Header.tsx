@@ -44,6 +44,9 @@ export default function Header({ me, logout }: { me: Me; logout: () => Promise<v
             <li className="hidden sm:block">
               <Link className="text-muted transition hover:text-ink" to="/ai-edu">AI교육</Link>
             </li>
+            <li className="hidden sm:block">
+              <Link className="text-muted transition hover:text-ink" to="/techdex">용어게임</Link>
+            </li>
             {me && (me.role === "crew" || me.role === "staff" || me.role === "admin") && (
               <>
                 <li className="hidden sm:block">
@@ -113,6 +116,13 @@ export default function Header({ me, logout }: { me: Me; logout: () => Promise<v
                         className="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-paper sm:hidden"
                       >
                         AI교육
+                      </Link>
+                      <Link
+                        to="/techdex"
+                        onClick={() => setOpen(false)}
+                        className="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-paper sm:hidden"
+                      >
+                        용어게임
                       </Link>
                       {(me.role === "crew" || me.role === "staff" || me.role === "admin") && (
                         <>

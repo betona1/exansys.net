@@ -13,6 +13,7 @@ import CrewDetail from "./pages/CrewDetail";
 import AppReview from "./pages/AppReview";
 import AiEdu from "./pages/AiEdu";
 import AiEduDetail from "./pages/AiEduDetail";
+import TechDex from "./pages/TechDex";
 import Login from "./pages/Login";
 import { useMe } from "./lib/useMe";
 
@@ -43,6 +44,7 @@ export default function App() {
         <Route path="/appreview" element={<AppReview me={me} meLoading={loading} />} />
         <Route path="/ai-edu" element={<AiEdu me={me} />} />
         <Route path="/ai-edu/:id" element={<AiEduDetail me={me} />} />
+        <Route path="/techdex" element={<TechDex />} />
         <Route path="/admin" element={<Admin me={me} meLoading={loading} />} />
       </Routes>
       <Footer />

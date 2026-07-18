@@ -272,3 +272,24 @@ export const downloadLogs = sqliteTable(
   },
   (t) => [index("idx_download_logs_dedupe").on(t.appId, t.ipHash, t.uaHash, t.date)],
 );
+
+// TechDex — IT/AI 용어 학습 게임의 용어 DB (홈페이지 용어집 + 바이브코딩 용어 병합 시드)
+export const techdexTerms = sqliteTable(
+  "techdex_terms",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    slug: text("slug").notNull(),
+    term: text("term").notNull(), // 표시 용어
+    sub: text("sub"), // 부제(영문/약어/한글 읽기 등)
+    def: text("def").notNull(), // 한 줄 정의
+    collection: text("collection").notNull(), // 'ai' | 'app' | 'vibe'
+    category: text("category").notNull(), // 한글 카테고리 라벨
+    difficulty: integer("difficulty").notNull().default(1), // 1~4
+    vibeCore: integer("vibe_core", { mode: "boolean" }).notNull().default(false),
+    source: text("source"),
+  },
+  (t) => [
+    uniqueIndex("idx_techdex_slug").on(t.slug),
+    index("idx_techdex_cat").on(t.collection, t.category),
+  ],
+);
