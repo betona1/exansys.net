@@ -21,7 +21,9 @@ const QUESTION_SECONDS = 12;
 type Scope = { collection: TechdexCollection | "all"; vibeCore: boolean; count: number };
 
 export default function TechDex() {
-  const [tab, setTab] = useState<"quiz" | "dex">("quiz");
+  const [tab, setTab] = useState<"quiz" | "dex">(() =>
+    new URLSearchParams(window.location.search).get("tab") === "dex" ? "dex" : "quiz",
+  );
   const [stats, setStats] = useState<TechdexStats | null>(null);
 
   useEffect(() => {
