@@ -2,8 +2,13 @@ import 'package:flutter/material.dart';
 import 'quiz_screen.dart';
 import 'crossword_screen.dart';
 import 'dex_screen.dart';
+import 'sfx.dart';
 
-void main() => runApp(const TechDexApp());
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  Sfx.init(); // 효과음 미리 로드
+  runApp(const TechDexApp());
+}
 
 // EXANSYS 브랜드 색
 const green = Color(0xFF0E5741);

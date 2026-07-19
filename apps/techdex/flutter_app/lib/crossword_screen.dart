@@ -24,8 +24,7 @@ class _CrosswordScreenState extends State<CrosswordScreen> {
   final Map<String, int> _numAt = {};
   List<CrosswordEntry> _across = [];
   List<CrosswordEntry> _down = [];
-  final Map<String, TextEditingController> _ctrl = {};
-  final Map<String, FocusNode> _focus = {};
+  final Map<String, String> _letters = {}; // 입력 글자
   final Map<String, bool?> _checked = {};
   int _ar = -1, _ac = -1; // 현재 활성 칸
 
@@ -35,23 +34,6 @@ class _CrosswordScreenState extends State<CrosswordScreen> {
   void initState() {
     super.initState();
     _load();
-  }
-
-  @override
-  void dispose() {
-    _disposeCells();
-    super.dispose();
-  }
-
-  void _disposeCells() {
-    for (final c in _ctrl.values) {
-      c.dispose();
-    }
-    for (final f in _focus.values) {
-      f.dispose();
-    }
-    _ctrl.clear();
-    _focus.clear();
   }
 
   Future<void> _load() async {
@@ -69,24 +51,20 @@ class _CrosswordScreenState extends State<CrosswordScreen> {
         collection: _collection == 'all' ? null : _collection,
         level: _level,
       );
-      _disposeCells();
       _correct.clear();
       _numAt.clear();
       _checked.clear();
+      _letters.clear();
       for (final e in p.entries) {
         _numAt.putIfAbsent(_k(e.row, e.col), () => e.number);
         final dr = e.dir == 'down' ? 1 : 0;
         final dc = e.dir == 'across' ? 1 : 0;
         for (var i = 0; i < e.len; i++) {
-          final key = _k(e.row + dr * i, e.col + dc * i);
-          _correct[key] = e.answer[i];
-          _ctrl.putIfAbsent(key, () => TextEditingController());
-          _focus.putIfAbsent(key, () => FocusNode());
+          _correct[_k(e.row + dr * i, e.col + dc * i)] = e.answer[i];
         }
       }
       _across = p.entries.where((e) => e.dir == 'across').toList()..sort((a, b) => a.number - b.number);
       _down = p.entries.where((e) => e.dir == 'down').toList()..sort((a, b) => a.number - b.number);
-      // 첫 문제를 기본 선택
       final first = _across.isNotEmpty ? _across.first : (_down.isNotEmpty ? _down.first : null);
       setState(() {
         _puzzle = p;
@@ -137,7 +115,6 @@ class _CrosswordScreenState extends State<CrosswordScreen> {
       _ar = e.row;
       _ac = e.col;
     });
-    _focus[_k(e.row, e.col)]?.requestFocus();
   }
 
   void _stepEntry(int delta) {
@@ -148,51 +125,81 @@ class _CrosswordScreenState extends State<CrosswordScreen> {
     _gotoEntry(list[(idx + delta + list.length) % list.length]);
   }
 
-  void _advance(int r, int c) {
+  void _tapCell(int r, int c) {
+    setState(() {
+      if (_ar == r && _ac == c) {
+        _dir = _dir == 'across' ? 'down' : 'across';
+      } else {
+        _ar = r;
+        _ac = c;
+      }
+    });
+  }
+
+  // 다음 빈 칸(현재 방향)으로 이동, 없으면 바로 다음 칸
+  void _advance() {
     final dr = _dir == 'down' ? 1 : 0;
     final dc = _dir == 'across' ? 1 : 0;
-    if (_has(r + dr, c + dc)) {
-      setState(() {
-        _ar = r + dr;
-        _ac = c + dc;
-      });
-      _focus[_k(r + dr, c + dc)]!.requestFocus();
+    var r = _ar, c = _ac;
+    while (_has(r + dr, c + dc)) {
+      r += dr;
+      c += dc;
+      if ((_letters[_k(r, c)] ?? '').isEmpty) break;
     }
-  }
-
-  void _onChanged(int r, int c, String v) {
-    final key = _k(r, c);
-    if (v.isEmpty) {
-      setState(() => _checked.remove(key));
-      return;
-    }
-    final ch = v.substring(v.length - 1).toUpperCase();
-    if (RegExp(r'[A-Z]').hasMatch(ch)) {
-      _ctrl[key]!.value = TextEditingValue(text: ch, selection: const TextSelection.collapsed(offset: 1));
-      _checked[key] = null;
-      _advance(r, c);
-    } else {
-      _ctrl[key]!.text = '';
-    }
-    setState(() {});
-  }
-
-  void _tapCell(int r, int c) {
-    if (_ar == r && _ac == c) {
-      setState(() => _dir = _dir == 'across' ? 'down' : 'across');
-    } else {
+    if (_has(r, c) && (r != _ar || c != _ac)) {
       setState(() {
         _ar = r;
         _ac = c;
       });
     }
-    _focus[_k(r, c)]!.requestFocus();
+  }
+
+  void _typeLetter(String ch) {
+    if (_ar < 0) {
+      final f = _across.isNotEmpty ? _across.first : (_down.isNotEmpty ? _down.first : null);
+      if (f == null) return;
+      setState(() {
+        _dir = f.dir;
+        _ar = f.row;
+        _ac = f.col;
+      });
+    }
+    final key = _k(_ar, _ac);
+    setState(() {
+      _letters[key] = ch;
+      _checked.remove(key);
+    });
+    _advance();
+  }
+
+  void _backspace() {
+    if (_ar < 0) return;
+    final key = _k(_ar, _ac);
+    if ((_letters[key] ?? '').isNotEmpty) {
+      setState(() {
+        _letters.remove(key);
+        _checked.remove(key);
+      });
+    } else {
+      // 빈 칸이면 이전 칸으로 이동하며 지움
+      final dr = _dir == 'down' ? 1 : 0;
+      final dc = _dir == 'across' ? 1 : 0;
+      final pr = _ar - dr, pc = _ac - dc;
+      if (_has(pr, pc)) {
+        setState(() {
+          _ar = pr;
+          _ac = pc;
+          _letters.remove(_k(pr, pc));
+          _checked.remove(_k(pr, pc));
+        });
+      }
+    }
   }
 
   void _check() {
     var all = true;
     _correct.forEach((key, letter) {
-      final ok = _ctrl[key]!.text.toUpperCase() == letter;
+      final ok = (_letters[key] ?? '') == letter;
       _checked[key] = ok;
       if (!ok) all = false;
     });
@@ -208,7 +215,7 @@ class _CrosswordScreenState extends State<CrosswordScreen> {
 
   void _reveal() {
     _correct.forEach((key, letter) {
-      _ctrl[key]!.text = letter;
+      _letters[key] = letter;
       _checked[key] = null;
     });
     setState(() => _solved = true);
@@ -277,7 +284,12 @@ class _CrosswordScreenState extends State<CrosswordScreen> {
               ],
             );
           }),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
+
+          // Wordle식 자체 키보드 — 시스템 키보드 없이 쉽게 입력·수정
+          _keyboard(),
+          const SizedBox(height: 14),
+
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -356,63 +368,98 @@ class _CrosswordScreenState extends State<CrosswordScreen> {
 
     Color border = const Color(0xFFE7EAF0);
     Color bg = Colors.white;
+    Color textColor = ink;
     if (chk == true) {
       border = green;
       bg = green.withValues(alpha: 0.12);
     } else if (chk == false) {
       border = Colors.red.shade400;
       bg = const Color(0xFFFDECEC);
+      textColor = const Color(0xFFB4232A);
     } else if (inWord) {
       bg = green.withValues(alpha: 0.06);
     }
     if (active) {
       border = ink;
-      bg = lime.withValues(alpha: 0.30);
+      bg = lime.withValues(alpha: 0.35);
     }
     final num = _numAt[key];
-    return Padding(
-      padding: const EdgeInsets.all(1),
-      child: SizedBox(
-        width: size - 2,
-        height: size - 2,
-        child: Stack(
-          children: [
-            TextField(
-              controller: _ctrl[key],
-              focusNode: _focus[key],
-              textAlign: TextAlign.center,
-              textCapitalization: TextCapitalization.characters,
-              showCursor: false,
-              maxLength: 2,
-              onTap: () => _tapCell(r, c),
-              onChanged: (v) => _onChanged(r, c, v),
-              style: TextStyle(fontWeight: FontWeight.w800, fontSize: size * 0.46),
-              decoration: InputDecoration(
-                counterText: '',
-                isDense: true,
-                contentPadding: EdgeInsets.zero,
-                filled: true,
-                fillColor: bg,
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(7), borderSide: BorderSide(color: border, width: 1.5)),
-                enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(7), borderSide: BorderSide(color: border, width: 1.5)),
-                focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(7), borderSide: BorderSide(color: border == ink ? ink : green, width: 2)),
+    return GestureDetector(
+      onTap: () => _tapCell(r, c),
+      child: Padding(
+        padding: const EdgeInsets.all(1),
+        child: Container(
+          width: size - 2,
+          height: size - 2,
+          decoration: BoxDecoration(
+            color: bg,
+            borderRadius: BorderRadius.circular(7),
+            border: Border.all(color: border, width: active ? 2 : 1.5),
+          ),
+          child: Stack(
+            children: [
+              Center(
+                child: Text(
+                  _letters[key] ?? '',
+                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: size * 0.46, color: textColor),
+                ),
               ),
-            ),
-            if (num != null)
-              Positioned(
-                left: 3,
-                top: 1,
-                child: Text('$num',
-                    style: TextStyle(fontSize: size * 0.26, color: Colors.black45, fontWeight: FontWeight.bold)),
-              ),
-          ],
+              if (num != null)
+                Positioned(
+                  left: 3,
+                  top: 1,
+                  child: Text('$num',
+                      style: TextStyle(fontSize: size * 0.26, color: Colors.black45, fontWeight: FontWeight.bold)),
+                ),
+            ],
+          ),
         ),
       ),
     );
   }
+
+  Widget _keyboard() {
+    const rows = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'];
+    return Column(
+      children: [
+        for (var ri = 0; ri < rows.length; ri++)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 3),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                for (final ch in rows[ri].split('')) _key(ch, () => _typeLetter(ch)),
+                if (ri == 2) _key('⌫', _backspace, wide: true),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _key(String label, VoidCallback onTap, {bool wide = false}) => Expanded(
+        flex: wide ? 3 : 2,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 2),
+          child: Material(
+            color: wide ? green : const Color(0xFFEDEFF3),
+            borderRadius: BorderRadius.circular(8),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(8),
+              onTap: onTap,
+              child: Container(
+                height: 46,
+                alignment: Alignment.center,
+                child: Text(label,
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: wide ? Colors.white : ink)),
+              ),
+            ),
+          ),
+        ),
+      );
 
   Widget _clues(String title, List<CrosswordEntry> list) {
     final ae = _activeEntry;
