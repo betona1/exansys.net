@@ -41,19 +41,24 @@ export default function TechDex({ me }: { me: Me }) {
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
       <header className="mb-6">
-        <div className="flex items-center gap-2 text-xs font-semibold text-green-deep">
-          <span className="grid h-6 w-6 place-items-center rounded-lg bg-lime/40">🧠</span>
-          EXANSYS · 용어 학습 게임
+        <div className="flex items-center gap-3.5">
+          <img
+            src="/techdex-logo.png"
+            alt="TechDex"
+            className="h-14 w-14 shrink-0 rounded-2xl shadow-lg shadow-green/25"
+          />
+          <div className="min-w-0">
+            <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-green">
+              EXANSYS · 용어 학습 게임
+            </div>
+            <h1 className="font-display text-3xl font-extrabold leading-none tracking-tight">TechDex</h1>
+            {stats && (
+              <p className="mt-1 text-sm font-semibold text-muted">
+                <b className="text-green-deep">{stats.total.toLocaleString()}</b>개 용어 · 필수 {stats.vibeCore}개
+              </p>
+            )}
+          </div>
         </div>
-        <h1 className="mt-2 font-display text-3xl font-extrabold tracking-tight">TechDex</h1>
-        <p className="mt-2 text-muted">
-          IT·AI·바이브코딩 용어를 <b className="text-ink">퀴즈</b>로 익히고 <b className="text-ink">도감</b>으로 모으세요.
-          {stats && (
-            <span className="ml-1 text-sm">
-              현재 <b className="text-green-deep">{stats.total.toLocaleString()}</b>개 용어 · 필수 {stats.vibeCore}개
-            </span>
-          )}
-        </p>
       </header>
 
       <div className="mb-6 inline-flex flex-wrap rounded-full border border-line bg-card p-1 text-sm font-semibold">
@@ -295,18 +300,27 @@ function Quiz({ stats }: { stats: TechdexStats | null }) {
   // playing
   const q = questions[idx];
   const pct = (timeLeft / QUESTION_SECONDS) * 100;
+  const correct = answered && selected === q.answerIndex;
   return (
-    <div>
-      <div className="mb-3 flex items-center justify-between text-sm font-semibold text-muted">
-        <span>
-          {idx + 1} / {questions.length}
+    <div className="mx-auto max-w-2xl">
+      {/* 상단: 진행 + 점수 */}
+      <div className="mb-3 flex items-center justify-between">
+        <span className="rounded-full bg-card px-3 py-1 text-sm font-bold text-muted shadow-sm">
+          문제 <span className="text-ink">{idx + 1}</span>
+          <span className="opacity-40"> / {questions.length}</span>
         </span>
-        <span className="flex items-center gap-3">
-          {combo > 1 && <span className="text-amber-500">🔥 {combo}콤보</span>}
-          <span className="text-green-deep">{score.toLocaleString()}점</span>
+        <span className="flex items-center gap-2">
+          {combo > 1 && (
+            <span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-extrabold text-amber-600">
+              🔥 {combo}
+            </span>
+          )}
+          <span className="font-display text-2xl font-extrabold text-green-deep">{score.toLocaleString()}</span>
         </span>
       </div>
-      <div className="mb-5 h-1.5 overflow-hidden rounded-full bg-line">
+
+      {/* 타이머 */}
+      <div className="mb-6 h-2.5 overflow-hidden rounded-full bg-line">
         <div
           className={`h-full rounded-full transition-[width] duration-100 ${
             pct > 33 ? "bg-gradient-to-r from-green to-lime" : "bg-red-400"
@@ -315,59 +329,62 @@ function Quiz({ stats }: { stats: TechdexStats | null }) {
         />
       </div>
 
-      <div className="rounded-2xl border border-line bg-card p-6">
-        <div className="text-xs font-semibold text-muted">이 설명에 맞는 용어는?</div>
-        <p className="mt-2 text-lg font-semibold leading-relaxed text-ink">{q.prompt}</p>
-
-        <div className="mt-5 grid gap-2.5 sm:grid-cols-2">
-          {q.choices.map((choice, i) => {
-            const isAnswer = i === q.answerIndex;
-            const isPicked = selected === i;
-            let cls = "border-line bg-card hover:border-ink";
-            if (answered) {
-              if (isAnswer) cls = "border-2 border-green bg-green/15 text-green-deep";
-              else if (isPicked) cls = "border-2 border-red-400 bg-red-50 text-red-700";
-              else cls = "border-line bg-card opacity-50";
-            }
-            return (
-              <button
-                key={i}
-                onClick={() => choose(i)}
-                disabled={answered}
-                className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-left text-sm font-semibold transition ${cls}`}
-              >
-                <span className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-paper text-xs font-bold">
-                  {"ABCD"[i]}
-                </span>
-                <span className="min-w-0 flex-1">{choice}</span>
-                {answered && isAnswer && <span className="text-lg font-bold text-green">✓</span>}
-                {answered && isPicked && !isAnswer && <span className="text-lg font-bold text-red-500">✕</span>}
-              </button>
-            );
-          })}
-        </div>
-
-        {answered && (
-          <div className="mt-4">
-            {(() => {
-              const correct = selected === q.answerIndex;
-              return (
-                <div
-                  className={`flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-bold ${
-                    correct ? "bg-green/15 text-green-deep" : "bg-red-50 text-red-700"
-                  }`}
-                >
-                  <span className="text-lg">{correct ? "✅" : "❌"}</span>
-                  <span>
-                    {correct ? "정답!" : "오답"} · 정답은 <b>{q.reveal.term}</b>
-                    {q.reveal.sub && <span className="ml-1 text-xs font-medium opacity-70">{q.reveal.sub}</span>}
-                  </span>
-                </div>
-              );
-            })()}
-          </div>
-        )}
+      {/* 질문 카드 */}
+      <div className="rounded-3xl border border-line bg-gradient-to-b from-white to-paper p-7 text-center shadow-sm sm:p-9">
+        <div className="text-xs font-extrabold uppercase tracking-[0.15em] text-green">이 뜻의 용어는?</div>
+        <p className="mx-auto mt-4 max-w-xl text-2xl font-extrabold leading-snug tracking-tight text-ink sm:text-[28px]">
+          {q.prompt}
+        </p>
       </div>
+
+      {/* 보기 4개 */}
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        {q.choices.map((choice, i) => {
+          const isAnswer = i === q.answerIndex;
+          const isPicked = selected === i;
+          let cls = "border-line bg-card hover:border-green hover:shadow-md";
+          let badge = "bg-paper text-muted";
+          if (answered) {
+            if (isAnswer) {
+              cls = "border-2 border-green bg-green/15";
+              badge = "bg-green text-white";
+            } else if (isPicked) {
+              cls = "border-2 border-red-400 bg-red-50";
+              badge = "bg-red-400 text-white";
+            } else cls = "border-line bg-card opacity-45";
+          }
+          return (
+            <button
+              key={i}
+              onClick={() => choose(i)}
+              disabled={answered}
+              className={`flex items-center gap-3.5 rounded-2xl border px-5 py-4 text-left transition ${cls}`}
+            >
+              <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg text-sm font-extrabold ${badge}`}>
+                {"ABCD"[i]}
+              </span>
+              <span className="min-w-0 flex-1 text-base font-bold text-ink sm:text-lg">{choice}</span>
+              {answered && isAnswer && <span className="text-xl font-extrabold text-green">✓</span>}
+              {answered && isPicked && !isAnswer && <span className="text-xl font-extrabold text-red-500">✕</span>}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* 정답/오답 배너 */}
+      {answered && (
+        <div
+          className={`mt-4 flex items-center gap-3 rounded-2xl px-5 py-4 text-base font-extrabold ${
+            correct ? "bg-green/15 text-green-deep" : "bg-red-50 text-red-700"
+          }`}
+        >
+          <span className="text-2xl">{correct ? "🎉" : "💡"}</span>
+          <span className="min-w-0">
+            {correct ? "정답이에요!" : "아쉬워요"} · 정답은 <b>{q.reveal.term}</b>
+            {q.reveal.sub && <span className="ml-1 text-sm font-semibold opacity-70">{q.reveal.sub}</span>}
+          </span>
+        </div>
+      )}
     </div>
   );
 }

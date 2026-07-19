@@ -48,15 +48,12 @@ class _HomePageState extends State<HomePage> {
         elevation: 0,
         title: Row(
           children: [
-            Container(
-              width: 28,
-              height: 28,
-              decoration: BoxDecoration(color: lime, borderRadius: BorderRadius.circular(8)),
-              alignment: Alignment.center,
-              child: const Text('✦', style: TextStyle(color: greenDeep, fontWeight: FontWeight.bold)),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(9),
+              child: Image.asset('assets/icon/icon.png', width: 30, height: 30),
             ),
-            const SizedBox(width: 8),
-            const Text('TechDex', style: TextStyle(fontWeight: FontWeight.w800)),
+            const SizedBox(width: 9),
+            const Text('TechDex', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 20)),
           ],
         ),
       ),

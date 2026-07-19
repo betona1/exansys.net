@@ -215,9 +215,9 @@ class _QuizScreenState extends State<QuizScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('이 설명에 맞는 용어는?', style: TextStyle(fontSize: 12, color: Colors.black54, fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 8),
-                  Text(q.prompt, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600, height: 1.4)),
+                  const Text('이 뜻의 용어는?', style: TextStyle(fontSize: 12, color: green, fontWeight: FontWeight.w800, letterSpacing: 1.2)),
+                  const SizedBox(height: 10),
+                  Text(q.prompt, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, height: 1.35)),
                 ],
               ),
             ),
@@ -288,7 +288,7 @@ class _QuizScreenState extends State<QuizScreen> {
                 child: Text('ABCD'[i], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
               ),
               const SizedBox(width: 12),
-              Expanded(child: Text(q.choices[i], style: TextStyle(fontWeight: FontWeight.w600, color: fg))),
+              Expanded(child: Text(q.choices[i], style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: fg))),
               if (_answered && i == q.answerIndex) const Text('✓', style: TextStyle(color: greenDeep)),
               if (_answered && i == _selected && i != q.answerIndex) const Text('✕', style: TextStyle(color: Colors.red)),
             ]),
