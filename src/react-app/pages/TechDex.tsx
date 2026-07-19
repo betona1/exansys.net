@@ -714,20 +714,58 @@ function Crossword({ stats }: { stats: TechdexStats | null }) {
     setSolved(true);
   };
 
-  const clueRow = (e: CrosswordEntry) => (
-    <button
-      key={`${e.dir}${e.num}`}
-      onClick={() => {
-        setDir(e.dir);
-        setActive({ r: e.row, c: e.col });
-        focus(e.row, e.col);
-      }}
-      className="flex w-full gap-2 rounded-lg px-2 py-1.5 text-left text-sm hover:bg-paper"
-    >
-      <span className="w-5 shrink-0 text-right font-bold text-green-deep">{e.num}</span>
-      <span className="text-ink">{e.clue}</span>
-    </button>
-  );
+  // 현재 활성 칸+방향이 속한 힌트(문제) 찾기 — 모바일 상단 힌트 바에 표시
+  const orderedEntries = useMemo(() => (model ? [...model.across, ...model.down] : []), [model]);
+  const activeEntry = useMemo(() => {
+    if (!active || !model) return null;
+    const list = dir === "across" ? model.across : model.down;
+    const hit = list.find((e) => {
+      const dr = e.dir === "down" ? 1 : 0;
+      const dc = e.dir === "across" ? 1 : 0;
+      for (let i = 0; i < e.len; i++) if (e.row + dr * i === active.r && e.col + dc * i === active.c) return true;
+      return false;
+    });
+    // 해당 방향에 단어가 없으면 반대 방향으로 fallback
+    if (hit) return hit;
+    const other = (dir === "across" ? model.down : model.across).find((e) => {
+      const dr = e.dir === "down" ? 1 : 0;
+      const dc = e.dir === "across" ? 1 : 0;
+      for (let i = 0; i < e.len; i++) if (e.row + dr * i === active.r && e.col + dc * i === active.c) return true;
+      return false;
+    });
+    return other ?? null;
+  }, [active, dir, model]);
+
+  const gotoEntry = (e: CrosswordEntry) => {
+    setDir(e.dir);
+    setActive({ r: e.row, c: e.col });
+    focus(e.row, e.col);
+  };
+  const stepEntry = (delta: number) => {
+    if (!orderedEntries.length) return;
+    const idx = activeEntry ? orderedEntries.findIndex((e) => e.dir === activeEntry.dir && e.num === activeEntry.num) : -1;
+    const next = orderedEntries[(idx + delta + orderedEntries.length) % orderedEntries.length];
+    if (next) gotoEntry(next);
+  };
+
+  // 칸 크기: 화면 폭에 맞춰 자동 축소 (모바일에서 가로 스크롤 없이 다 보이게)
+  const cellPx = puzzle ? `min(38px, calc((100vw - 56px) / ${puzzle.cols}))` : "34px";
+
+  const clueRow = (e: CrosswordEntry) => {
+    const on = activeEntry?.dir === e.dir && activeEntry?.num === e.num;
+    return (
+      <button
+        key={`${e.dir}${e.num}`}
+        onClick={() => gotoEntry(e)}
+        className={`flex w-full gap-2 rounded-lg px-2 py-1.5 text-left text-sm transition ${
+          on ? "bg-green/15 font-semibold" : "hover:bg-paper"
+        }`}
+      >
+        <span className="w-5 shrink-0 text-right font-bold text-green-deep">{e.num}</span>
+        <span className="text-ink">{e.clue}</span>
+      </button>
+    );
+  };
 
   return (
     <div>
@@ -764,11 +802,47 @@ function Crossword({ stats }: { stats: TechdexStats | null }) {
               🎉 완성! 잘하셨어요
             </div>
           )}
-          {/* 그리드 */}
-          <div className="overflow-x-auto pb-2">
+          {/* 현재 힌트 바 — 칸을 누르면 문제가 여기 크게 뜬다 (모바일 필수) */}
+          <div className="sticky top-2 z-10 mb-3 flex items-center gap-2 rounded-2xl border border-green/30 bg-green/10 px-2 py-2 shadow-sm backdrop-blur">
+            <button
+              onClick={() => stepEntry(-1)}
+              aria-label="이전 문제"
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/70 text-lg font-bold text-green-deep hover:bg-white"
+            >
+              ‹
+            </button>
+            <div className="min-w-0 flex-1 text-center">
+              {activeEntry ? (
+                <>
+                  <div className="text-[11px] font-bold uppercase tracking-wide text-green-deep">
+                    {activeEntry.dir === "across" ? "가로" : "세로"} {activeEntry.num} · {activeEntry.len}글자
+                  </div>
+                  <div className="truncate text-sm font-semibold text-ink">{activeEntry.clue}</div>
+                </>
+              ) : (
+                <div className="text-sm text-muted">칸을 눌러 문제를 확인하세요</div>
+              )}
+            </div>
+            <button
+              onClick={() => stepEntry(1)}
+              aria-label="다음 문제"
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/70 text-lg font-bold text-green-deep hover:bg-white"
+            >
+              ›
+            </button>
+          </div>
+
+          {/* 그리드 — 칸 크기가 화면 폭에 맞춰 자동 축소 */}
+          <div className="pb-2">
             <div
-              className="mx-auto w-max"
-              style={{ display: "grid", gridTemplateColumns: `repeat(${puzzle.cols}, 34px)`, gap: 2 }}
+              className="mx-auto"
+              style={{
+                display: "grid",
+                gridTemplateColumns: `repeat(${puzzle.cols}, ${cellPx})`,
+                gap: 2,
+                width: "fit-content",
+                maxWidth: "100%",
+              }}
             >
               {Array.from({ length: puzzle.rows * puzzle.cols }).map((_, i) => {
                 const r = Math.floor(i / puzzle.cols);
@@ -777,6 +851,15 @@ function Crossword({ stats }: { stats: TechdexStats | null }) {
                 if (!model.cell.has(k)) return <div key={k} />;
                 const num = model.numAt.get(k);
                 const isActive = active?.r === r && active?.c === c;
+                const inWord =
+                  !!activeEntry &&
+                  (() => {
+                    const dr = activeEntry.dir === "down" ? 1 : 0;
+                    const dc = activeEntry.dir === "across" ? 1 : 0;
+                    for (let j = 0; j < activeEntry.len; j++)
+                      if (activeEntry.row + dr * j === r && activeEntry.col + dc * j === c) return true;
+                    return false;
+                  })();
                 const chk = checked[k];
                 let border = "border-line";
                 let bg = "bg-white";
@@ -787,11 +870,15 @@ function Crossword({ stats }: { stats: TechdexStats | null }) {
                   border = "border-red-400";
                   bg = "bg-red-50";
                 }
-                if (isActive) border = "border-ink";
+                if (inWord && chk === undefined) bg = "bg-green/5";
+                if (isActive) {
+                  border = "border-ink";
+                  bg = "bg-lime/25";
+                }
                 return (
-                  <div key={k} className="relative" style={{ width: 34, height: 34 }}>
+                  <div key={k} className="relative aspect-square">
                     {num && (
-                      <span className="pointer-events-none absolute left-0.5 top-0 text-[9px] font-bold leading-none text-muted">
+                      <span className="pointer-events-none absolute left-0.5 top-0 z-[1] text-[9px] font-bold leading-none text-muted">
                         {num}
                       </span>
                     )}
@@ -806,7 +893,7 @@ function Crossword({ stats }: { stats: TechdexStats | null }) {
                       onClick={() => onCellClick(r, c)}
                       inputMode="text"
                       autoCapitalize="characters"
-                      className={`h-full w-full rounded-md border-2 ${border} ${bg} text-center text-base font-extrabold uppercase text-ink outline-none`}
+                      className={`h-full w-full rounded-md border-2 ${border} ${bg} text-center text-[clamp(13px,4vw,18px)] font-extrabold uppercase text-ink outline-none`}
                     />
                   </div>
                 );
