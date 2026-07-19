@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'api.dart';
 import 'main.dart';
@@ -26,6 +27,7 @@ class _CrosswordScreenState extends State<CrosswordScreen> {
   final Map<String, TextEditingController> _ctrl = {};
   final Map<String, FocusNode> _focus = {};
   final Map<String, bool?> _checked = {};
+  int _ar = -1, _ac = -1; // 현재 활성 칸
 
   String _k(int r, int c) => '$r,$c';
 
@@ -58,6 +60,8 @@ class _CrosswordScreenState extends State<CrosswordScreen> {
       _error = '';
       _solved = false;
       _puzzle = null;
+      _ar = -1;
+      _ac = -1;
     });
     try {
       final p = await TechdexApi.crossword(
@@ -82,9 +86,16 @@ class _CrosswordScreenState extends State<CrosswordScreen> {
       }
       _across = p.entries.where((e) => e.dir == 'across').toList()..sort((a, b) => a.number - b.number);
       _down = p.entries.where((e) => e.dir == 'down').toList()..sort((a, b) => a.number - b.number);
+      // 첫 문제를 기본 선택
+      final first = _across.isNotEmpty ? _across.first : (_down.isNotEmpty ? _down.first : null);
       setState(() {
         _puzzle = p;
         _loading = false;
+        if (first != null) {
+          _dir = first.dir;
+          _ar = first.row;
+          _ac = first.col;
+        }
       });
     } catch (_) {
       setState(() {
@@ -96,10 +107,57 @@ class _CrosswordScreenState extends State<CrosswordScreen> {
 
   bool _has(int r, int c) => _correct.containsKey(_k(r, c));
 
+  List<CrosswordEntry> get _ordered => [..._across, ..._down];
+
+  bool _entryContains(CrosswordEntry e, int r, int c) {
+    final dr = e.dir == 'down' ? 1 : 0;
+    final dc = e.dir == 'across' ? 1 : 0;
+    for (var i = 0; i < e.len; i++) {
+      if (e.row + dr * i == r && e.col + dc * i == c) return true;
+    }
+    return false;
+  }
+
+  CrosswordEntry? get _activeEntry {
+    if (_ar < 0) return null;
+    final list = _dir == 'across' ? _across : _down;
+    for (final e in list) {
+      if (_entryContains(e, _ar, _ac)) return e;
+    }
+    final other = _dir == 'across' ? _down : _across;
+    for (final e in other) {
+      if (_entryContains(e, _ar, _ac)) return e;
+    }
+    return null;
+  }
+
+  void _gotoEntry(CrosswordEntry e) {
+    setState(() {
+      _dir = e.dir;
+      _ar = e.row;
+      _ac = e.col;
+    });
+    _focus[_k(e.row, e.col)]?.requestFocus();
+  }
+
+  void _stepEntry(int delta) {
+    final list = _ordered;
+    if (list.isEmpty) return;
+    final cur = _activeEntry;
+    final idx = cur == null ? -1 : list.indexWhere((e) => e.dir == cur.dir && e.number == cur.number);
+    _gotoEntry(list[(idx + delta + list.length) % list.length]);
+  }
+
   void _advance(int r, int c) {
     final dr = _dir == 'down' ? 1 : 0;
     final dc = _dir == 'across' ? 1 : 0;
-    if (_has(r + dr, c + dc)) _focus[_k(r + dr, c + dc)]!.requestFocus();
+    if (_has(r + dr, c + dc)) {
+      setState(() {
+        _ar = r + dr;
+        _ac = c + dc;
+      });
+      _focus[_k(r + dr, c + dc)]!.requestFocus();
+    }
   }
 
   void _onChanged(int r, int c, String v) {
@@ -117,6 +175,18 @@ class _CrosswordScreenState extends State<CrosswordScreen> {
       _ctrl[key]!.text = '';
     }
     setState(() {});
+  }
+
+  void _tapCell(int r, int c) {
+    if (_ar == r && _ac == c) {
+      setState(() => _dir = _dir == 'across' ? 'down' : 'across');
+    } else {
+      setState(() {
+        _ar = r;
+        _ac = c;
+      });
+    }
+    _focus[_k(r, c)]!.requestFocus();
   }
 
   void _check() {
@@ -171,8 +241,6 @@ class _CrosswordScreenState extends State<CrosswordScreen> {
             child: const Text('새 퍼즐'),
           ),
         ]),
-        const SizedBox(height: 8),
-        const Text('힌트(가로·세로)를 보고 영문 용어를 채워보세요.', style: TextStyle(color: Colors.black54, fontSize: 13)),
         const SizedBox(height: 12),
 
         if (_error.isNotEmpty)
@@ -191,17 +259,25 @@ class _CrosswordScreenState extends State<CrosswordScreen> {
               decoration: BoxDecoration(color: green.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(12)),
               child: const Center(child: Text('🎉 완성! 잘하셨어요', style: TextStyle(fontWeight: FontWeight.w800, color: greenDeep))),
             ),
-          // 그리드
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Column(
+
+          // 현재 힌트 바 — 칸을 누르면 문제가 여기 크게 뜬다
+          _clueBar(),
+          const SizedBox(height: 12),
+
+          // 그리드 — 화면 폭에 맞춰 칸 크기 자동
+          LayoutBuilder(builder: (ctx, cons) {
+            final size = math.min(40.0, cons.maxWidth / p.cols).clamp(20.0, 40.0);
+            return Column(
               children: [
                 for (var r = 0; r < p.rows; r++)
-                  Row(children: [for (var c = 0; c < p.cols; c++) _cell(r, c)]),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [for (var c = 0; c < p.cols; c++) _cell(r, c, size)],
+                  ),
               ],
-            ),
-          ),
-          const SizedBox(height: 14),
+            );
+          }),
+          const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -223,11 +299,61 @@ class _CrosswordScreenState extends State<CrosswordScreen> {
     );
   }
 
-  Widget _cell(int r, int c) {
-    const size = 32.0;
+  Widget _clueBar() {
+    final e = _activeEntry;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+      decoration: BoxDecoration(
+        color: green.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: green.withValues(alpha: 0.30)),
+      ),
+      child: Row(children: [
+        _navBtn('‹', () => _stepEntry(-1)),
+        Expanded(
+          child: e == null
+              ? const Text('칸을 눌러 문제를 확인하세요',
+                  textAlign: TextAlign.center, style: TextStyle(color: Colors.black54, fontSize: 13))
+              : Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('${e.dir == 'across' ? '가로' : '세로'} ${e.number} · ${e.len}글자',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: greenDeep)),
+                    const SizedBox(height: 2),
+                    Text(e.clue,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w600, color: ink)),
+                  ],
+                ),
+        ),
+        _navBtn('›', () => _stepEntry(1)),
+      ]),
+    );
+  }
+
+  Widget _navBtn(String s, VoidCallback onTap) => InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          width: 40,
+          height: 40,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.75), borderRadius: BorderRadius.circular(12)),
+          child: Text(s, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: greenDeep)),
+        ),
+      );
+
+  Widget _cell(int r, int c, double size) {
     final key = _k(r, c);
-    if (!_has(r, c)) return const SizedBox(width: size + 2, height: size + 2);
+    if (!_has(r, c)) return SizedBox(width: size, height: size);
     final chk = _checked[key];
+    final active = _ar == r && _ac == c;
+    final ae = _activeEntry;
+    final inWord = ae != null && _entryContains(ae, r, c);
+
     Color border = const Color(0xFFE7EAF0);
     Color bg = Colors.white;
     if (chk == true) {
@@ -236,49 +362,60 @@ class _CrosswordScreenState extends State<CrosswordScreen> {
     } else if (chk == false) {
       border = Colors.red.shade400;
       bg = const Color(0xFFFDECEC);
+    } else if (inWord) {
+      bg = green.withValues(alpha: 0.06);
+    }
+    if (active) {
+      border = ink;
+      bg = lime.withValues(alpha: 0.30);
     }
     final num = _numAt[key];
-    return Container(
-      width: size + 2,
-      height: size + 2,
+    return Padding(
       padding: const EdgeInsets.all(1),
-      child: Stack(
-        children: [
-          TextField(
-            controller: _ctrl[key],
-            focusNode: _focus[key],
-            textAlign: TextAlign.center,
-            textCapitalization: TextCapitalization.characters,
-            showCursor: false,
-            maxLength: 2,
-            onTap: () => _focus[key]!.requestFocus(),
-            onChanged: (v) => _onChanged(r, c, v),
-            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
-            decoration: InputDecoration(
-              counterText: '',
-              isDense: true,
-              contentPadding: EdgeInsets.zero,
-              filled: true,
-              fillColor: bg,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(6), borderSide: BorderSide(color: border, width: 1.5)),
-              enabledBorder:
-                  OutlineInputBorder(borderRadius: BorderRadius.circular(6), borderSide: BorderSide(color: border, width: 1.5)),
-              focusedBorder:
-                  OutlineInputBorder(borderRadius: BorderRadius.circular(6), borderSide: const BorderSide(color: ink, width: 2)),
+      child: SizedBox(
+        width: size - 2,
+        height: size - 2,
+        child: Stack(
+          children: [
+            TextField(
+              controller: _ctrl[key],
+              focusNode: _focus[key],
+              textAlign: TextAlign.center,
+              textCapitalization: TextCapitalization.characters,
+              showCursor: false,
+              maxLength: 2,
+              onTap: () => _tapCell(r, c),
+              onChanged: (v) => _onChanged(r, c, v),
+              style: TextStyle(fontWeight: FontWeight.w800, fontSize: size * 0.46),
+              decoration: InputDecoration(
+                counterText: '',
+                isDense: true,
+                contentPadding: EdgeInsets.zero,
+                filled: true,
+                fillColor: bg,
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(7), borderSide: BorderSide(color: border, width: 1.5)),
+                enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(7), borderSide: BorderSide(color: border, width: 1.5)),
+                focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(7), borderSide: BorderSide(color: border == ink ? ink : green, width: 2)),
+              ),
             ),
-          ),
-          if (num != null)
-            Positioned(
-              left: 3,
-              top: 1,
-              child: Text('$num', style: const TextStyle(fontSize: 8, color: Colors.black45, fontWeight: FontWeight.bold)),
-            ),
-        ],
+            if (num != null)
+              Positioned(
+                left: 3,
+                top: 1,
+                child: Text('$num',
+                    style: TextStyle(fontSize: size * 0.26, color: Colors.black45, fontWeight: FontWeight.bold)),
+              ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _clues(String title, List<CrosswordEntry> list) {
+    final ae = _activeEntry;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -286,12 +423,14 @@ class _CrosswordScreenState extends State<CrosswordScreen> {
         const SizedBox(height: 4),
         for (final e in list)
           InkWell(
-            onTap: () {
-              setState(() => _dir = e.dir);
-              _focus[_k(e.row, e.col)]?.requestFocus();
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
+            onTap: () => _gotoEntry(e),
+            borderRadius: BorderRadius.circular(10),
+            child: Container(
+              decoration: BoxDecoration(
+                color: ae?.dir == e.dir && ae?.number == e.number ? green.withValues(alpha: 0.14) : null,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 6),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
