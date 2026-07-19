@@ -153,7 +153,19 @@ export type EduPostDetail = {
 };
 
 // ── TechDex (용어 학습 게임) ──
-export type TechdexCollection = "ai" | "app" | "vibe";
+export type TechdexCollection = "ai" | "app" | "vibe" | "user";
+
+export type TechdexSuggestion = {
+  id: number;
+  term: string;
+  sub: string | null;
+  def: string | null;
+  category: string | null;
+  note: string | null;
+  status: "pending" | "approved" | "rejected";
+  createdAt: string;
+  userName?: string | null;
+};
 
 export type TechdexTerm = {
   id: number;
@@ -186,6 +198,7 @@ export const TECHDEX_COLLECTION_LABEL: Record<TechdexCollection, string> = {
   ai: "AI·앱 용어",
   app: "앱 개발 용어",
   vibe: "바이브코딩 용어",
+  user: "사용자 추가",
 };
 
 export const REVIEW_REGIONS: { code: string; label: string }[] = [

@@ -2,15 +2,16 @@
 // 용어 DB(홈페이지 용어집 + 바이브코딩 용어) 조회 + 퀴즈 생성. 읽기는 공개, 시드는 admin.
 import { Hono } from "hono";
 import { drizzle } from "drizzle-orm/d1";
-import { and, eq, like, or, sql } from "drizzle-orm";
+import { and, desc, eq, like, or, sql } from "drizzle-orm";
 import { z } from "zod";
-import { techdexTerms } from "../../db/schema";
+import { techdexTerms, techdexSuggestions, users } from "../../db/schema";
 import type { Env } from "../types";
 import { ok, err } from "../types";
-import { requireRole } from "../middleware";
+import { requireRole, type AuthedUser } from "../middleware";
 import seedRaw from "../resources/techdex-seed.json?raw";
 
-export const techdexRoutes = new Hono<{ Bindings: Env }>();
+type Vars = { Variables: { user: AuthedUser } };
+export const techdexRoutes = new Hono<{ Bindings: Env } & Vars>();
 
 // 테이블 자동 생성 (마이그레이션 수동 적용 불필요, 아이소레이트당 1회)
 let tablesReady = false;
@@ -24,6 +25,13 @@ async function ensureTables(db: ReturnType<typeof drizzle>) {
   )`);
   await db.run(sql`CREATE UNIQUE INDEX IF NOT EXISTS idx_techdex_slug ON techdex_terms (slug)`);
   await db.run(sql`CREATE INDEX IF NOT EXISTS idx_techdex_cat ON techdex_terms (collection, category)`);
+  await db.run(sql`CREATE TABLE IF NOT EXISTS techdex_suggestions (
+    id integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+    term text NOT NULL, sub text, def text, category text, note text,
+    user_id integer NOT NULL, status text DEFAULT 'pending' NOT NULL,
+    created_at integer NOT NULL, reviewed_at integer, reviewed_by integer, term_id integer
+  )`);
+  await db.run(sql`CREATE INDEX IF NOT EXISTS idx_techdex_sugg_status ON techdex_suggestions (status)`);
   tablesReady = true;
 }
 
@@ -109,7 +117,15 @@ techdexRoutes.get("/categories", async (c) => {
   return c.json(ok({ categories: rows.map((r) => ({ ...r, count: Number(r.n) })) }));
 });
 
-const COLLS = ["ai", "app", "vibe"] as const;
+const COLLS = ["ai", "app", "vibe", "user"] as const;
+
+function slugify(s: string) {
+  const base = (s || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9가-힣]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return base || "term";
+}
 
 // ── 용어 목록 (공개) — 도감/검색 ──
 techdexRoutes.get("/terms", async (c) => {
@@ -242,4 +258,179 @@ techdexRoutes.get("/quiz", async (c) => {
   });
 
   return c.json(ok({ count: questions.length, questions }));
+});
+
+// ──────────────── 사용자 제안 용어 (검색 실패 → 추가 요청 → 관리자 검토) ────────────────
+
+const suggestSchema = z.object({
+  term: z.string().trim().min(1).max(80),
+  sub: z.string().trim().max(80).optional(),
+  def: z.string().trim().max(1000).optional(),
+  category: z.string().trim().max(60).optional(),
+  note: z.string().trim().max(500).optional(),
+});
+
+// 제안 제출 (member 이상)
+techdexRoutes.post("/suggest", requireRole("member"), async (c) => {
+  const parsed = suggestSchema.safeParse(await c.req.json().catch(() => null));
+  if (!parsed.success) return c.json(err("invalid_input"), 400);
+  const d = parsed.data;
+  const db = drizzle(c.env.DB);
+  await ensureTables(db);
+  const me = c.get("user");
+
+  // 이미 등록된 용어인지(대략) 확인 — 있으면 알려줌
+  const exists = await db
+    .select({ id: techdexTerms.id, term: techdexTerms.term })
+    .from(techdexTerms)
+    .where(or(eq(techdexTerms.term, d.term), eq(techdexTerms.slug, slugify(d.sub || d.term))))
+    .limit(1);
+  if (exists.length) return c.json(ok({ duplicate: true, term: exists[0].term }));
+
+  // 같은 사용자가 같은 용어를 이미 대기중으로 제안했는지 (중복 방지)
+  const dup = await db
+    .select({ id: techdexSuggestions.id })
+    .from(techdexSuggestions)
+    .where(
+      and(
+        eq(techdexSuggestions.term, d.term),
+        eq(techdexSuggestions.status, "pending"),
+      ),
+    )
+    .limit(1);
+  if (dup.length) return c.json(ok({ pending: true, already: true }));
+
+  await db.insert(techdexSuggestions).values({
+    term: d.term,
+    sub: d.sub || null,
+    def: d.def || null,
+    category: d.category || null,
+    note: d.note || null,
+    userId: me.id,
+    status: "pending",
+    createdAt: new Date(),
+  });
+  return c.json(ok({ submitted: true }));
+});
+
+// 내 제안 목록 (member)
+techdexRoutes.get("/suggestions/mine", requireRole("member"), async (c) => {
+  const db = drizzle(c.env.DB);
+  await ensureTables(db);
+  const me = c.get("user");
+  const rows = await db
+    .select({
+      id: techdexSuggestions.id,
+      term: techdexSuggestions.term,
+      status: techdexSuggestions.status,
+      createdAt: techdexSuggestions.createdAt,
+    })
+    .from(techdexSuggestions)
+    .where(eq(techdexSuggestions.userId, me.id))
+    .orderBy(desc(techdexSuggestions.id))
+    .limit(50);
+  return c.json(ok({ suggestions: rows }));
+});
+
+// 대기중 제안 수 (admin) — 뱃지용
+techdexRoutes.get("/suggestions/count", requireRole("admin"), async (c) => {
+  const db = drizzle(c.env.DB);
+  await ensureTables(db);
+  const r = await db
+    .select({ n: sql<number>`count(*)` })
+    .from(techdexSuggestions)
+    .where(eq(techdexSuggestions.status, "pending"));
+  return c.json(ok({ pending: Number(r[0]?.n ?? 0) }));
+});
+
+// 제안 목록 (admin)
+techdexRoutes.get("/suggestions", requireRole("admin"), async (c) => {
+  const db = drizzle(c.env.DB);
+  await ensureTables(db);
+  const status = c.req.query("status") ?? "pending";
+  const rows = await db
+    .select({
+      id: techdexSuggestions.id,
+      term: techdexSuggestions.term,
+      sub: techdexSuggestions.sub,
+      def: techdexSuggestions.def,
+      category: techdexSuggestions.category,
+      note: techdexSuggestions.note,
+      status: techdexSuggestions.status,
+      createdAt: techdexSuggestions.createdAt,
+      userName: users.name,
+    })
+    .from(techdexSuggestions)
+    .leftJoin(users, eq(techdexSuggestions.userId, users.id))
+    .where(eq(techdexSuggestions.status, status))
+    .orderBy(desc(techdexSuggestions.id))
+    .limit(200);
+  return c.json(ok({ suggestions: rows }));
+});
+
+// 제안 승인 (admin) — techdex_terms 에 게시. 관리자가 값 보정 가능.
+const approveSchema = z.object({
+  term: z.string().trim().min(1).max(80),
+  sub: z.string().trim().max(80).optional().nullable(),
+  def: z.string().trim().min(1).max(1000),
+  category: z.string().trim().min(1).max(60),
+  collection: z.enum(COLLS).optional(),
+  difficulty: z.coerce.number().int().min(1).max(4).optional(),
+  vibeCore: z.coerce.boolean().optional(),
+});
+
+techdexRoutes.post("/suggestions/:id/approve", requireRole("admin"), async (c) => {
+  const id = Number(c.req.param("id"));
+  if (!Number.isInteger(id)) return c.json(err("invalid_id"), 400);
+  const parsed = approveSchema.safeParse(await c.req.json().catch(() => null));
+  if (!parsed.success) return c.json(err("invalid_input"), 400);
+  const d = parsed.data;
+  const db = drizzle(c.env.DB);
+  await ensureTables(db);
+
+  const sug = await db.select().from(techdexSuggestions).where(eq(techdexSuggestions.id, id)).limit(1);
+  if (sug.length === 0) return c.json(err("not_found"), 404);
+  if (sug[0].status !== "pending") return c.json(err("already_reviewed"), 400);
+
+  // 고유 slug 생성
+  let slug = slugify(d.sub || d.term);
+  for (let i = 2; ; i++) {
+    const clash = await db.select({ id: techdexTerms.id }).from(techdexTerms).where(eq(techdexTerms.slug, slug)).limit(1);
+    if (clash.length === 0) break;
+    slug = `${slugify(d.sub || d.term)}-${i}`;
+  }
+
+  const inserted = await db
+    .insert(techdexTerms)
+    .values({
+      slug,
+      term: d.term,
+      sub: d.sub ?? null,
+      def: d.def,
+      collection: d.collection ?? "user",
+      category: d.category,
+      difficulty: d.difficulty ?? 2,
+      vibeCore: !!d.vibeCore,
+      source: "사용자 제안",
+    })
+    .returning({ id: techdexTerms.id });
+
+  await db
+    .update(techdexSuggestions)
+    .set({ status: "approved", reviewedAt: new Date(), reviewedBy: c.get("user").id, termId: inserted[0].id })
+    .where(eq(techdexSuggestions.id, id));
+  return c.json(ok({ approved: true, termId: inserted[0].id }));
+});
+
+// 제안 거절 (admin)
+techdexRoutes.post("/suggestions/:id/reject", requireRole("admin"), async (c) => {
+  const id = Number(c.req.param("id"));
+  if (!Number.isInteger(id)) return c.json(err("invalid_id"), 400);
+  const db = drizzle(c.env.DB);
+  await ensureTables(db);
+  await db
+    .update(techdexSuggestions)
+    .set({ status: "rejected", reviewedAt: new Date(), reviewedBy: c.get("user").id })
+    .where(and(eq(techdexSuggestions.id, id), eq(techdexSuggestions.status, "pending")));
+  return c.json(ok({ rejected: true }));
 });

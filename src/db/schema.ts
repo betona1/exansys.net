@@ -293,3 +293,25 @@ export const techdexTerms = sqliteTable(
     index("idx_techdex_cat").on(t.collection, t.category),
   ],
 );
+
+// TechDex 사용자 제안 용어 (검색해서 없는 용어를 사용자가 추가 요청 → 관리자 검토 후 게시)
+export const techdexSuggestions = sqliteTable(
+  "techdex_suggestions",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    term: text("term").notNull(), // 요청한 용어
+    sub: text("sub"), // 영문/약어 (선택)
+    def: text("def"), // 아는 만큼의 뜻 (선택)
+    category: text("category"), // 분류 제안 (선택)
+    note: text("note"), // 맥락/메모 (예: "git에서 쓰는 뜻")
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id),
+    status: text("status").notNull().default("pending"), // pending | approved | rejected
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+    reviewedAt: integer("reviewed_at", { mode: "timestamp" }),
+    reviewedBy: integer("reviewed_by"),
+    termId: integer("term_id"), // 승인 시 생성된 techdex_terms.id
+  },
+  (t) => [index("idx_techdex_sugg_status").on(t.status)],
+);

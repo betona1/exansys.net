@@ -3,10 +3,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   api,
+  type Me,
   type TechdexCollection,
   type TechdexQuizQuestion,
   type TechdexTerm,
   type TechdexStats,
+  type TechdexSuggestion,
   TECHDEX_COLLECTION_LABEL,
 } from "../lib/api";
 
@@ -14,21 +16,27 @@ const COLL_BADGE: Record<TechdexCollection, string> = {
   ai: "bg-green/10 text-green-deep",
   app: "bg-cobalt/10 text-cobalt",
   vibe: "bg-amber-100 text-amber-700",
+  user: "bg-lime/30 text-green-deep",
 };
 
 const QUESTION_SECONDS = 12;
 
 type Scope = { collection: TechdexCollection | "all"; vibeCore: boolean; count: number };
 
-export default function TechDex() {
-  const [tab, setTab] = useState<"quiz" | "dex">(() =>
+export default function TechDex({ me }: { me: Me }) {
+  const isAdmin = me?.role === "admin";
+  const [tab, setTab] = useState<"quiz" | "dex" | "review">(() =>
     new URLSearchParams(window.location.search).get("tab") === "dex" ? "dex" : "quiz",
   );
   const [stats, setStats] = useState<TechdexStats | null>(null);
+  const [pending, setPending] = useState(0);
 
   useEffect(() => {
     api<TechdexStats>("/api/techdex/stats").then((r) => r.ok && setStats(r.data));
   }, []);
+  useEffect(() => {
+    if (isAdmin) api<{ pending: number }>("/api/techdex/suggestions/count").then((r) => r.ok && setPending(r.data.pending));
+  }, [isAdmin]);
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
@@ -48,11 +56,12 @@ export default function TechDex() {
         </p>
       </header>
 
-      <div className="mb-6 inline-flex rounded-full border border-line bg-card p-1 text-sm font-semibold">
+      <div className="mb-6 inline-flex flex-wrap rounded-full border border-line bg-card p-1 text-sm font-semibold">
         {(
           [
             ["quiz", "🎯 스피드 퀴즈"],
             ["dex", "📖 용어 도감"],
+            ...(isAdmin ? [["review", `🔎 제안 관리${pending ? ` (${pending})` : ""}`] as const] : []),
           ] as const
         ).map(([k, label]) => (
           <button
@@ -67,7 +76,9 @@ export default function TechDex() {
         ))}
       </div>
 
-      {tab === "quiz" ? <Quiz stats={stats} /> : <Dex />}
+      {tab === "quiz" && <Quiz stats={stats} />}
+      {tab === "dex" && <Dex me={me} />}
+      {tab === "review" && isAdmin && <Review onResolved={() => setPending((n) => Math.max(0, n - 1))} />}
     </main>
   );
 }
@@ -345,12 +356,13 @@ function Quiz({ stats }: { stats: TechdexStats | null }) {
 }
 
 // ────────────────────────── 용어 도감 ──────────────────────────
-function Dex() {
+function Dex({ me }: { me: Me }) {
   const [q, setQ] = useState("");
   const [collection, setCollection] = useState<TechdexCollection | "all">("all");
   const [terms, setTerms] = useState<TechdexTerm[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [suggestOpen, setSuggestOpen] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -379,7 +391,7 @@ function Dex() {
           placeholder="용어 검색… (예: 토큰, 에이전트, 커밋)"
           className="min-w-52 flex-1 rounded-full border border-line bg-card px-5 py-2 text-sm outline-none focus:border-ink"
         />
-        {(["all", "ai", "app", "vibe"] as const).map((c) => (
+        {(["all", "ai", "app", "vibe", "user"] as const).map((c) => (
           <Chip key={c} on={collection === c} onClick={() => setCollection(c)}>
             {c === "all" ? "전체" : TECHDEX_COLLECTION_LABEL[c]}
           </Chip>
@@ -403,9 +415,295 @@ function Dex() {
         ))}
       </div>
       {!loading && terms.length === 0 && (
-        <div className="py-16 text-center text-sm text-muted">검색 결과가 없습니다.</div>
+        <div className="rounded-2xl border border-dashed border-line bg-card px-6 py-14 text-center">
+          <div className="text-3xl">🔍</div>
+          <p className="mt-2 font-semibold text-ink">
+            {q.trim() ? <>‘{q.trim()}’ 용어가 아직 없어요</> : "검색 결과가 없습니다."}
+          </p>
+          {q.trim() && (
+            <>
+              <p className="mt-1 text-sm text-muted">
+                찾는 용어가 없다면 추가를 요청해 주세요. 검토 후 도감에 등록됩니다.
+              </p>
+              <button
+                onClick={() => setSuggestOpen(true)}
+                className="mt-4 rounded-full bg-green px-5 py-2.5 text-sm font-bold text-white transition hover:bg-green-deep"
+              >
+                ＋ ‘{q.trim()}’ 추가 요청하기
+              </button>
+            </>
+          )}
+        </div>
+      )}
+
+      {suggestOpen && (
+        <SuggestForm me={me} initialTerm={q.trim()} onClose={() => setSuggestOpen(false)} />
       )}
     </div>
+  );
+}
+
+// ── 용어 추가 요청 폼 (검색 실패 시) ──
+function SuggestForm({ me, initialTerm, onClose }: { me: Me; initialTerm: string; onClose: () => void }) {
+  const [term, setTerm] = useState(initialTerm);
+  const [sub, setSub] = useState("");
+  const [note, setNote] = useState("");
+  const [def, setDef] = useState("");
+  const [state, setState] = useState<"form" | "sending" | "done" | "dup">("form");
+  const [msg, setMsg] = useState("");
+
+  if (!me) {
+    return (
+      <Overlay onClose={onClose}>
+        <h3 className="text-lg font-bold">로그인이 필요해요</h3>
+        <p className="mt-2 text-sm text-muted">
+          용어 추가 요청은 로그인 후 가능합니다. 우측 상단에서 소셜 계정으로 로그인해 주세요.
+        </p>
+        <a
+          href="/login"
+          className="mt-4 inline-block rounded-full bg-ink px-5 py-2.5 text-sm font-bold text-white"
+        >
+          로그인하러 가기
+        </a>
+      </Overlay>
+    );
+  }
+
+  const submit = async () => {
+    if (!term.trim()) return;
+    setState("sending");
+    const r = await api<{ submitted?: boolean; duplicate?: boolean; term?: string; already?: boolean }>(
+      "/api/techdex/suggest",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          term: term.trim(),
+          sub: sub.trim() || undefined,
+          def: def.trim() || undefined,
+          note: note.trim() || undefined,
+        }),
+      },
+    );
+    if (r.ok && r.data.duplicate) {
+      setMsg(`‘${r.data.term}’ 은(는) 이미 도감에 있어요. 검색해 보세요!`);
+      setState("dup");
+    } else if (r.ok && (r.data.submitted || r.data.already)) {
+      setState("done");
+    } else {
+      setMsg("전송에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+      setState("form");
+    }
+  };
+
+  return (
+    <Overlay onClose={onClose}>
+      {state === "done" ? (
+        <div className="text-center">
+          <div className="text-4xl">🙌</div>
+          <h3 className="mt-2 text-lg font-bold">추가 요청 완료!</h3>
+          <p className="mt-1 text-sm text-muted">검토 후 도감에 등록됩니다. 감사합니다.</p>
+          <button onClick={onClose} className="mt-4 rounded-full bg-ink px-5 py-2 text-sm font-bold text-white">
+            닫기
+          </button>
+        </div>
+      ) : state === "dup" ? (
+        <div className="text-center">
+          <div className="text-4xl">✅</div>
+          <p className="mt-2 text-sm font-semibold text-ink">{msg}</p>
+          <button onClick={onClose} className="mt-4 rounded-full bg-ink px-5 py-2 text-sm font-bold text-white">
+            닫기
+          </button>
+        </div>
+      ) : (
+        <>
+          <h3 className="text-lg font-bold">용어 추가 요청</h3>
+          <p className="mt-1 text-sm text-muted">
+            뜻을 정확히 몰라도 괜찮아요. 용어만 적어도 되고, 아는 만큼만 채워주세요.
+          </p>
+          <div className="mt-4 space-y-3">
+            <Input label="용어 *" value={term} onChange={setTerm} placeholder="예: diff" />
+            <Input label="영문/약어 (선택)" value={sub} onChange={setSub} placeholder="예: difference" />
+            <Input
+              label="맥락·메모 (선택)"
+              value={note}
+              onChange={setNote}
+              placeholder="예: git에서 변경점 비교할 때 쓰는 말"
+            />
+            <div>
+              <div className="mb-1 text-xs font-bold text-muted">아는 뜻 (선택)</div>
+              <textarea
+                value={def}
+                onChange={(e) => setDef(e.target.value)}
+                rows={2}
+                placeholder="대충 아는 대로 적어주세요. 검토하며 다듬습니다."
+                className="w-full rounded-xl border border-line bg-card px-3 py-2 text-sm outline-none focus:border-ink"
+              />
+            </div>
+          </div>
+          {msg && <p className="mt-2 text-sm text-red-600">{msg}</p>}
+          <div className="mt-4 flex justify-end gap-2">
+            <button onClick={onClose} className="rounded-full border border-line px-4 py-2 text-sm font-semibold hover:border-ink">
+              취소
+            </button>
+            <button
+              onClick={submit}
+              disabled={state === "sending" || !term.trim()}
+              className="rounded-full bg-green px-5 py-2 text-sm font-bold text-white hover:bg-green-deep disabled:opacity-50"
+            >
+              {state === "sending" ? "보내는 중…" : "요청 보내기"}
+            </button>
+          </div>
+        </>
+      )}
+    </Overlay>
+  );
+}
+
+// ── 관리자: 제안 검토 ──
+function Review({ onResolved }: { onResolved: () => void }) {
+  const [items, setItems] = useState<TechdexSuggestion[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const r = await api<{ suggestions: TechdexSuggestion[] }>("/api/techdex/suggestions?status=pending");
+    setLoading(false);
+    if (r.ok) setItems(r.data.suggestions);
+  }, []);
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const remove = (id: number) => setItems((xs) => xs.filter((x) => x.id !== id));
+
+  if (loading) return <div className="py-16 text-center text-muted">불러오는 중…</div>;
+  if (items.length === 0)
+    return <div className="py-16 text-center text-sm text-muted">대기 중인 제안이 없습니다.</div>;
+
+  return (
+    <div className="space-y-3">
+      <div className="text-sm text-muted">대기 중인 제안 {items.length}건 — 승인하면 도감에 등록됩니다.</div>
+      {items.map((s) => (
+        <ReviewCard
+          key={s.id}
+          s={s}
+          onDone={() => {
+            remove(s.id);
+            onResolved();
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function ReviewCard({ s, onDone }: { s: TechdexSuggestion; onDone: () => void }) {
+  const [term, setTerm] = useState(s.term);
+  const [sub, setSub] = useState(s.sub ?? "");
+  const [def, setDef] = useState(s.def ?? "");
+  const [category, setCategory] = useState(s.category ?? "사용자 추가");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+
+  const approve = async () => {
+    if (!term.trim() || !def.trim() || !category.trim()) {
+      setErr("용어·뜻·분류는 필수입니다.");
+      return;
+    }
+    setBusy(true);
+    const r = await api("/api/techdex/suggestions/" + s.id + "/approve", {
+      method: "POST",
+      body: JSON.stringify({ term: term.trim(), sub: sub.trim() || null, def: def.trim(), category: category.trim() }),
+    });
+    setBusy(false);
+    if (r.ok) onDone();
+    else setErr("승인 실패");
+  };
+  const reject = async () => {
+    setBusy(true);
+    const r = await api("/api/techdex/suggestions/" + s.id + "/reject", { method: "POST" });
+    setBusy(false);
+    if (r.ok) onDone();
+  };
+
+  return (
+    <div className="rounded-2xl border border-line bg-card p-4">
+      <div className="mb-2 flex items-center gap-2 text-xs text-muted">
+        <span className="font-semibold text-ink">{s.userName ?? "회원"}</span> 님 제안
+        {s.note && <span>· 메모: {s.note}</span>}
+      </div>
+      <div className="grid gap-2 sm:grid-cols-2">
+        <Input label="용어 *" value={term} onChange={setTerm} placeholder="용어" />
+        <Input label="영문/약어" value={sub} onChange={setSub} placeholder="영문/약어" />
+      </div>
+      <div className="mt-2">
+        <div className="mb-1 text-xs font-bold text-muted">뜻 *</div>
+        <textarea
+          value={def}
+          onChange={(e) => setDef(e.target.value)}
+          rows={2}
+          placeholder="정의를 작성/보정하세요"
+          className="w-full rounded-xl border border-line bg-card px-3 py-2 text-sm outline-none focus:border-ink"
+        />
+      </div>
+      <div className="mt-2 max-w-xs">
+        <Input label="분류 *" value={category} onChange={setCategory} placeholder="예: 코드·협업" />
+      </div>
+      {err && <p className="mt-2 text-sm text-red-600">{err}</p>}
+      <div className="mt-3 flex justify-end gap-2">
+        <button
+          onClick={reject}
+          disabled={busy}
+          className="rounded-full border border-line px-4 py-1.5 text-sm font-semibold text-muted hover:border-red-300 hover:text-red-600 disabled:opacity-50"
+        >
+          거절
+        </button>
+        <button
+          onClick={approve}
+          disabled={busy}
+          className="rounded-full bg-green px-5 py-1.5 text-sm font-bold text-white hover:bg-green-deep disabled:opacity-50"
+        >
+          {busy ? "처리 중…" : "승인 · 등록"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function Overlay({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-ink/40 p-4" onClick={onClose}>
+      <div
+        className="w-full max-w-md rounded-2xl border border-line bg-card p-6 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function Input({
+  label,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+}) {
+  return (
+    <label className="block">
+      <span className="mb-1 block text-xs font-bold text-muted">{label}</span>
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full rounded-xl border border-line bg-card px-3 py-2 text-sm outline-none focus:border-ink"
+      />
+    </label>
   );
 }
 

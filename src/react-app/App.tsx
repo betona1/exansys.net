@@ -36,7 +36,7 @@ export default function App() {
     <>
       <Header me={me} logout={logout} />
       <Routes>
-        <Route path="/" element={techdexHost ? <TechDex /> : <Home />} />
+        <Route path="/" element={techdexHost ? <TechDex me={me} /> : <Home />} />
         <Route path="/login" element={<Login me={me} refresh={refresh} />} />
         <Route path="/apps/:slug" element={<AppDetail me={me} />} />
         <Route path="/apps/:slug/privacy" element={<Privacy me={me} />} />
@@ -47,7 +47,7 @@ export default function App() {
         <Route path="/appreview" element={<AppReview me={me} meLoading={loading} />} />
         <Route path="/ai-edu" element={<AiEdu me={me} />} />
         <Route path="/ai-edu/:id" element={<AiEduDetail me={me} />} />
-        <Route path="/techdex" element={<TechDex />} />
+        <Route path="/techdex" element={<TechDex me={me} />} />
         <Route path="/admin" element={<Admin me={me} meLoading={loading} />} />
       </Routes>
       <Footer />
