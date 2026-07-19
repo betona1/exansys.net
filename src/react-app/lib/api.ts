@@ -207,6 +207,40 @@ export type CrosswordEntry = {
 };
 export type CrosswordPuzzle = { rows: number; cols: number; entries: CrosswordEntry[] };
 
+export type TechdexMyStats = {
+  streak: number;
+  bestStreak: number;
+  freezes: number;
+  xp: number;
+  level: number;
+  lastDailyDate: string | null;
+  today: string;
+  badges: string[];
+};
+export type TechdexProgress = {
+  stats: { streak: number; bestStreak: number; freezes: number; xp: number; level: number; lastDailyDate: string | null };
+  gainedXp: number;
+  streakEvent: string;
+  newBadges: string[];
+};
+
+export const TECHDEX_BADGES: Record<string, { emoji: string; label: string }> = {
+  onboard: { emoji: "🌱", label: "첫 발걸음" },
+  first_correct: { emoji: "✅", label: "첫 정답" },
+  streak3: { emoji: "🔥", label: "3일 연속" },
+  streak10: { emoji: "🔥", label: "10일 연속" },
+  streak30: { emoji: "🏅", label: "30일 연속" },
+  streak100: { emoji: "🏆", label: "100일 연속" },
+  level5: { emoji: "⭐", label: "레벨 5" },
+  level10: { emoji: "🌟", label: "레벨 10" },
+};
+
+// XP → 레벨 명칭 (용어 테마)
+export const TECHDEX_LEVEL_TITLES = ["뉴비", "프롬프트 유저", "컨텍스트 러너", "하네스 빌더", "에이전트 마스터"];
+export function techdexLevelTitle(level: number): string {
+  return TECHDEX_LEVEL_TITLES[Math.min(TECHDEX_LEVEL_TITLES.length - 1, Math.floor((level - 1) / 3))];
+}
+
 export const TECHDEX_COLLECTION_LABEL: Record<TechdexCollection, string> = {
   ai: "AI·앱 용어",
   app: "앱 개발 용어",

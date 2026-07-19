@@ -11,7 +11,11 @@ import {
   type TechdexSuggestion,
   type CrosswordPuzzle,
   type CrosswordEntry,
+  type TechdexMyStats,
+  type TechdexProgress,
   TECHDEX_COLLECTION_LABEL,
+  TECHDEX_BADGES,
+  techdexLevelTitle,
 } from "../lib/api";
 import { isMuted, setMuted, unlockAudio, sfxCorrect, sfxWrong, sfxTick, sfxUrgent } from "../lib/sfx";
 
@@ -39,6 +43,7 @@ export default function TechDex({ me }: { me: Me }) {
   });
   const [stats, setStats] = useState<TechdexStats | null>(null);
   const [pending, setPending] = useState(0);
+  const [myStats, setMyStats] = useState<TechdexMyStats | null>(null);
 
   useEffect(() => {
     api<TechdexStats>("/api/techdex/stats").then((r) => r.ok && setStats(r.data));
@@ -46,6 +51,12 @@ export default function TechDex({ me }: { me: Me }) {
   useEffect(() => {
     if (isAdmin) api<{ pending: number }>("/api/techdex/suggestions/count").then((r) => r.ok && setPending(r.data.pending));
   }, [isAdmin]);
+  const refreshMyStats = useCallback(() => {
+    if (me) api<TechdexMyStats>("/api/techdex/me/stats").then((r) => r.ok && setMyStats(r.data));
+  }, [me]);
+  useEffect(() => {
+    refreshMyStats();
+  }, [refreshMyStats]);
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
@@ -68,6 +79,7 @@ export default function TechDex({ me }: { me: Me }) {
             )}
           </div>
         </div>
+        {me && myStats && <StatsBar s={myStats} />}
       </header>
 
       <div className="mb-6 inline-flex flex-wrap rounded-full border border-line bg-card p-1 text-sm font-semibold">
@@ -91,7 +103,7 @@ export default function TechDex({ me }: { me: Me }) {
         ))}
       </div>
 
-      {tab === "quiz" && <Quiz stats={stats} />}
+      {tab === "quiz" && <Quiz stats={stats} me={me} myStats={myStats} onProgress={refreshMyStats} />}
       {tab === "cross" && <Crossword stats={stats} />}
       {tab === "dex" && <Dex me={me} />}
       {tab === "review" && isAdmin && <Review onResolved={() => setPending((n) => Math.max(0, n - 1))} />}
@@ -100,11 +112,24 @@ export default function TechDex({ me }: { me: Me }) {
 }
 
 // ────────────────────────── 스피드 퀴즈 ──────────────────────────
-function Quiz({ stats }: { stats: TechdexStats | null }) {
+function Quiz({
+  stats,
+  me,
+  myStats,
+  onProgress,
+}: {
+  stats: TechdexStats | null;
+  me: Me;
+  myStats: TechdexMyStats | null;
+  onProgress: () => void;
+}) {
   const [phase, setPhase] = useState<"setup" | "loading" | "playing" | "result">("setup");
   const [scope, setScope] = useState<Scope>({ collection: "all", vibeCore: false, count: 10, level: "intermediate" });
   const [muted, setMutedState] = useState(isMuted());
+  const [isDaily, setIsDaily] = useState(false);
+  const [progress, setProgress] = useState<TechdexProgress | null>(null);
   const QSEC = LEVELS[scope.level].seconds;
+  const dailyDone = !!myStats && myStats.lastDailyDate === myStats.today;
   const [questions, setQuestions] = useState<TechdexQuizQuestion[]>([]);
   const [idx, setIdx] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
@@ -116,6 +141,25 @@ function Quiz({ stats }: { stats: TechdexStats | null }) {
   const [wrongList, setWrongList] = useState<TechdexQuizQuestion[]>([]);
   const [timeLeft, setTimeLeft] = useState(12);
   const [error, setError] = useState("");
+
+  const beginWith = useCallback(
+    (qs: TechdexQuizQuestion[], daily: boolean) => {
+      setQuestions(qs);
+      setIdx(0);
+      setSelected(null);
+      setAnswered(false);
+      setScore(0);
+      setCombo(0);
+      setBestCombo(0);
+      setCorrectCount(0);
+      setWrongList([]);
+      setTimeLeft(QSEC);
+      setIsDaily(daily);
+      setProgress(null);
+      setPhase("playing");
+    },
+    [QSEC],
+  );
 
   const start = useCallback(async () => {
     setPhase("loading");
@@ -130,18 +174,35 @@ function Quiz({ stats }: { stats: TechdexStats | null }) {
       setPhase("setup");
       return;
     }
-    setQuestions(r.data.questions);
-    setIdx(0);
-    setSelected(null);
-    setAnswered(false);
-    setScore(0);
-    setCombo(0);
-    setBestCombo(0);
-    setCorrectCount(0);
-    setWrongList([]);
-    setTimeLeft(QSEC);
-    setPhase("playing");
-  }, [scope, QSEC]);
+    beginWith(r.data.questions, false);
+  }, [scope, beginWith]);
+
+  const startDaily = useCallback(async () => {
+    setPhase("loading");
+    setError("");
+    unlockAudio();
+    const r = await api<{ date: string; count: number; questions: TechdexQuizQuestion[] }>("/api/techdex/daily");
+    if (!r.ok || r.data.questions.length === 0) {
+      setError("오늘의 용어를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
+      setPhase("setup");
+      return;
+    }
+    beginWith(r.data.questions, true);
+  }, [beginWith]);
+
+  // 결과 화면 진입 시 진행(스트릭·XP) 기록 (로그인 사용자)
+  useEffect(() => {
+    if (phase !== "result" || !me || progress) return;
+    api<TechdexProgress>("/api/techdex/progress", {
+      method: "POST",
+      body: JSON.stringify({ correct: correctCount, total: questions.length, mode: isDaily ? "daily" : "quiz" }),
+    }).then((r) => {
+      if (r.ok) {
+        setProgress(r.data);
+        onProgress();
+      }
+    });
+  }, [phase, me, progress, correctCount, questions.length, isDaily, onProgress]);
 
   const advanceRef = useRef<number | null>(null);
 
@@ -216,6 +277,24 @@ function Quiz({ stats }: { stats: TechdexStats | null }) {
         {error && (
           <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
         )}
+        {/* 오늘의 용어 (데일리 챌린지) */}
+        <button
+          onClick={startDaily}
+          disabled={phase === "loading"}
+          className="mb-4 flex w-full items-center gap-4 rounded-2xl border border-green/30 bg-gradient-to-r from-green to-green-deep p-5 text-left text-white transition hover:brightness-105 disabled:opacity-60"
+        >
+          <span className="text-3xl">📅</span>
+          <span className="min-w-0 flex-1">
+            <span className="block font-display text-lg font-extrabold">오늘의 용어</span>
+            <span className="block text-sm text-lime">
+              {dailyDone ? "오늘 완료! 내일 또 도전하세요" : "매일 바뀌는 5문제 · 전원 같은 문제로 대결"}
+            </span>
+          </span>
+          <span className="shrink-0 rounded-full bg-white/20 px-3 py-1 text-sm font-bold">
+            {dailyDone ? "다시 풀기" : "도전 →"}
+          </span>
+        </button>
+
         <div className="rounded-2xl border border-line bg-card p-6">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold">퀴즈 범위 고르기</h2>
@@ -312,6 +391,39 @@ function Quiz({ stats }: { stats: TechdexStats | null }) {
           <ResultTile label="정확도" value={`${acc}%`} accent="text-cobalt" />
         </div>
         <div className="mt-2 text-sm text-muted">최고 콤보 {bestCombo}연속</div>
+
+        {/* 진행 기록 (스트릭·XP·배지) */}
+        {me ? (
+          progress && (
+            <div className="mx-auto mt-5 max-w-md rounded-2xl bg-paper p-4">
+              <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm font-extrabold">
+                <span className="text-green-deep">+{progress.gainedXp} XP</span>
+                <span className="text-amber-500">
+                  🔥 {progress.stats.streak}일{progress.streakEvent === "freeze" ? " (프리즈)" : ""}
+                </span>
+                <span className="text-cobalt">Lv.{progress.stats.level}</span>
+              </div>
+              {progress.newBadges.length > 0 && (
+                <div className="mt-3 flex flex-wrap justify-center gap-2">
+                  {progress.newBadges.map((code) => (
+                    <span key={code} className="rounded-full bg-lime/30 px-3 py-1 text-xs font-bold text-green-deep">
+                      {TECHDEX_BADGES[code]?.emoji ?? "🎖"} {TECHDEX_BADGES[code]?.label ?? code} 획득!
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        ) : (
+          <div className="mx-auto mt-5 max-w-md rounded-xl border border-line bg-paper p-3 text-sm text-muted">
+            <a href="/login" className="font-bold text-green-deep hover:underline">
+              로그인
+            </a>
+            하면 스트릭·XP·배지가 저장돼요.
+          </div>
+        )}
+
+        {isDaily && <DailyShare correct={correctCount} total={questions.length} />}
 
         {wrongList.length > 0 && (
           <div className="mx-auto mt-6 max-w-lg text-left">
@@ -1084,6 +1196,66 @@ function Input({
         className="w-full rounded-xl border border-line bg-card px-3 py-2 text-sm outline-none focus:border-ink"
       />
     </label>
+  );
+}
+
+// ── 스탯 바 (스트릭·레벨·XP) ──
+function StatsBar({ s }: { s: TechdexMyStats }) {
+  const pct = s.xp % 100;
+  return (
+    <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-2xl border border-line bg-card px-4 py-3">
+      <span className="flex items-center gap-1 text-sm font-extrabold">
+        <span className="text-lg">🔥</span>
+        <span className="text-amber-500">{s.streak}</span>
+        <span className="text-muted">일 연속</span>
+      </span>
+      <span className="hidden text-line sm:inline">·</span>
+      <span className="flex items-center gap-1.5 text-sm font-bold">
+        <span className="grid h-6 w-6 place-items-center rounded-lg bg-green text-xs font-extrabold text-white">
+          {s.level}
+        </span>
+        <span className="text-ink">{techdexLevelTitle(s.level)}</span>
+      </span>
+      <div className="mx-1 hidden min-w-20 flex-1 sm:block">
+        <div className="h-1.5 overflow-hidden rounded-full bg-line">
+          <div className="h-full rounded-full bg-gradient-to-r from-green to-lime" style={{ width: `${pct}%` }} />
+        </div>
+      </div>
+      <span className="text-sm font-bold text-green-deep">{s.xp.toLocaleString()} XP</span>
+      {s.freezes > 0 && (
+        <span className="text-sm" title="스트릭 프리즈">
+          🧊 {s.freezes}
+        </span>
+      )}
+    </div>
+  );
+}
+
+// ── 데일리 결과 공유 카드 (Wordle식) ──
+function DailyShare({ correct, total }: { correct: number; total: number }) {
+  const squares = Array.from({ length: total }, (_, i) => (i < correct ? "🟩" : "⬜")).join("");
+  const [copied, setCopied] = useState(false);
+  const text = `오늘의 AI 용어 ${correct}/${total} ${squares}\ntechdex.exansys.net`;
+  const share = async () => {
+    try {
+      if (navigator.share) await navigator.share({ text });
+      else {
+        await navigator.clipboard.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1500);
+      }
+    } catch {
+      /* ignore */
+    }
+  };
+  return (
+    <div className="mx-auto mt-5 max-w-md rounded-2xl border border-line bg-white p-4">
+      <div className="text-sm font-bold text-ink">📅 오늘의 용어 결과</div>
+      <div className="mt-2 text-2xl tracking-widest">{squares}</div>
+      <button onClick={share} className="mt-3 rounded-full bg-ink px-5 py-2 text-sm font-bold text-white hover:bg-green">
+        {copied ? "복사됨!" : "결과 공유 📤"}
+      </button>
+    </div>
   );
 }
 

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'api.dart';
 import 'main.dart';
 import 'sfx.dart';
@@ -115,12 +116,14 @@ class _QuizScreenState extends State<QuizScreen> {
       _answered = true;
       if (correct) {
         Sfx.correct();
+        HapticFeedback.mediumImpact();
         _score += 10 + (_timeLeft.round() * 5) + _combo * 3;
         _combo += 1;
         if (_combo > _bestCombo) _bestCombo = _combo;
         _correct += 1;
       } else {
         Sfx.wrong();
+        HapticFeedback.heavyImpact();
         _combo = 0;
         _wrong.add(q);
       }

@@ -32,7 +32,28 @@ async function ensureTables(db: ReturnType<typeof drizzle>) {
     created_at integer NOT NULL, reviewed_at integer, reviewed_by integer, term_id integer
   )`);
   await db.run(sql`CREATE INDEX IF NOT EXISTS idx_techdex_sugg_status ON techdex_suggestions (status)`);
+  // 리텐션 MVP: 사용자 진행(스트릭·XP·레벨), 배지, 데일리 챌린지
+  await db.run(sql`CREATE TABLE IF NOT EXISTS techdex_user_stats (
+    user_id integer PRIMARY KEY NOT NULL,
+    streak integer DEFAULT 0 NOT NULL, best_streak integer DEFAULT 0 NOT NULL,
+    last_play_date text, last_daily_date text,
+    freezes integer DEFAULT 1 NOT NULL, xp integer DEFAULT 0 NOT NULL, level integer DEFAULT 1 NOT NULL,
+    updated_at integer NOT NULL
+  )`);
+  await db.run(sql`CREATE TABLE IF NOT EXISTS techdex_badges (
+    user_id integer NOT NULL, code text NOT NULL, awarded_at integer NOT NULL
+  )`);
+  await db.run(sql`CREATE UNIQUE INDEX IF NOT EXISTS idx_techdex_badge ON techdex_badges (user_id, code)`);
+  await db.run(sql`CREATE TABLE IF NOT EXISTS techdex_daily (date text PRIMARY KEY NOT NULL, slugs text NOT NULL)`);
   tablesReady = true;
+}
+
+// KST 기준 날짜(YYYY-MM-DD)
+function kstDate(d = new Date()): string {
+  return new Date(d.getTime() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+}
+function daysBetween(a: string, b: string): number {
+  return Math.round((Date.parse(b + "T00:00:00Z") - Date.parse(a + "T00:00:00Z")) / 86400000);
 }
 
 type SeedRow = {
@@ -623,4 +644,201 @@ techdexRoutes.post("/suggestions/:id/reject", requireRole("admin"), async (c) =>
     .set({ status: "rejected", reviewedAt: new Date(), reviewedBy: c.get("user").id })
     .where(and(eq(techdexSuggestions.id, id), eq(techdexSuggestions.status, "pending")));
   return c.json(ok({ rejected: true }));
+});
+
+// ──────────────── 리텐션 MVP: 진행(스트릭·XP·레벨)·배지·데일리 챌린지 ────────────────
+
+type StatsRow = {
+  user_id: number;
+  streak: number;
+  best_streak: number;
+  last_play_date: string | null;
+  last_daily_date: string | null;
+  freezes: number;
+  xp: number;
+  level: number;
+};
+
+async function getOrInitStats(DB: D1Database, uid: number): Promise<StatsRow> {
+  let s = await DB.prepare("SELECT * FROM techdex_user_stats WHERE user_id=?").bind(uid).first<StatsRow>();
+  if (!s) {
+    await DB.prepare("INSERT OR IGNORE INTO techdex_user_stats (user_id, updated_at) VALUES (?,?)")
+      .bind(uid, Date.now())
+      .run();
+    s = await DB.prepare("SELECT * FROM techdex_user_stats WHERE user_id=?").bind(uid).first<StatsRow>();
+  }
+  return s!;
+}
+
+async function badgeCodes(DB: D1Database, uid: number): Promise<string[]> {
+  const r = await DB.prepare("SELECT code FROM techdex_badges WHERE user_id=?").bind(uid).all<{ code: string }>();
+  return (r.results ?? []).map((x) => x.code);
+}
+
+async function awardBadges(DB: D1Database, uid: number, codes: string[]): Promise<string[]> {
+  const now = Date.now();
+  const newly: string[] = [];
+  for (const code of codes) {
+    const r = await DB.prepare("INSERT OR IGNORE INTO techdex_badges (user_id, code, awarded_at) VALUES (?,?,?)")
+      .bind(uid, code, now)
+      .run();
+    if (r.meta.changes > 0) newly.push(code);
+  }
+  return newly;
+}
+
+const progressSchema = z.object({
+  correct: z.coerce.number().int().min(0).max(50),
+  total: z.coerce.number().int().min(1).max(50),
+  mode: z.enum(["quiz", "crossword", "daily"]).optional(),
+});
+
+// 세션 완료 후 진행 반영 (member)
+techdexRoutes.post("/progress", requireRole("member"), async (c) => {
+  const parsed = progressSchema.safeParse(await c.req.json().catch(() => null));
+  if (!parsed.success) return c.json(err("invalid_input"), 400);
+  const { correct, mode } = parsed.data;
+  const DB = c.env.DB;
+  const db = drizzle(DB);
+  await ensureTables(db);
+  const uid = c.get("user").id;
+  const s = await getOrInitStats(DB, uid);
+  const today = kstDate();
+
+  const gained = correct * 10 + (mode === "daily" ? 20 : 0);
+  let streakEvent = "same";
+  if (s.last_play_date !== today) {
+    if (!s.last_play_date) {
+      s.streak = 1;
+      streakEvent = "start";
+    } else {
+      const gap = daysBetween(s.last_play_date, today);
+      if (gap === 1) {
+        s.streak += 1;
+        streakEvent = "inc";
+      } else if (gap > 1) {
+        const missed = gap - 1;
+        if (s.freezes >= missed) {
+          s.freezes -= missed;
+          s.streak += 1;
+          streakEvent = "freeze";
+        } else {
+          s.streak = 1;
+          streakEvent = "reset";
+        }
+      }
+    }
+    s.last_play_date = today;
+    if (s.streak > s.best_streak) s.best_streak = s.streak;
+    if (s.streak % 7 === 0 && s.freezes < 2) s.freezes += 1; // 7일 연속마다 프리즈 +1(최대 2)
+  }
+  if (mode === "daily") s.last_daily_date = today;
+  s.xp += gained;
+  s.level = Math.floor(s.xp / 100) + 1;
+
+  await DB.prepare(
+    `UPDATE techdex_user_stats SET streak=?, best_streak=?, last_play_date=?, last_daily_date=?,
+       freezes=?, xp=?, level=?, updated_at=? WHERE user_id=?`,
+  )
+    .bind(s.streak, s.best_streak, s.last_play_date, s.last_daily_date, s.freezes, s.xp, s.level, Date.now(), uid)
+    .run();
+
+  const codes = ["onboard"];
+  if (correct > 0) codes.push("first_correct");
+  if (s.streak >= 3) codes.push("streak3");
+  if (s.streak >= 10) codes.push("streak10");
+  if (s.streak >= 30) codes.push("streak30");
+  if (s.streak >= 100) codes.push("streak100");
+  if (s.level >= 5) codes.push("level5");
+  if (s.level >= 10) codes.push("level10");
+  const newBadges = await awardBadges(DB, uid, codes);
+
+  return c.json(
+    ok({
+      stats: {
+        streak: s.streak,
+        bestStreak: s.best_streak,
+        freezes: s.freezes,
+        xp: s.xp,
+        level: s.level,
+        lastDailyDate: s.last_daily_date,
+      },
+      gainedXp: gained,
+      streakEvent,
+      newBadges,
+    }),
+  );
+});
+
+// 내 스탯 (member)
+techdexRoutes.get("/me/stats", requireRole("member"), async (c) => {
+  const DB = c.env.DB;
+  await ensureTables(drizzle(DB));
+  const uid = c.get("user").id;
+  const s = await getOrInitStats(DB, uid);
+  const badges = await badgeCodes(DB, uid);
+  return c.json(
+    ok({
+      streak: s.streak,
+      bestStreak: s.best_streak,
+      freezes: s.freezes,
+      xp: s.xp,
+      level: s.level,
+      lastDailyDate: s.last_daily_date,
+      today: kstDate(),
+      badges,
+    }),
+  );
+});
+
+type TermLite = { slug: string; term: string; sub: string | null; def: string; category: string; collection: string };
+
+function makeQuestions(answers: TermLite[], pool: TermLite[]) {
+  const seen = new Set<string>();
+  const uniqPool = pool.filter((p) => (seen.has(p.term) ? false : (seen.add(p.term), true)));
+  return answers.map((ans) => {
+    const sameCat = uniqPool.filter((p) => p.term !== ans.term && p.category === ans.category);
+    const others = uniqPool.filter((p) => p.term !== ans.term && p.category !== ans.category);
+    const distractors = shuffle(sameCat).slice(0, 3);
+    if (distractors.length < 3) distractors.push(...shuffle(others).slice(0, 3 - distractors.length));
+    const choices = shuffle([ans, ...distractors].map((p) => p.term));
+    return {
+      slug: ans.slug,
+      prompt: cleanClue(ans.def, ans.term, ans.sub),
+      choices,
+      answer: ans.term,
+      answerIndex: choices.indexOf(ans.term),
+      reveal: { term: ans.term, sub: ans.sub, category: ans.category, collection: ans.collection },
+    };
+  });
+}
+
+// 오늘의 용어(데일리 챌린지, 공개) — 전원 동일한 5문제
+techdexRoutes.get("/daily", async (c) => {
+  const DB = c.env.DB;
+  await ensureTables(drizzle(DB));
+  const today = kstDate();
+  let row = await DB.prepare("SELECT slugs FROM techdex_daily WHERE date=?").bind(today).first<{ slugs: string }>();
+  if (!row) {
+    const picked = await DB.prepare("SELECT slug FROM techdex_terms ORDER BY RANDOM() LIMIT 5").all<{ slug: string }>();
+    const slugs = (picked.results ?? []).map((x) => x.slug);
+    await DB.prepare("INSERT OR IGNORE INTO techdex_daily (date, slugs) VALUES (?,?)").bind(today, JSON.stringify(slugs)).run();
+    row = { slugs: JSON.stringify(slugs) };
+  }
+  const slugs = JSON.parse(row.slugs) as string[];
+  if (slugs.length === 0) return c.json(err("not_ready"), 404);
+  const ph = slugs.map(() => "?").join(",");
+  const ansRes = await DB.prepare(
+    `SELECT slug,term,sub,def,category,collection FROM techdex_terms WHERE slug IN (${ph})`,
+  )
+    .bind(...slugs)
+    .all<TermLite>();
+  const poolRes = await DB.prepare(
+    "SELECT slug,term,sub,def,category,collection FROM techdex_terms ORDER BY RANDOM() LIMIT 60",
+  ).all<TermLite>();
+  // 데일리 순서 유지
+  const bySlug = new Map((ansRes.results ?? []).map((r) => [r.slug, r]));
+  const answers = slugs.map((s) => bySlug.get(s)).filter((x): x is TermLite => !!x);
+  const questions = makeQuestions(answers, poolRes.results ?? []);
+  return c.json(ok({ date: today, count: questions.length, questions }));
 });
