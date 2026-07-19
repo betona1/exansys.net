@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'api.dart';
 import 'main.dart';
 import 'sfx.dart';
+import 'stats.dart';
 
 const _levels = {
   'beginner': {'label': '초급', 'hint': '쉬운 용어 · 18초', 'sec': 18},
@@ -38,11 +39,73 @@ class _QuizScreenState extends State<QuizScreen> {
   Timer? _timer;
   final List<QuizQuestion> _wrong = [];
   String _error = '';
+  Stats? _stats;
+  bool _isDaily = false;
+  ProgressResult? _result;
+
+  @override
+  void initState() {
+    super.initState();
+    Stats.load().then((s) {
+      if (mounted) setState(() => _stats = s);
+    });
+  }
 
   @override
   void dispose() {
     _timer?.cancel();
     super.dispose();
+  }
+
+  void _begin(List<QuizQuestion> qs, bool daily) {
+    setState(() {
+      _qs = qs;
+      _idx = 0;
+      _selected = null;
+      _answered = false;
+      _score = 0;
+      _combo = 0;
+      _bestCombo = 0;
+      _correct = 0;
+      _wrong.clear();
+      _timeLeft = _qsec.toDouble();
+      _lastSec = _qsec;
+      _isDaily = daily;
+      _result = null;
+      _phase = 'playing';
+    });
+    _startTimer();
+  }
+
+  Future<void> _startDaily() async {
+    setState(() {
+      _phase = 'loading';
+      _error = '';
+    });
+    try {
+      final qs = await TechdexApi.daily();
+      if (qs.isEmpty) throw Exception('empty');
+      _begin(qs, true);
+    } catch (_) {
+      setState(() {
+        _error = '오늘의 용어를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.';
+        _phase = 'setup';
+      });
+    }
+  }
+
+  Future<void> _finish() async {
+    final s = _stats;
+    if (s != null) {
+      final r = await s.applyResult(_correct, _qs.length, _isDaily);
+      if (!mounted) return;
+      setState(() {
+        _result = r;
+        _phase = 'result';
+      });
+    } else if (mounted) {
+      setState(() => _phase = 'result');
+    }
   }
 
   Future<void> _start() async {
@@ -58,21 +121,7 @@ class _QuizScreenState extends State<QuizScreen> {
         level: _level,
       );
       if (qs.isEmpty) throw Exception('empty');
-      setState(() {
-        _qs = qs;
-        _idx = 0;
-        _selected = null;
-        _answered = false;
-        _score = 0;
-        _combo = 0;
-        _bestCombo = 0;
-        _correct = 0;
-        _wrong.clear();
-        _timeLeft = _qsec.toDouble();
-        _lastSec = _qsec;
-        _phase = 'playing';
-      });
-      _startTimer();
+      _begin(qs, false);
     } catch (_) {
       setState(() {
         _error = '문제를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.';
@@ -145,7 +194,7 @@ class _QuizScreenState extends State<QuizScreen> {
       });
       _startTimer();
     } else {
-      setState(() => _phase = 'result');
+      _finish();
     }
   }
 
@@ -172,6 +221,40 @@ class _QuizScreenState extends State<QuizScreen> {
             decoration: BoxDecoration(color: const Color(0xFFFDECEC), borderRadius: BorderRadius.circular(12)),
             child: Text(_error, style: const TextStyle(color: Color(0xFFB4232A))),
           ),
+        if (_stats != null) _statsBar(_stats!),
+        const SizedBox(height: 12),
+        // 오늘의 용어 (데일리 챌린지)
+        GestureDetector(
+          onTap: _startDaily,
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(colors: [green, greenDeep]),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(children: [
+              const Text('📅', style: TextStyle(fontSize: 28)),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  const Text('오늘의 용어', style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w800)),
+                  const SizedBox(height: 2),
+                  Text(
+                    (_stats?.dailyDoneToday ?? false) ? '오늘 완료! 내일 또 도전하세요' : '매일 바뀌는 5문제 · 전원 같은 문제',
+                    style: const TextStyle(color: lime, fontSize: 12.5),
+                  ),
+                ]),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(999)),
+                child: Text((_stats?.dailyDoneToday ?? false) ? '다시' : '도전 →',
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+              ),
+            ]),
+          ),
+        ),
+        const SizedBox(height: 16),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -387,6 +470,59 @@ class _QuizScreenState extends State<QuizScreen> {
         ]),
         const SizedBox(height: 8),
         Center(child: Text('최고 콤보 $_bestCombo연속', style: const TextStyle(color: Colors.black54))),
+        // 진행(XP·스트릭·배지)
+        if (_result != null) ...[
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(color: paper, borderRadius: BorderRadius.circular(16)),
+            child: Column(children: [
+              Wrap(spacing: 16, alignment: WrapAlignment.center, children: [
+                Text('+${_result!.gainedXp} XP', style: const TextStyle(color: greenDeep, fontWeight: FontWeight.w900)),
+                Text('🔥 ${_stats?.streak ?? 0}일${_result!.streakEvent == "freeze" ? " (프리즈)" : ""}',
+                    style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.w900)),
+                Text('Lv.${_stats?.level ?? 1}', style: const TextStyle(color: Color(0xFF3A6EA5), fontWeight: FontWeight.w900)),
+              ]),
+              if (_result!.newBadges.isNotEmpty) ...[
+                const SizedBox(height: 10),
+                Wrap(spacing: 8, runSpacing: 8, alignment: WrapAlignment.center, children: [
+                  for (final code in _result!.newBadges)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(color: lime.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(999)),
+                      child: Text('${badgeLabels[code]?.$1 ?? "🎖"} ${badgeLabels[code]?.$2 ?? code} 획득!',
+                          style: const TextStyle(color: greenDeep, fontWeight: FontWeight.w700, fontSize: 12)),
+                    ),
+                ]),
+              ],
+            ]),
+          ),
+        ],
+        // 데일리 공유
+        if (_isDaily) ...[
+          const SizedBox(height: 14),
+          Builder(builder: (_) {
+            final squares = List.generate(_qs.length, (i) => i < _correct ? '🟩' : '⬜').join();
+            return Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFFE7EAF0))),
+              child: Column(children: [
+                const Text('📅 오늘의 용어 결과', style: TextStyle(fontWeight: FontWeight.w800)),
+                const SizedBox(height: 8),
+                Text(squares, style: const TextStyle(fontSize: 22, letterSpacing: 2)),
+                const SizedBox(height: 10),
+                FilledButton(
+                  style: FilledButton.styleFrom(backgroundColor: ink),
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: '오늘의 AI 용어 $_correct/${_qs.length} $squares\ntechdex.exansys.net'));
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('결과를 복사했어요!'), duration: Duration(seconds: 1)));
+                  },
+                  child: const Text('결과 공유 📤'),
+                ),
+              ]),
+            );
+          }),
+        ],
         if (_wrong.isNotEmpty) ...[
           const SizedBox(height: 20),
           Text('틀린 용어 복습 (${_wrong.length})', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black54)),
@@ -435,6 +571,34 @@ class _QuizScreenState extends State<QuizScreen> {
             Text(value, style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: color)),
           ]),
         ),
+      );
+
+  Widget _statsBar(Stats s) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFE7EAF0)),
+        ),
+        child: Row(children: [
+          const Text('🔥', style: TextStyle(fontSize: 17)),
+          const SizedBox(width: 4),
+          Text('${s.streak}', style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.w900, fontSize: 15)),
+          const Text(' 일 연속', style: TextStyle(color: Colors.black54, fontSize: 12.5, fontWeight: FontWeight.w600)),
+          const SizedBox(width: 12),
+          Container(
+            width: 24,
+            height: 24,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(color: green, borderRadius: BorderRadius.circular(7)),
+            child: Text('${s.level}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 12)),
+          ),
+          const SizedBox(width: 6),
+          Flexible(child: Text(levelTitle(s.level), overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13))),
+          const Spacer(),
+          Text('${s.xp} XP', style: const TextStyle(color: greenDeep, fontWeight: FontWeight.w800, fontSize: 13)),
+          if (s.freezes > 0) ...[const SizedBox(width: 8), Text('🧊${s.freezes}', style: const TextStyle(fontSize: 13))],
+        ]),
       );
 
   Widget _muteButton() => GestureDetector(

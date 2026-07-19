@@ -52,28 +52,30 @@ function beep(freq: number, start: number, dur: number, type: OscillatorType, pe
   osc.stop(t0 + dur + 0.03);
 }
 
-// 정답: 밝은 두 음 상승 차임
+// 정답: 밝은 상승 아르페지오(도-미-솔-도) — 레벨업 느낌
 export function sfxCorrect() {
   if (muted) return;
-  beep(660, 0, 0.12, "sine", 0.22);
-  beep(988, 0.09, 0.2, "sine", 0.22);
+  beep(523.25, 0, 0.11, "sine", 0.2); // C5
+  beep(659.25, 0.06, 0.11, "sine", 0.2); // E5
+  beep(783.99, 0.12, 0.13, "sine", 0.2); // G5
+  beep(1046.5, 0.18, 0.22, "triangle", 0.18); // C6
 }
 
-// 오답: 낮게 깔리는 벗 소리
+// 오답: 부드럽게 내려가는 '웜' 두 음 (거칠지 않게)
 export function sfxWrong() {
   if (muted) return;
-  beep(207, 0, 0.22, "sawtooth", 0.16);
-  beep(155, 0.09, 0.26, "sawtooth", 0.14);
+  beep(311.13, 0, 0.16, "triangle", 0.16); // Eb4
+  beep(233.08, 0.12, 0.26, "triangle", 0.15); // Bb3
 }
 
-// 째깍: 아주 짧은 클릭 (초침 소리)
+// 째깍: 부드럽고 짧은 초침 클릭 (사인 버스트)
 export function sfxTick() {
   if (muted) return;
-  beep(1500, 0, 0.018, "square", 0.05);
+  beep(1760, 0, 0.02, "sine", 0.06);
 }
 
-// 시간 임박 경고음(선택)
+// 시간 임박 경고음
 export function sfxUrgent() {
   if (muted) return;
-  beep(880, 0, 0.05, "square", 0.09);
+  beep(988, 0, 0.06, "sine", 0.1);
 }

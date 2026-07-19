@@ -37,6 +37,12 @@ class TechdexApi {
         .toList();
   }
 
+  // 오늘의 용어(데일리 챌린지) — 공개, 전원 동일 5문제
+  static Future<List<QuizQuestion>> daily() async {
+    final d = await _get('/api/techdex/daily') as Map<String, dynamic>;
+    return (d['questions'] as List).map((e) => QuizQuestion.fromJson(e as Map<String, dynamic>)).toList();
+  }
+
   static Future<CrosswordPuzzle> crossword({
     int count = 10,
     String? collection,
