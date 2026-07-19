@@ -24,10 +24,12 @@ class TechdexApi {
     int count = 10,
     String? collection,
     bool vibeCore = false,
+    String? level,
   }) async {
     final params = <String, String>{'count': '$count'};
     if (collection != null) params['collection'] = collection;
     if (vibeCore) params['vibeCore'] = '1';
+    if (level != null) params['level'] = level;
     final qs = Uri(queryParameters: params).query;
     final d = await _get('/api/techdex/quiz?$qs') as Map<String, dynamic>;
     return (d['questions'] as List)
