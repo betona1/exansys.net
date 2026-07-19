@@ -2,7 +2,7 @@
 // 용어 DB(홈페이지 용어집 + 바이브코딩 용어) 조회 + 퀴즈 생성. 읽기는 공개, 시드는 admin.
 import { Hono } from "hono";
 import { drizzle } from "drizzle-orm/d1";
-import { and, desc, eq, like, or, sql } from "drizzle-orm";
+import { and, desc, eq, gte, like, lte, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { techdexTerms, techdexSuggestions, users } from "../../db/schema";
 import type { Env } from "../types";
@@ -174,6 +174,7 @@ const quizQuery = z.object({
   collection: z.enum(COLLS).optional(),
   category: z.string().max(60).optional(),
   vibeCore: z.coerce.boolean().optional(),
+  level: z.enum(["beginner", "intermediate", "hard"]).optional(),
 });
 
 function shuffle<T>(a: T[]): T[] {
@@ -201,6 +202,7 @@ techdexRoutes.get("/quiz", async (c) => {
     collection: c.req.query("collection"),
     category: c.req.query("category"),
     vibeCore: c.req.query("vibeCore"),
+    level: c.req.query("level"),
   });
   if (!parsed.success) return c.json(err("invalid_params"), 400);
   const count = parsed.data.count ?? 10;
@@ -211,6 +213,9 @@ techdexRoutes.get("/quiz", async (c) => {
   if (parsed.data.collection) conds.push(eq(techdexTerms.collection, parsed.data.collection));
   if (parsed.data.category) conds.push(eq(techdexTerms.category, parsed.data.category));
   if (parsed.data.vibeCore) conds.push(eq(techdexTerms.vibeCore, true));
+  // 난이도: 초급=쉬운 용어(≤2), 고급=어려운 용어(≥3), 중급=제한 없음
+  if (parsed.data.level === "beginner") conds.push(lte(techdexTerms.difficulty, 2));
+  else if (parsed.data.level === "hard") conds.push(gte(techdexTerms.difficulty, 3));
 
   const cols = {
     slug: techdexTerms.slug,

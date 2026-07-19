@@ -11,6 +11,7 @@ import {
   type TechdexSuggestion,
   TECHDEX_COLLECTION_LABEL,
 } from "../lib/api";
+import { isMuted, setMuted, unlockAudio, sfxCorrect, sfxWrong, sfxTick, sfxUrgent } from "../lib/sfx";
 
 const COLL_BADGE: Record<TechdexCollection, string> = {
   ai: "bg-green/10 text-green-deep",
@@ -19,9 +20,14 @@ const COLL_BADGE: Record<TechdexCollection, string> = {
   user: "bg-lime/30 text-green-deep",
 };
 
-const QUESTION_SECONDS = 12;
+type Level = "beginner" | "intermediate" | "hard";
+const LEVELS: Record<Level, { label: string; hint: string; seconds: number }> = {
+  beginner: { label: "초급", hint: "쉬운 용어 · 18초", seconds: 18 },
+  intermediate: { label: "중급", hint: "표준 · 12초", seconds: 12 },
+  hard: { label: "고급", hint: "어려운 용어 · 8초", seconds: 8 },
+};
 
-type Scope = { collection: TechdexCollection | "all"; vibeCore: boolean; count: number };
+type Scope = { collection: TechdexCollection | "all"; vibeCore: boolean; count: number; level: Level };
 
 export default function TechDex({ me }: { me: Me }) {
   const isAdmin = me?.role === "admin";
@@ -91,7 +97,9 @@ export default function TechDex({ me }: { me: Me }) {
 // ────────────────────────── 스피드 퀴즈 ──────────────────────────
 function Quiz({ stats }: { stats: TechdexStats | null }) {
   const [phase, setPhase] = useState<"setup" | "loading" | "playing" | "result">("setup");
-  const [scope, setScope] = useState<Scope>({ collection: "all", vibeCore: false, count: 10 });
+  const [scope, setScope] = useState<Scope>({ collection: "all", vibeCore: false, count: 10, level: "intermediate" });
+  const [muted, setMutedState] = useState(isMuted());
+  const QSEC = LEVELS[scope.level].seconds;
   const [questions, setQuestions] = useState<TechdexQuizQuestion[]>([]);
   const [idx, setIdx] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
@@ -101,13 +109,14 @@ function Quiz({ stats }: { stats: TechdexStats | null }) {
   const [bestCombo, setBestCombo] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
   const [wrongList, setWrongList] = useState<TechdexQuizQuestion[]>([]);
-  const [timeLeft, setTimeLeft] = useState(QUESTION_SECONDS);
+  const [timeLeft, setTimeLeft] = useState(12);
   const [error, setError] = useState("");
 
   const start = useCallback(async () => {
     setPhase("loading");
     setError("");
-    const params = new URLSearchParams({ count: String(scope.count) });
+    unlockAudio(); // 사용자 제스처에서 오디오 활성화
+    const params = new URLSearchParams({ count: String(scope.count), level: scope.level });
     if (scope.collection !== "all") params.set("collection", scope.collection);
     if (scope.vibeCore) params.set("vibeCore", "1");
     const r = await api<{ count: number; questions: TechdexQuizQuestion[] }>(`/api/techdex/quiz?${params}`);
@@ -125,9 +134,9 @@ function Quiz({ stats }: { stats: TechdexStats | null }) {
     setBestCombo(0);
     setCorrectCount(0);
     setWrongList([]);
-    setTimeLeft(QUESTION_SECONDS);
+    setTimeLeft(QSEC);
     setPhase("playing");
-  }, [scope]);
+  }, [scope, QSEC]);
 
   const advanceRef = useRef<number | null>(null);
 
@@ -136,11 +145,11 @@ function Quiz({ stats }: { stats: TechdexStats | null }) {
       setIdx((n) => n + 1);
       setSelected(null);
       setAnswered(false);
-      setTimeLeft(QUESTION_SECONDS);
+      setTimeLeft(QSEC);
     } else {
       setPhase("result");
     }
-  }, [idx, questions.length]);
+  }, [idx, questions.length, QSEC]);
 
   const choose = useCallback(
     (i: number | null) => {
@@ -150,6 +159,7 @@ function Quiz({ stats }: { stats: TechdexStats | null }) {
       setSelected(i);
       setAnswered(true);
       if (isCorrect) {
+        sfxCorrect();
         const bonus = 10 + Math.round(timeLeft) * 5 + combo * 3;
         setScore((s) => s + bonus);
         setCombo((cmb) => {
@@ -159,6 +169,7 @@ function Quiz({ stats }: { stats: TechdexStats | null }) {
         });
         setCorrectCount((n) => n + 1);
       } else {
+        sfxWrong();
         setCombo(0);
         setWrongList((w) => [...w, q]);
       }
@@ -171,7 +182,7 @@ function Quiz({ stats }: { stats: TechdexStats | null }) {
   // 언마운트 시 예약된 자동 넘김 정리
   useEffect(() => () => void (advanceRef.current && clearTimeout(advanceRef.current)), []);
 
-  // 문제별 타이머
+  // 문제별 타이머 (째깍 사운드 포함)
   useEffect(() => {
     if (phase !== "playing" || answered) return;
     const t = window.setInterval(() => {
@@ -181,7 +192,13 @@ function Quiz({ stats }: { stats: TechdexStats | null }) {
           choose(null); // 시간 초과 = 오답
           return 0;
         }
-        return prev - 0.1;
+        const nextVal = prev - 0.1;
+        // 정수 초를 넘길 때마다 '째깍' (막판 3초는 경고음)
+        if (Math.floor(prev) !== Math.floor(nextVal)) {
+          if (nextVal <= 3.4) sfxUrgent();
+          else sfxTick();
+        }
+        return nextVal;
       });
     }, 100);
     return () => window.clearInterval(t);
@@ -195,10 +212,39 @@ function Quiz({ stats }: { stats: TechdexStats | null }) {
           <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
         )}
         <div className="rounded-2xl border border-line bg-card p-6">
-          <h2 className="text-lg font-bold">퀴즈 범위 고르기</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold">퀴즈 범위 고르기</h2>
+            <MuteButton
+              muted={muted}
+              onToggle={() => {
+                const m = !muted;
+                setMuted(m);
+                setMutedState(m);
+                unlockAudio();
+              }}
+            />
+          </div>
           <p className="mt-1 text-sm text-muted">정의를 보고 알맞은 용어를 4개 중에 고르는 게임이에요.</p>
 
           <div className="mt-5 space-y-4">
+            <Field label="난이도">
+              <div className="grid grid-cols-3 gap-2">
+                {(Object.keys(LEVELS) as Level[]).map((lv) => (
+                  <button
+                    key={lv}
+                    onClick={() => setScope((s) => ({ ...s, level: lv }))}
+                    className={`rounded-xl border px-2 py-2.5 text-center transition ${
+                      scope.level === lv ? "border-green bg-green/10" : "border-line bg-card hover:border-ink"
+                    }`}
+                  >
+                    <div className={`text-sm font-extrabold ${scope.level === lv ? "text-green-deep" : "text-ink"}`}>
+                      {LEVELS[lv].label}
+                    </div>
+                    <div className="mt-0.5 text-[11px] text-muted">{LEVELS[lv].hint}</div>
+                  </button>
+                ))}
+              </div>
+            </Field>
             <Field label="분야">
               <div className="flex flex-wrap gap-2">
                 {(["all", "ai", "app", "vibe"] as const).map((c) => (
@@ -299,28 +345,38 @@ function Quiz({ stats }: { stats: TechdexStats | null }) {
 
   // playing
   const q = questions[idx];
-  const pct = (timeLeft / QUESTION_SECONDS) * 100;
+  const pct = (timeLeft / QSEC) * 100;
   const correct = answered && selected === q.answerIndex;
   return (
     <div className="mx-auto max-w-2xl">
-      {/* 상단: 진행 + 점수 */}
-      <div className="mb-3 flex items-center justify-between">
-        <span className="rounded-full bg-card px-3 py-1 text-sm font-bold text-muted shadow-sm">
-          문제 <span className="text-ink">{idx + 1}</span>
-          <span className="opacity-40"> / {questions.length}</span>
-        </span>
-        <span className="flex items-center gap-2">
+      {/* 상단: 탁상시계 타이머 + 점수 */}
+      <div className="mb-2.5 flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <TickClock remaining={timeLeft} total={QSEC} paused={answered} />
+          <div className={`font-display text-3xl font-extrabold leading-none ${timeLeft <= 3.4 ? "text-red-500" : "text-ink"}`}>
+            {Math.ceil(timeLeft)}
+            <span className="ml-0.5 text-sm font-bold text-muted">초</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
           {combo > 1 && (
-            <span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-extrabold text-amber-600">
-              🔥 {combo}
-            </span>
+            <span className="rounded-full bg-amber-100 px-2.5 py-1 text-sm font-extrabold text-amber-600">🔥 {combo}</span>
           )}
           <span className="font-display text-2xl font-extrabold text-green-deep">{score.toLocaleString()}</span>
-        </span>
+          <MuteButton
+            small
+            muted={muted}
+            onToggle={() => {
+              const m = !muted;
+              setMuted(m);
+              setMutedState(m);
+            }}
+          />
+        </div>
       </div>
 
-      {/* 타이머 */}
-      <div className="mb-6 h-2.5 overflow-hidden rounded-full bg-line">
+      {/* 슬림 진행 바 */}
+      <div className="mb-6 h-2 overflow-hidden rounded-full bg-line">
         <div
           className={`h-full rounded-full transition-[width] duration-100 ${
             pct > 33 ? "bg-gradient-to-r from-green to-lime" : "bg-red-400"
@@ -331,7 +387,9 @@ function Quiz({ stats }: { stats: TechdexStats | null }) {
 
       {/* 질문 카드 */}
       <div className="rounded-3xl border border-line bg-gradient-to-b from-white to-paper p-7 text-center shadow-sm sm:p-9">
-        <div className="text-xs font-extrabold uppercase tracking-[0.15em] text-green">이 뜻의 용어는?</div>
+        <div className="text-xs font-extrabold uppercase tracking-[0.15em] text-green">
+          문제 {idx + 1} / {questions.length} · 이 뜻의 용어는?
+        </div>
         <p className="mx-auto mt-4 max-w-xl text-2xl font-extrabold leading-snug tracking-tight text-ink sm:text-[28px]">
           {q.prompt}
         </p>
@@ -738,6 +796,69 @@ function Input({
         className="w-full rounded-xl border border-line bg-card px-3 py-2 text-sm outline-none focus:border-ink"
       />
     </label>
+  );
+}
+
+// ── 움직이는 탁상시계 타이머 ──
+function TickClock({ remaining, total, paused }: { remaining: number; total: number; paused: boolean }) {
+  const cx = 24;
+  const cy = 27;
+  const r = 12;
+  const frac = total > 0 ? Math.min(1, (total - remaining) / total) : 0;
+  const ang = (-90 + frac * 360) * (Math.PI / 180);
+  const hx = cx + r * Math.cos(ang);
+  const hy = cy + r * Math.sin(ang);
+  const urgent = remaining <= 3.4;
+  const hand = urgent ? "#ef4444" : "#0E5741";
+  // 째깍째깍 좌우로 흔들림 (일시정지 시 정지)
+  const rock = paused ? 0 : Math.floor(remaining) % 2 === 0 ? -5 : 5;
+  return (
+    <svg
+      width="44"
+      height="44"
+      viewBox="0 0 48 48"
+      aria-hidden="true"
+      style={{ transform: `rotate(${rock}deg)`, transformOrigin: "50% 92%", transition: "transform .16s ease-in-out" }}
+    >
+      {/* 종(벨) */}
+      <g fill="#0E5741">
+        <ellipse cx="13" cy="10" rx="6.5" ry="5" transform="rotate(-28 13 10)" />
+        <ellipse cx="35" cy="10" rx="6.5" ry="5" transform="rotate(28 35 10)" />
+      </g>
+      <rect x="22" y="3.5" width="4" height="6" rx="2" fill="#0E5741" />
+      {/* 다리 */}
+      <g stroke="#0E5741" strokeWidth="3" strokeLinecap="round">
+        <line x1="16" y1="41" x2="12" y2="46" />
+        <line x1="32" y1="41" x2="36" y2="46" />
+      </g>
+      {/* 몸통 */}
+      <circle cx={cx} cy={cy} r="16" fill="#0E5741" />
+      <circle cx={cx} cy={cy} r="13.5" fill="#F6F7FA" />
+      {/* 눈금 */}
+      <g stroke="#c9cfd8" strokeWidth="1.6" strokeLinecap="round">
+        <line x1={cx} y1={cy - 11} x2={cx} y2={cy - 8.5} />
+        <line x1={cx + 11} y1={cy} x2={cx + 8.5} y2={cy} />
+        <line x1={cx} y1={cy + 11} x2={cx} y2={cy + 8.5} />
+        <line x1={cx - 11} y1={cy} x2={cx - 8.5} y2={cy} />
+      </g>
+      {/* 시침(정적) + 초침(회전) */}
+      <line x1={cx} y1={cy} x2={cx} y2={cy - 6.5} stroke="#9aa4af" strokeWidth="2.2" strokeLinecap="round" />
+      <line x1={cx} y1={cy} x2={hx} y2={hy} stroke={hand} strokeWidth="2.4" strokeLinecap="round" />
+      <circle cx={cx} cy={cy} r="2" fill={hand} />
+    </svg>
+  );
+}
+
+function MuteButton({ muted, onToggle, small }: { muted: boolean; onToggle: () => void; small?: boolean }) {
+  return (
+    <button
+      onClick={onToggle}
+      title={muted ? "소리 켜기" : "소리 끄기"}
+      aria-label={muted ? "소리 켜기" : "소리 끄기"}
+      className={`grid ${small ? "h-8 w-8" : "h-9 w-9"} shrink-0 place-items-center rounded-full border border-line bg-card transition hover:border-ink`}
+    >
+      {muted ? "🔇" : "🔊"}
+    </button>
   );
 }
 
