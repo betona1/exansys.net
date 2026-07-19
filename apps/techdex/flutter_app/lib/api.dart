@@ -37,6 +37,19 @@ class TechdexApi {
         .toList();
   }
 
+  static Future<CrosswordPuzzle> crossword({
+    int count = 10,
+    String? collection,
+    String? level,
+  }) async {
+    final params = <String, String>{'count': '$count'};
+    if (collection != null) params['collection'] = collection;
+    if (level != null) params['level'] = level;
+    final qs = Uri(queryParameters: params).query;
+    final d = await _get('/api/techdex/crossword?$qs') as Map<String, dynamic>;
+    return CrosswordPuzzle.fromJson(d);
+  }
+
   static Future<TermPage> terms({
     String q = '',
     String? collection,
@@ -134,6 +147,46 @@ class TermPage {
   final int total;
   final List<Term> terms;
   TermPage({required this.total, required this.terms});
+}
+
+class CrosswordEntry {
+  final int number;
+  final int row;
+  final int col;
+  final String dir; // across | down
+  final String answer;
+  final int len;
+  final String clue;
+  CrosswordEntry({
+    required this.number,
+    required this.row,
+    required this.col,
+    required this.dir,
+    required this.answer,
+    required this.len,
+    required this.clue,
+  });
+  factory CrosswordEntry.fromJson(Map<String, dynamic> j) => CrosswordEntry(
+        number: (j['num'] as num).toInt(),
+        row: (j['row'] as num).toInt(),
+        col: (j['col'] as num).toInt(),
+        dir: j['dir'] as String,
+        answer: j['answer'] as String,
+        len: (j['len'] as num).toInt(),
+        clue: j['clue'] as String,
+      );
+}
+
+class CrosswordPuzzle {
+  final int rows;
+  final int cols;
+  final List<CrosswordEntry> entries;
+  CrosswordPuzzle({required this.rows, required this.cols, required this.entries});
+  factory CrosswordPuzzle.fromJson(Map<String, dynamic> j) => CrosswordPuzzle(
+        rows: (j['rows'] as num).toInt(),
+        cols: (j['cols'] as num).toInt(),
+        entries: (j['entries'] as List).map((e) => CrosswordEntry.fromJson(e as Map<String, dynamic>)).toList(),
+      );
 }
 
 const collectionLabel = {

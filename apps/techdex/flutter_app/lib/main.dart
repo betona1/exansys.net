@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'quiz_screen.dart';
+import 'crossword_screen.dart';
 import 'dex_screen.dart';
 
 void main() => runApp(const TechDexApp());
@@ -40,7 +41,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    const pages = [QuizScreen(), DexScreen()];
+    const pages = [QuizScreen(), CrosswordScreen(), DexScreen()];
     return Scaffold(
       appBar: AppBar(
         backgroundColor: green,
@@ -66,6 +67,8 @@ class _HomePageState extends State<HomePage> {
               icon: Icon(Icons.sports_esports_outlined),
               selectedIcon: Icon(Icons.sports_esports),
               label: '퀴즈'),
+          NavigationDestination(
+              icon: Icon(Icons.grid_on_outlined), selectedIcon: Icon(Icons.grid_on), label: '십자풀이'),
           NavigationDestination(
               icon: Icon(Icons.menu_book_outlined), selectedIcon: Icon(Icons.menu_book), label: '도감'),
         ],
