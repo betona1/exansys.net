@@ -1,6 +1,6 @@
 // TechDex — IT/AI 용어 학습 게임 (스피드 퀴즈 + 도감)
 // 홈페이지 용어집 + 바이브코딩 용어(367개)를 D1에서 받아 게임으로 학습. 누구나 플레이.
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   api,
   type Me,
@@ -124,6 +124,19 @@ function Quiz({ stats }: { stats: TechdexStats | null }) {
     setPhase("playing");
   }, [scope]);
 
+  const advanceRef = useRef<number | null>(null);
+
+  const advance = useCallback(() => {
+    if (idx + 1 < questions.length) {
+      setIdx((n) => n + 1);
+      setSelected(null);
+      setAnswered(false);
+      setTimeLeft(QUESTION_SECONDS);
+    } else {
+      setPhase("result");
+    }
+  }, [idx, questions.length]);
+
   const choose = useCallback(
     (i: number | null) => {
       if (answered || phase !== "playing") return;
@@ -144,21 +157,14 @@ function Quiz({ stats }: { stats: TechdexStats | null }) {
         setCombo(0);
         setWrongList((w) => [...w, q]);
       }
+      // 정답/오답 표시 후 자동으로 다음 문제로 (정답은 빠르게, 오답은 정답 확인할 시간 여유)
+      advanceRef.current = window.setTimeout(advance, isCorrect ? 1100 : 2200);
     },
-    [answered, phase, questions, idx, timeLeft, combo],
+    [answered, phase, questions, idx, timeLeft, combo, advance],
   );
 
-  // 사용자가 확인 후 직접 다음 문제로 (정답/오답을 충분히 볼 수 있게)
-  const next = useCallback(() => {
-    if (idx + 1 < questions.length) {
-      setIdx((n) => n + 1);
-      setSelected(null);
-      setAnswered(false);
-      setTimeLeft(QUESTION_SECONDS);
-    } else {
-      setPhase("result");
-    }
-  }, [idx, questions.length]);
+  // 언마운트 시 예약된 자동 넘김 정리
+  useEffect(() => () => void (advanceRef.current && clearTimeout(advanceRef.current)), []);
 
   // 문제별 타이머
   useEffect(() => {
@@ -359,13 +365,6 @@ function Quiz({ stats }: { stats: TechdexStats | null }) {
                 </div>
               );
             })()}
-            <button
-              onClick={next}
-              autoFocus
-              className="mt-3 w-full rounded-full bg-ink py-3 text-sm font-bold text-white transition hover:bg-green"
-            >
-              {idx + 1 < questions.length ? "다음 문제 →" : "결과 보기 →"}
-            </button>
           </div>
         )}
       </div>

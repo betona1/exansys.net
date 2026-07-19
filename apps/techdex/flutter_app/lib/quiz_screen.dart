@@ -101,9 +101,12 @@ class _QuizScreenState extends State<QuizScreen> {
         _wrong.add(q);
       }
     });
+    // 정답/오답 표시 후 자동으로 다음 문제로 (정답은 빠르게, 오답은 정답 확인할 여유)
+    Future.delayed(Duration(milliseconds: correct ? 1100 : 2200), () {
+      if (mounted && _answered) _next();
+    });
   }
 
-  // 사용자가 확인 후 직접 다음으로 (정답/오답을 충분히 볼 수 있게)
   void _next() {
     if (_idx + 1 < _qs.length) {
       setState(() {
@@ -241,12 +244,6 @@ class _QuizScreenState extends State<QuizScreen> {
                 ),
               );
             }),
-            const SizedBox(height: 12),
-            FilledButton(
-              style: FilledButton.styleFrom(backgroundColor: ink, minimumSize: const Size.fromHeight(48)),
-              onPressed: _next,
-              child: Text(_idx + 1 < _qs.length ? '다음 문제 →' : '결과 보기 →'),
-            ),
           ],
         ],
       ),
