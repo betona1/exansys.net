@@ -22,6 +22,9 @@ let visitTracked = false;
 
 export default function App() {
   const { me, loading, logout, refresh } = useMe();
+  // techdex.exansys.net 서브도메인으로 들어오면 루트에서 바로 TechDex를 보여준다
+  const techdexHost =
+    typeof window !== "undefined" && /^techdex\./i.test(window.location.hostname);
 
   useEffect(() => {
     if (visitTracked) return;
@@ -33,7 +36,7 @@ export default function App() {
     <>
       <Header me={me} logout={logout} />
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={techdexHost ? <TechDex /> : <Home />} />
         <Route path="/login" element={<Login me={me} refresh={refresh} />} />
         <Route path="/apps/:slug" element={<AppDetail me={me} />} />
         <Route path="/apps/:slug/privacy" element={<Privacy me={me} />} />
