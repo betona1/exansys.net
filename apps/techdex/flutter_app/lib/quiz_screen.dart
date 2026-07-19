@@ -101,20 +101,21 @@ class _QuizScreenState extends State<QuizScreen> {
         _wrong.add(q);
       }
     });
-    Future.delayed(const Duration(milliseconds: 1300), () {
-      if (!mounted) return;
-      if (_idx + 1 < _qs.length) {
-        setState(() {
-          _idx += 1;
-          _selected = null;
-          _answered = false;
-          _timeLeft = _questionSeconds.toDouble();
-        });
-        _startTimer();
-      } else {
-        setState(() => _phase = 'result');
-      }
-    });
+  }
+
+  // 사용자가 확인 후 직접 다음으로 (정답/오답을 충분히 볼 수 있게)
+  void _next() {
+    if (_idx + 1 < _qs.length) {
+      setState(() {
+        _idx += 1;
+        _selected = null;
+        _answered = false;
+        _timeLeft = _questionSeconds.toDouble();
+      });
+      _startTimer();
+    } else {
+      setState(() => _phase = 'result');
+    }
   }
 
   @override
@@ -176,7 +177,7 @@ class _QuizScreenState extends State<QuizScreen> {
 
   Widget _buildPlaying() {
     final q = _qs[_idx];
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -221,14 +222,30 @@ class _QuizScreenState extends State<QuizScreen> {
           const SizedBox(height: 14),
           for (int i = 0; i < q.choices.length; i++) _choiceButton(q, i),
           if (_answered) ...[
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: paper, borderRadius: BorderRadius.circular(12)),
-              child: Text(
-                '${q.term}${q.sub != null ? "  ${q.sub}" : ""}  ·  ${q.category}',
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-              ),
+            const SizedBox(height: 12),
+            Builder(builder: (_) {
+              final correct = _selected == q.answerIndex;
+              return Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: correct ? const Color(0xFFE9F6EE) : const Color(0xFFFDECEC),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '${correct ? "✅ 정답!" : "❌ 오답"} · 정답은 ${q.term}${q.sub != null ? " (${q.sub})" : ""}',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: correct ? greenDeep : const Color(0xFFB4232A),
+                  ),
+                ),
+              );
+            }),
+            const SizedBox(height: 12),
+            FilledButton(
+              style: FilledButton.styleFrom(backgroundColor: ink, minimumSize: const Size.fromHeight(48)),
+              onPressed: _next,
+              child: Text(_idx + 1 < _qs.length ? '다음 문제 →' : '결과 보기 →'),
             ),
           ],
         ],

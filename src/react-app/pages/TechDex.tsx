@@ -1,6 +1,6 @@
 // TechDex — IT/AI 용어 학습 게임 (스피드 퀴즈 + 도감)
 // 홈페이지 용어집 + 바이브코딩 용어(367개)를 D1에서 받아 게임으로 학습. 누구나 플레이.
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   api,
   type Me,
@@ -98,7 +98,6 @@ function Quiz({ stats }: { stats: TechdexStats | null }) {
   const [wrongList, setWrongList] = useState<TechdexQuizQuestion[]>([]);
   const [timeLeft, setTimeLeft] = useState(QUESTION_SECONDS);
   const [error, setError] = useState("");
-  const advanceRef = useRef<number | null>(null);
 
   const start = useCallback(async () => {
     setPhase("loading");
@@ -145,19 +144,21 @@ function Quiz({ stats }: { stats: TechdexStats | null }) {
         setCombo(0);
         setWrongList((w) => [...w, q]);
       }
-      advanceRef.current = window.setTimeout(() => {
-        if (idx + 1 < questions.length) {
-          setIdx((n) => n + 1);
-          setSelected(null);
-          setAnswered(false);
-          setTimeLeft(QUESTION_SECONDS);
-        } else {
-          setPhase("result");
-        }
-      }, 1300);
     },
     [answered, phase, questions, idx, timeLeft, combo],
   );
+
+  // 사용자가 확인 후 직접 다음 문제로 (정답/오답을 충분히 볼 수 있게)
+  const next = useCallback(() => {
+    if (idx + 1 < questions.length) {
+      setIdx((n) => n + 1);
+      setSelected(null);
+      setAnswered(false);
+      setTimeLeft(QUESTION_SECONDS);
+    } else {
+      setPhase("result");
+    }
+  }, [idx, questions.length]);
 
   // 문제별 타이머
   useEffect(() => {
@@ -175,7 +176,6 @@ function Quiz({ stats }: { stats: TechdexStats | null }) {
     return () => window.clearInterval(t);
   }, [phase, answered, idx, choose]);
 
-  useEffect(() => () => void (advanceRef.current && clearTimeout(advanceRef.current)), []);
 
   if (phase === "setup" || phase === "loading") {
     return (
@@ -319,9 +319,9 @@ function Quiz({ stats }: { stats: TechdexStats | null }) {
             const isPicked = selected === i;
             let cls = "border-line bg-card hover:border-ink";
             if (answered) {
-              if (isAnswer) cls = "border-green bg-green/10 text-green-deep";
-              else if (isPicked) cls = "border-red-300 bg-red-50 text-red-700";
-              else cls = "border-line bg-card opacity-60";
+              if (isAnswer) cls = "border-2 border-green bg-green/15 text-green-deep";
+              else if (isPicked) cls = "border-2 border-red-400 bg-red-50 text-red-700";
+              else cls = "border-line bg-card opacity-50";
             }
             return (
               <button
@@ -334,20 +334,38 @@ function Quiz({ stats }: { stats: TechdexStats | null }) {
                   {"ABCD"[i]}
                 </span>
                 <span className="min-w-0 flex-1">{choice}</span>
-                {answered && isAnswer && <span>✓</span>}
-                {answered && isPicked && !isAnswer && <span>✕</span>}
+                {answered && isAnswer && <span className="text-lg font-bold text-green">✓</span>}
+                {answered && isPicked && !isAnswer && <span className="text-lg font-bold text-red-500">✕</span>}
               </button>
             );
           })}
         </div>
 
         {answered && (
-          <div className="mt-4 rounded-xl bg-paper p-3 text-sm">
-            <span className="font-bold text-ink">{q.reveal.term}</span>
-            {q.reveal.sub && <span className="ml-1 text-xs text-muted">{q.reveal.sub}</span>}
-            <span className="ml-2 rounded-full bg-lime/30 px-2 py-0.5 text-xs font-semibold text-green-deep">
-              {q.reveal.category}
-            </span>
+          <div className="mt-4">
+            {(() => {
+              const correct = selected === q.answerIndex;
+              return (
+                <div
+                  className={`flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-bold ${
+                    correct ? "bg-green/15 text-green-deep" : "bg-red-50 text-red-700"
+                  }`}
+                >
+                  <span className="text-lg">{correct ? "✅" : "❌"}</span>
+                  <span>
+                    {correct ? "정답!" : "오답"} · 정답은 <b>{q.reveal.term}</b>
+                    {q.reveal.sub && <span className="ml-1 text-xs font-medium opacity-70">{q.reveal.sub}</span>}
+                  </span>
+                </div>
+              );
+            })()}
+            <button
+              onClick={next}
+              autoFocus
+              className="mt-3 w-full rounded-full bg-ink py-3 text-sm font-bold text-white transition hover:bg-green"
+            >
+              {idx + 1 < questions.length ? "다음 문제 →" : "결과 보기 →"}
+            </button>
           </div>
         )}
       </div>
