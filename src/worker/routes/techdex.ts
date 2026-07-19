@@ -196,6 +196,24 @@ type PoolTerm = {
   difficulty: number;
 };
 
+// 정의문을 퀴즈 힌트답게 다듬는다: 예시 제거 · 정답 노출 가림 · 길이 정리
+function cleanClue(def: string, term: string, sub: string | null): string {
+  let s = def.trim();
+  s = s.replace(/\([^)]*예[^)]*\)/g, ""); // (예 ...) 괄호 속 예시 제거
+  s = s.replace(/(?:예를 들어|예:)[\s\S]*$/, ""); // '예:' / '예를 들어' 이후 절 제거
+  // 정답이 힌트에 그대로 노출되면 ○○ 로 가림
+  for (const w of [term, sub].filter((x): x is string => !!x && x.trim().length >= 2)) {
+    s = s.split(w).join("○○");
+  }
+  s = s.replace(/\s{2,}/g, " ").trim();
+  if (s.length > 92) {
+    const cut = s.slice(0, 92);
+    const p = Math.max(cut.lastIndexOf("."), cut.lastIndexOf("·"), cut.lastIndexOf(" "));
+    s = (p > 45 ? cut.slice(0, p) : cut).trim() + "…";
+  }
+  return s || def;
+}
+
 techdexRoutes.get("/quiz", async (c) => {
   const parsed = quizQuery.safeParse({
     count: c.req.query("count"),
@@ -254,7 +272,7 @@ techdexRoutes.get("/quiz", async (c) => {
     const choices = shuffle([ans, ...distractors].map((p) => p.term));
     return {
       slug: ans.slug,
-      prompt: ans.def,
+      prompt: cleanClue(ans.def, ans.term, ans.sub),
       choices,
       answer: ans.term,
       answerIndex: choices.indexOf(ans.term),
@@ -263,6 +281,173 @@ techdexRoutes.get("/quiz", async (c) => {
   });
 
   return c.json(ok({ count: questions.length, questions }));
+});
+
+// ──────────────── 십자풀이(가로세로 퍼즐) ────────────────
+// 영문 단어를 교차시키고 한글 뜻을 힌트로 쓰는 크로스워드를 즉석 생성한다.
+
+type CrossItem = { answer: string; clue: string; term: string; sub: string | null };
+type Placed = CrossItem & { row: number; col: number; dir: "across" | "down" };
+
+function buildCrossword(items: CrossItem[], maxWords: number) {
+  const grid = new Map<string, string>();
+  const placed: Placed[] = [];
+  const key = (r: number, cc: number) => `${r},${cc}`;
+  const at = (r: number, cc: number) => grid.get(key(r, cc));
+
+  // 배치 가능 여부 + 교차 수 반환 (null이면 불가)
+  function canPlace(word: string, r: number, cCol: number, dir: "across" | "down"): number | null {
+    const dr = dir === "down" ? 1 : 0;
+    const dc = dir === "across" ? 1 : 0;
+    if (at(r - dr, cCol - dc)) return null; // 시작 앞칸 비어야
+    if (at(r + dr * word.length, cCol + dc * word.length)) return null; // 끝 뒤칸 비어야
+    let inter = 0;
+    for (let i = 0; i < word.length; i++) {
+      const rr = r + dr * i;
+      const cc = cCol + dc * i;
+      const cur = at(rr, cc);
+      if (cur) {
+        if (cur !== word[i]) return null;
+        inter++;
+      } else {
+        // 교차가 아닌 새 칸은 수직 이웃이 비어 있어야 (평행 단어 붙음 방지)
+        const pr = dc;
+        const pc = dr;
+        if (at(rr + pr, cc + pc) || at(rr - pr, cc - pc)) return null;
+      }
+    }
+    return inter;
+  }
+
+  function doPlace(item: CrossItem, r: number, cCol: number, dir: "across" | "down") {
+    const dr = dir === "down" ? 1 : 0;
+    const dc = dir === "across" ? 1 : 0;
+    for (let i = 0; i < item.answer.length; i++) grid.set(key(r + dr * i, cCol + dc * i), item.answer[i]);
+    placed.push({ ...item, row: r, col: cCol, dir });
+  }
+
+  const sorted = [...items].sort((a, b) => b.answer.length - a.answer.length);
+  const first = sorted.shift();
+  if (!first) return null;
+  doPlace(first, 0, 0, "across");
+
+  for (const item of sorted) {
+    if (placed.length >= maxWords) break;
+    const word = item.answer;
+    let best: { r: number; c: number; dir: "across" | "down"; inter: number } | null = null;
+    for (let i = 0; i < word.length; i++) {
+      for (const [k, letter] of grid) {
+        if (letter !== word[i]) continue;
+        const parts = k.split(",");
+        const r = Number(parts[0]);
+        const cCol = Number(parts[1]);
+        for (const dir of ["across", "down"] as const) {
+          const dr = dir === "down" ? 1 : 0;
+          const dc = dir === "across" ? 1 : 0;
+          const startR = r - dr * i;
+          const startC = cCol - dc * i;
+          const inter = canPlace(word, startR, startC, dir);
+          if (inter !== null && inter >= 1 && (!best || inter > best.inter)) {
+            best = { r: startR, c: startC, dir, inter };
+          }
+        }
+      }
+    }
+    if (best) doPlace(item, best.r, best.c, best.dir);
+  }
+
+  if (placed.length < 3) return null;
+
+  // 좌표 정규화
+  let minR = Infinity;
+  let minC = Infinity;
+  let maxR = -Infinity;
+  let maxC = -Infinity;
+  for (const k of grid.keys()) {
+    const parts = k.split(",");
+    const r = Number(parts[0]);
+    const cCol = Number(parts[1]);
+    minR = Math.min(minR, r);
+    minC = Math.min(minC, cCol);
+    maxR = Math.max(maxR, r);
+    maxC = Math.max(maxC, cCol);
+  }
+  const norm = placed.map((p) => ({ ...p, row: p.row - minR, col: p.col - minC }));
+
+  // 시작 칸에 번호 부여 (좌→우, 위→아래)
+  const startCells = [...new Set(norm.map((e) => `${e.row},${e.col}`))].sort((a, b) => {
+    const [ar, ac] = a.split(",").map(Number);
+    const [br, bc] = b.split(",").map(Number);
+    return ar - br || ac - bc;
+  });
+  const numByCell = new Map<string, number>();
+  startCells.forEach((k, i) => numByCell.set(k, i + 1));
+
+  const entries = norm
+    .map((e) => ({
+      num: numByCell.get(`${e.row},${e.col}`)!,
+      row: e.row,
+      col: e.col,
+      dir: e.dir,
+      answer: e.answer,
+      len: e.answer.length,
+      clue: e.clue,
+      term: e.term,
+      sub: e.sub,
+    }))
+    .sort((a, b) => a.num - b.num || (a.dir < b.dir ? -1 : 1));
+
+  return { rows: maxR - minR + 1, cols: maxC - minC + 1, entries };
+}
+
+const crosswordQuery = z.object({
+  count: z.coerce.number().int().min(6).max(14).optional(),
+  collection: z.enum(COLLS).optional(),
+  level: z.enum(["beginner", "intermediate", "hard"]).optional(),
+});
+
+techdexRoutes.get("/crossword", async (c) => {
+  const parsed = crosswordQuery.safeParse({
+    count: c.req.query("count"),
+    collection: c.req.query("collection"),
+    level: c.req.query("level"),
+  });
+  if (!parsed.success) return c.json(err("invalid_params"), 400);
+  const count = parsed.data.count ?? 10;
+  const db = drizzle(c.env.DB);
+  await ensureTables(db);
+
+  const conds = [];
+  if (parsed.data.collection) conds.push(eq(techdexTerms.collection, parsed.data.collection));
+  if (parsed.data.level === "beginner") conds.push(lte(techdexTerms.difficulty, 2));
+  else if (parsed.data.level === "hard") conds.push(gte(techdexTerms.difficulty, 3));
+
+  const cols = { term: techdexTerms.term, sub: techdexTerms.sub, def: techdexTerms.def };
+  const fetchPool = (where: ReturnType<typeof and> | undefined) =>
+    db.select(cols).from(techdexTerms).where(where).orderBy(sql`RANDOM()`).limit(140);
+
+  // 영문 정답(3~8자 단일 단어) 후보만 추림
+  const toCandidates = (rows: { term: string; sub: string | null; def: string }[]): CrossItem[] => {
+    const seen = new Set<string>();
+    const out: CrossItem[] = [];
+    for (const r of rows) {
+      const src = [r.sub ?? "", r.term].find((s) => /^[A-Za-z]{3,8}$/.test(s.trim()));
+      if (!src) continue;
+      const answer = src.trim().toUpperCase();
+      if (seen.has(answer)) continue;
+      seen.add(answer);
+      out.push({ answer, clue: r.def, term: r.term, sub: r.sub });
+    }
+    return out;
+  };
+
+  let candidates = toCandidates(await fetchPool(conds.length ? and(...conds) : undefined));
+  if (candidates.length < 8) candidates = toCandidates(await fetchPool(undefined));
+  if (candidates.length < 6) return c.json(err("not_enough_words"), 404);
+
+  const puzzle = buildCrossword(candidates, count);
+  if (!puzzle) return c.json(err("generate_failed"), 500);
+  return c.json(ok(puzzle));
 });
 
 // ──────────────── 사용자 제안 용어 (검색 실패 → 추가 요청 → 관리자 검토) ────────────────

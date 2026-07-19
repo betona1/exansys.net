@@ -9,6 +9,8 @@ import {
   type TechdexTerm,
   type TechdexStats,
   type TechdexSuggestion,
+  type CrosswordPuzzle,
+  type CrosswordEntry,
   TECHDEX_COLLECTION_LABEL,
 } from "../lib/api";
 import { isMuted, setMuted, unlockAudio, sfxCorrect, sfxWrong, sfxTick, sfxUrgent } from "../lib/sfx";
@@ -31,9 +33,10 @@ type Scope = { collection: TechdexCollection | "all"; vibeCore: boolean; count: 
 
 export default function TechDex({ me }: { me: Me }) {
   const isAdmin = me?.role === "admin";
-  const [tab, setTab] = useState<"quiz" | "dex" | "review">(() =>
-    new URLSearchParams(window.location.search).get("tab") === "dex" ? "dex" : "quiz",
-  );
+  const [tab, setTab] = useState<"quiz" | "dex" | "cross" | "review">(() => {
+    const t = new URLSearchParams(window.location.search).get("tab");
+    return t === "dex" ? "dex" : t === "cross" ? "cross" : "quiz";
+  });
   const [stats, setStats] = useState<TechdexStats | null>(null);
   const [pending, setPending] = useState(0);
 
@@ -71,6 +74,7 @@ export default function TechDex({ me }: { me: Me }) {
         {(
           [
             ["quiz", "🎯 스피드 퀴즈"],
+            ["cross", "🧩 십자풀이"],
             ["dex", "📖 용어 도감"],
             ...(isAdmin ? [["review", `🔎 제안 관리${pending ? ` (${pending})` : ""}`] as const] : []),
           ] as const
@@ -88,6 +92,7 @@ export default function TechDex({ me }: { me: Me }) {
       </div>
 
       {tab === "quiz" && <Quiz stats={stats} />}
+      {tab === "cross" && <Crossword stats={stats} />}
       {tab === "dex" && <Dex me={me} />}
       {tab === "review" && isAdmin && <Review onResolved={() => setPending((n) => Math.max(0, n - 1))} />}
     </main>
@@ -387,8 +392,8 @@ function Quiz({ stats }: { stats: TechdexStats | null }) {
 
       {/* 질문 카드 */}
       <div className="rounded-3xl border border-line bg-gradient-to-b from-white to-paper p-7 text-center shadow-sm sm:p-9">
-        <div className="text-xs font-extrabold uppercase tracking-[0.15em] text-green">
-          문제 {idx + 1} / {questions.length} · 이 뜻의 용어는?
+        <div className="text-sm font-extrabold text-green">
+          Q{idx + 1}. 다음 설명에 알맞은 용어는?
         </div>
         <p className="mx-auto mt-4 max-w-xl text-2xl font-extrabold leading-snug tracking-tight text-ink sm:text-[28px]">
           {q.prompt}
@@ -442,6 +447,289 @@ function Quiz({ stats }: { stats: TechdexStats | null }) {
             {q.reveal.sub && <span className="ml-1 text-sm font-semibold opacity-70">{q.reveal.sub}</span>}
           </span>
         </div>
+      )}
+    </div>
+  );
+}
+
+// ────────────────────────── 십자풀이 (가로세로 퍼즐) ──────────────────────────
+function Crossword({ stats }: { stats: TechdexStats | null }) {
+  const [collection, setCollection] = useState<TechdexCollection | "all">("all");
+  const [level, setLevel] = useState<Level>("intermediate");
+  const [puzzle, setPuzzle] = useState<CrosswordPuzzle | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [input, setInput] = useState<Record<string, string>>({});
+  const [checked, setChecked] = useState<Record<string, boolean>>({});
+  const [active, setActive] = useState<{ r: number; c: number } | null>(null);
+  const [dir, setDir] = useState<"across" | "down">("across");
+  const [solved, setSolved] = useState(false);
+  const refs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  const key = (r: number, c: number) => `${r},${c}`;
+
+  const model = useMemo(() => {
+    if (!puzzle) return null;
+    const cell = new Map<string, string>(); // key -> 정답 글자
+    const numAt = new Map<string, number>();
+    for (const e of puzzle.entries) {
+      numAt.set(key(e.row, e.col), e.num);
+      const dr = e.dir === "down" ? 1 : 0;
+      const dc = e.dir === "across" ? 1 : 0;
+      for (let i = 0; i < e.len; i++) cell.set(key(e.row + dr * i, e.col + dc * i), e.answer[i]);
+    }
+    const across = puzzle.entries.filter((e) => e.dir === "across").sort((a, b) => a.num - b.num);
+    const down = puzzle.entries.filter((e) => e.dir === "down").sort((a, b) => a.num - b.num);
+    return { cell, numAt, across, down };
+  }, [puzzle]);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    setPuzzle(null);
+    setInput({});
+    setChecked({});
+    setSolved(false);
+    setActive(null);
+    const params = new URLSearchParams({ count: "10", level });
+    if (collection !== "all") params.set("collection", collection);
+    const r = await api<CrosswordPuzzle>(`/api/techdex/crossword?${params}`);
+    setLoading(false);
+    if (r.ok) setPuzzle(r.data);
+    else setError("퍼즐을 만들지 못했습니다. 범위를 바꿔 다시 시도해 주세요.");
+  }, [collection, level]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const focus = (r: number, c: number) => {
+    const el = refs.current[key(r, c)];
+    el?.focus();
+    el?.select();
+  };
+  const has = (r: number, c: number) => !!model?.cell.has(key(r, c));
+  const step = (r: number, c: number, back = false) => {
+    const dr = dir === "down" ? 1 : 0;
+    const dc = dir === "across" ? 1 : 0;
+    const nr = r + (back ? -dr : dr);
+    const nc = c + (back ? -dc : dc);
+    return has(nr, nc) ? { r: nr, c: nc } : null;
+  };
+
+  const onCellClick = (r: number, c: number) => {
+    if (active && active.r === r && active.c === c) setDir((d) => (d === "across" ? "down" : "across"));
+    else setActive({ r, c });
+    focus(r, c);
+  };
+
+  const onChange = (r: number, c: number, v: string) => {
+    const ch = v.slice(-1).toUpperCase();
+    if (/[A-Z]/.test(ch)) {
+      setInput((m) => ({ ...m, [key(r, c)]: ch }));
+      setChecked((m) => {
+        const n = { ...m };
+        delete n[key(r, c)];
+        return n;
+      });
+      const nx = step(r, c);
+      if (nx) {
+        setActive(nx);
+        focus(nx.r, nx.c);
+      }
+    } else if (v === "") {
+      setInput((m) => {
+        const n = { ...m };
+        delete n[key(r, c)];
+        return n;
+      });
+    }
+  };
+
+  const onKeyDown = (r: number, c: number, e: React.KeyboardEvent) => {
+    if (e.key === "Backspace" && !input[key(r, c)]) {
+      const pv = step(r, c, true);
+      if (pv) {
+        e.preventDefault();
+        setInput((m) => {
+          const n = { ...m };
+          delete n[key(pv.r, pv.c)];
+          return n;
+        });
+        setActive(pv);
+        focus(pv.r, pv.c);
+      }
+    } else if (e.key === "ArrowRight" || e.key === "ArrowLeft" || e.key === "ArrowUp" || e.key === "ArrowDown") {
+      e.preventDefault();
+      const map: Record<string, [number, number]> = {
+        ArrowRight: [0, 1],
+        ArrowLeft: [0, -1],
+        ArrowUp: [-1, 0],
+        ArrowDown: [1, 0],
+      };
+      const [dr, dc] = map[e.key];
+      if (has(r + dr, c + dc)) {
+        setDir(dr === 0 ? "across" : "down");
+        setActive({ r: r + dr, c: c + dc });
+        focus(r + dr, c + dc);
+      }
+    }
+  };
+
+  const check = () => {
+    if (!model) return;
+    const res: Record<string, boolean> = {};
+    let all = true;
+    for (const [k, letter] of model.cell) {
+      const ok = (input[k] || "") === letter;
+      res[k] = ok;
+      if (!ok) all = false;
+    }
+    setChecked(res);
+    if (all) {
+      setSolved(true);
+      sfxCorrect();
+    } else {
+      sfxWrong();
+    }
+  };
+  const reveal = () => {
+    if (!model) return;
+    const m: Record<string, string> = {};
+    model.cell.forEach((letter, k) => (m[k] = letter));
+    setInput(m);
+    setChecked({});
+    setSolved(true);
+  };
+
+  const clueRow = (e: CrosswordEntry) => (
+    <button
+      key={`${e.dir}${e.num}`}
+      onClick={() => {
+        setDir(e.dir);
+        setActive({ r: e.row, c: e.col });
+        focus(e.row, e.col);
+      }}
+      className="flex w-full gap-2 rounded-lg px-2 py-1.5 text-left text-sm hover:bg-paper"
+    >
+      <span className="w-5 shrink-0 text-right font-bold text-green-deep">{e.num}</span>
+      <span className="text-ink">{e.clue}</span>
+    </button>
+  );
+
+  return (
+    <div>
+      {/* 범위 선택 */}
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        {(["all", "ai", "app", "vibe"] as const).map((cc) => (
+          <Chip key={cc} on={collection === cc} onClick={() => setCollection(cc)}>
+            {cc === "all" ? "전체" : TECHDEX_COLLECTION_LABEL[cc]}
+          </Chip>
+        ))}
+        <span className="mx-1 h-4 w-px bg-line" />
+        {(Object.keys(LEVELS) as Level[]).map((lv) => (
+          <Chip key={lv} on={level === lv} onClick={() => setLevel(lv)}>
+            {LEVELS[lv].label}
+          </Chip>
+        ))}
+        <button
+          onClick={load}
+          className="ml-auto rounded-full bg-ink px-4 py-1.5 text-sm font-bold text-white hover:bg-green"
+        >
+          새 퍼즐
+        </button>
+      </div>
+
+      {stats && <p className="mb-4 text-sm text-muted">힌트(가로·세로)를 보고 영문 용어를 칸에 채워보세요.</p>}
+
+      {error && <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+      {loading && <div className="py-16 text-center text-muted">퍼즐 만드는 중…</div>}
+
+      {puzzle && model && !loading && (
+        <>
+          {solved && (
+            <div className="mb-4 rounded-xl bg-green/15 px-4 py-3 text-center font-extrabold text-green-deep">
+              🎉 완성! 잘하셨어요
+            </div>
+          )}
+          {/* 그리드 */}
+          <div className="overflow-x-auto pb-2">
+            <div
+              className="mx-auto w-max"
+              style={{ display: "grid", gridTemplateColumns: `repeat(${puzzle.cols}, 34px)`, gap: 2 }}
+            >
+              {Array.from({ length: puzzle.rows * puzzle.cols }).map((_, i) => {
+                const r = Math.floor(i / puzzle.cols);
+                const c = i % puzzle.cols;
+                const k = key(r, c);
+                if (!model.cell.has(k)) return <div key={k} />;
+                const num = model.numAt.get(k);
+                const isActive = active?.r === r && active?.c === c;
+                const chk = checked[k];
+                let border = "border-line";
+                let bg = "bg-white";
+                if (chk === true) {
+                  border = "border-green";
+                  bg = "bg-green/10";
+                } else if (chk === false) {
+                  border = "border-red-400";
+                  bg = "bg-red-50";
+                }
+                if (isActive) border = "border-ink";
+                return (
+                  <div key={k} className="relative" style={{ width: 34, height: 34 }}>
+                    {num && (
+                      <span className="pointer-events-none absolute left-0.5 top-0 text-[9px] font-bold leading-none text-muted">
+                        {num}
+                      </span>
+                    )}
+                    <input
+                      ref={(el) => {
+                        refs.current[k] = el;
+                      }}
+                      value={input[k] || ""}
+                      onChange={(e) => onChange(r, c, e.target.value)}
+                      onKeyDown={(e) => onKeyDown(r, c, e)}
+                      onFocus={() => setActive({ r, c })}
+                      onClick={() => onCellClick(r, c)}
+                      inputMode="text"
+                      autoCapitalize="characters"
+                      className={`h-full w-full rounded-md border-2 ${border} ${bg} text-center text-base font-extrabold uppercase text-ink outline-none`}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 버튼 */}
+          <div className="mt-4 flex justify-center gap-2">
+            <button
+              onClick={check}
+              className="rounded-full bg-green px-6 py-2.5 text-sm font-bold text-white hover:bg-green-deep"
+            >
+              정답 확인
+            </button>
+            <button
+              onClick={reveal}
+              className="rounded-full border border-line bg-card px-6 py-2.5 text-sm font-bold hover:border-ink"
+            >
+              정답 보기
+            </button>
+          </div>
+
+          {/* 힌트 */}
+          <div className="mt-6 grid gap-5 sm:grid-cols-2">
+            <div>
+              <h3 className="mb-1 text-sm font-extrabold text-green">가로 열쇠</h3>
+              {model.across.map(clueRow)}
+            </div>
+            <div>
+              <h3 className="mb-1 text-sm font-extrabold text-green">세로 열쇠</h3>
+              {model.down.map(clueRow)}
+            </div>
+          </div>
+        </>
       )}
     </div>
   );

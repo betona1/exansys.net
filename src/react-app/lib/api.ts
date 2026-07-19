@@ -194,6 +194,19 @@ export type TechdexStats = {
   vibeCore: number;
 };
 
+export type CrosswordEntry = {
+  num: number;
+  row: number;
+  col: number;
+  dir: "across" | "down";
+  answer: string;
+  len: number;
+  clue: string;
+  term: string;
+  sub: string | null;
+};
+export type CrosswordPuzzle = { rows: number; cols: number; entries: CrosswordEntry[] };
+
 export const TECHDEX_COLLECTION_LABEL: Record<TechdexCollection, string> = {
   ai: "AI·앱 용어",
   app: "앱 개발 용어",
