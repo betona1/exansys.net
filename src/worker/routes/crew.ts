@@ -106,6 +106,7 @@ crewRoutes.get("/crew/posts", async (c) => {
     .select({
       id: galleryPosts.id,
       title: galleryPosts.title,
+      body: galleryPosts.body,
       linkUrl: galleryPosts.linkUrl,
       createdAt: galleryPosts.createdAt,
       authorName: users.name,

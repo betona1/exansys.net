@@ -7,12 +7,22 @@ import { toWebp } from "../lib/image";
 type PostCard = {
   id: number;
   title: string;
+  body: string | null;
   linkUrl: string | null;
   createdAt: string;
   authorName: string | null;
   authorAvatar: string | null;
   thumbnail: string | null;
   commentCount: number;
+};
+
+type Comment = {
+  id: number;
+  body: string;
+  createdAt: string;
+  authorName: string | null;
+  authorAvatar: string | null;
+  mine?: boolean;
 };
 
 type Resource = {
@@ -28,6 +38,11 @@ function isCrew(me: Me) {
   return Boolean(me && (me.role === "crew" || me.role === "staff" || me.role === "admin"));
 }
 
+function fmtDate(s: string) {
+  const d = new Date(s);
+  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
+}
+
 export default function Crew({ me, meLoading }: { me: Me; meLoading: boolean }) {
   const [posts, setPosts] = useState<PostCard[]>([]);
   const [resources, setResources] = useState<Resource[]>([]);
@@ -36,6 +51,11 @@ export default function Crew({ me, meLoading }: { me: Me; meLoading: boolean }) 
   const [files, setFiles] = useState<File[]>([]);
   const [msg, setMsg] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  // 목록 인라인 댓글
+  const [openId, setOpenId] = useState<number | null>(null);
+  const [commentsBy, setCommentsBy] = useState<Record<number, Comment[]>>({});
+  const [draft, setDraft] = useState<Record<number, string>>({});
+  const [posting, setPosting] = useState(false);
 
   const load = useCallback(async () => {
     // 갤러리 목록은 공개 열람
@@ -95,6 +115,34 @@ export default function Crew({ me, meLoading }: { me: Me; meLoading: boolean }) 
       setMsg(e instanceof Error ? e.message : "오류가 발생했습니다.");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const toggleComments = async (id: number) => {
+    if (openId === id) {
+      setOpenId(null);
+      return;
+    }
+    setOpenId(id);
+    if (!commentsBy[id]) {
+      const res = await api<{ comments: Comment[] }>(`/api/crew/posts/${id}`);
+      if (res.ok) setCommentsBy((m) => ({ ...m, [id]: res.data.comments }));
+    }
+  };
+
+  const submitComment = async (id: number) => {
+    const text = (draft[id] ?? "").trim();
+    if (!text || posting) return;
+    setPosting(true);
+    const res = await api(`/api/crew/posts/${id}/comments`, { method: "POST", body: JSON.stringify({ body: text }) });
+    setPosting(false);
+    if (res.ok) {
+      setDraft((m) => ({ ...m, [id]: "" }));
+      const detail = await api<{ comments: Comment[] }>(`/api/crew/posts/${id}`);
+      if (detail.ok) {
+        setCommentsBy((m) => ({ ...m, [id]: detail.data.comments }));
+        setPosts((ps) => ps.map((p) => (p.id === id ? { ...p, commentCount: detail.data.comments.length } : p)));
+      }
     }
   };
 
@@ -201,38 +249,125 @@ export default function Crew({ me, meLoading }: { me: Me; meLoading: boolean }) 
       )}
 
       <section className="mt-12">
-        <div className="mb-4 flex items-baseline gap-3">
-          <h2 className="font-display text-xl font-bold tracking-tight">크루 갤러리</h2>
+        <div className="mb-5 flex items-baseline gap-3">
+          <h2 className="font-display text-2xl font-extrabold tracking-tight">크루 갤러리</h2>
           <span className="text-sm text-muted">서로의 앱을 자랑하고, 피드백을 나눠요</span>
         </div>
-      </section>
 
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {posts.length === 0 && (
-          <p className="col-span-full rounded-2xl border border-dashed border-line p-10 text-center text-sm text-muted">
-            아직 게시글이 없습니다. 첫 번째로 앱을 자랑해 보세요!
+          <p className="rounded-2xl border border-dashed border-line p-10 text-center text-sm text-muted">
+            아직 게시글이 없습니다. {crew ? "첫 번째로 앱을 자랑해 보세요!" : "곧 크루들의 앱이 올라올 거예요."}
           </p>
         )}
-        {posts.map((p) => (
-          <Link key={p.id} to={`/crew/${p.id}`}
-            className="group overflow-hidden rounded-2xl border border-line bg-card transition hover:-translate-y-1 hover:shadow-xl hover:shadow-ink/8">
-            <div className="grid h-44 place-items-center overflow-hidden bg-paper">
-              {p.thumbnail ? (
-                <img src={p.thumbnail} alt="" className="h-full w-full object-cover transition group-hover:scale-105" />
-              ) : (
-                <span className="text-4xl">📱</span>
-              )}
-            </div>
-            <div className="p-5">
-              <h3 className="font-display truncate text-lg font-bold">{p.title}</h3>
-              <p className="mt-1.5 flex items-center gap-2 text-xs text-muted">
-                {p.authorAvatar && <img src={p.authorAvatar} alt="" className="h-5 w-5 rounded-full" />}
-                {p.authorName ?? "알 수 없음"} · 💬 {p.commentCount}
-              </p>
-            </div>
-          </Link>
-        ))}
-      </div>
+
+        <div className="mx-auto flex max-w-2xl flex-col gap-6">
+          {posts.map((p) => {
+            const cmts = commentsBy[p.id] ?? [];
+            const open = openId === p.id;
+            return (
+              <article key={p.id} className="overflow-hidden rounded-3xl border border-line bg-card shadow-sm transition hover:shadow-md">
+                {/* 작성자 */}
+                <div className="flex items-center gap-3 px-5 pt-5">
+                  {p.authorAvatar ? (
+                    <img src={p.authorAvatar} alt="" className="h-9 w-9 rounded-full" />
+                  ) : (
+                    <span className="grid h-9 w-9 place-items-center rounded-full bg-lime/30 text-sm font-bold">
+                      {(p.authorName ?? "?").slice(0, 1)}
+                    </span>
+                  )}
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold">{p.authorName ?? "알 수 없음"}</p>
+                    <p className="text-xs text-muted">{fmtDate(p.createdAt)}</p>
+                  </div>
+                </div>
+
+                {/* 제목 + 본문 */}
+                <div className="px-5 pt-3">
+                  <h3 className="font-display text-lg font-bold">{p.title}</h3>
+                  {p.body && (
+                    <p className="mt-1.5 line-clamp-4 whitespace-pre-line text-[15px] leading-relaxed text-ink/90">{p.body}</p>
+                  )}
+                </div>
+
+                {/* 이미지 */}
+                {p.thumbnail && (
+                  <Link to={`/crew/${p.id}`} className="mt-4 block bg-paper">
+                    <img src={p.thumbnail} alt="" className="max-h-[440px] w-full object-cover" />
+                  </Link>
+                )}
+
+                {/* 링크 */}
+                {p.linkUrl && (
+                  <div className="px-5 pt-4">
+                    <a href={p.linkUrl} target="_blank" rel="noopener noreferrer"
+                      className="inline-block rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white transition hover:bg-green">
+                      🔗 앱 보러가기
+                    </a>
+                  </div>
+                )}
+
+                {/* 액션 바 */}
+                <div className="mt-4 flex items-center gap-4 border-t border-line px-5 py-3 text-sm">
+                  <button onClick={() => void toggleComments(p.id)} className="font-semibold text-muted transition hover:text-green">
+                    💬 댓글 {p.commentCount}{open ? " · 접기" : " · 보기"}
+                  </button>
+                  <Link to={`/crew/${p.id}`} className="ml-auto text-xs font-semibold text-cobalt hover:underline">
+                    자세히 →
+                  </Link>
+                </div>
+
+                {/* 인라인 댓글 */}
+                {open && (
+                  <div className="border-t border-line bg-paper/50 px-5 py-4">
+                    {crew && (
+                      <div className="mb-4 flex gap-2">
+                        <input
+                          value={draft[p.id] ?? ""}
+                          onChange={(e) => setDraft((m) => ({ ...m, [p.id]: e.target.value }))}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") void submitComment(p.id);
+                          }}
+                          maxLength={1000}
+                          placeholder="한 줄 댓글 달기…"
+                          className="flex-1 rounded-full border border-line bg-card px-4 py-2 text-sm focus:border-green focus:outline-none"
+                        />
+                        <button onClick={() => void submitComment(p.id)} disabled={posting}
+                          className="rounded-full bg-green px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-deep disabled:opacity-50">
+                          등록
+                        </button>
+                      </div>
+                    )}
+                    {cmts.length === 0 ? (
+                      <p className="text-sm text-muted">아직 댓글이 없어요.{crew ? " 첫 댓글을 남겨보세요!" : ""}</p>
+                    ) : (
+                      <div className="space-y-3">
+                        {cmts.map((cm) => (
+                          <div key={cm.id} className="flex gap-2.5">
+                            {cm.authorAvatar ? (
+                              <img src={cm.authorAvatar} alt="" className="h-7 w-7 shrink-0 rounded-full" />
+                            ) : (
+                              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-lime/30 text-xs font-bold">
+                                {(cm.authorName ?? "?").slice(0, 1)}
+                              </span>
+                            )}
+                            <div className="min-w-0">
+                              <p className="text-xs font-semibold">
+                                {cm.authorName ?? "알 수 없음"}
+                                <span className="ml-1 font-normal text-muted">{fmtDate(cm.createdAt)}</span>
+                              </p>
+                              <p className="mt-0.5 whitespace-pre-line text-sm leading-relaxed">{cm.body}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </article>
+            );
+          })}
+        </div>
+      </section>
     </main>
   );
 }
