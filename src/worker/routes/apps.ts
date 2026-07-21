@@ -29,6 +29,18 @@ appRoutes.get("/", async (c) => {
   return c.json(ok({ apps: rows }));
 });
 
+// 일회성 시드: CRDL 스토어 URL + 출시 상태 설정 (출시 직후 1회 실행, 이미 설정돼 있으면 무시)
+appRoutes.post("/crdl/seed-store", async (c) => {
+  const db = drizzle(c.env.DB);
+  const rows = await db.select().from(apps).where(eq(apps.slug, "crdl")).limit(1);
+  if (rows.length === 0) return c.json(err("not_found"), 404);
+  if (rows[0].storeUrlAndroid) return c.json(ok({ app: rows[0], seeded: false }));
+  const url = "https://play.google.com/store/apps/details?id=com.betona.crdl";
+  await db.update(apps).set({ storeUrlAndroid: url, status: "released" }).where(eq(apps.slug, "crdl"));
+  const updated = await db.select().from(apps).where(eq(apps.slug, "crdl")).limit(1);
+  return c.json(ok({ app: updated[0], seeded: true }));
+});
+
 appRoutes.get("/:slug", async (c) => {
   const db = drizzle(c.env.DB);
   const rows = await db.select().from(apps).where(eq(apps.slug, c.req.param("slug"))).limit(1);

@@ -147,20 +147,46 @@ export default function Home() {
             {/* 큰 카드: 대표 앱 */}
             <Reveal className="rounded-[2rem] bg-paper-deep bg-card p-9 shadow-sm ring-1 ring-line lg:row-span-2">
               {featured ? (
-                <Link to={`/apps/${featured.slug}`} className="block">
-                  <p className="mb-2 text-sm font-bold text-green">⏰ {STATUS_LABEL[featured.status]}</p>
-                  <h3 className="font-display text-2xl font-extrabold leading-snug">
-                    {featured.name}
-                  </h3>
-                  <p className="mt-3 max-w-md text-[15px] text-muted">{featured.tagline}</p>
-                  <div className="mt-8 grid h-64 place-items-center overflow-hidden rounded-2xl bg-gradient-to-b from-paper to-lime/15 text-7xl">
-                    {/^(https?:\/\/|\/)/.test(featured.iconUrl ?? "") ? (
-                      <img src={featured.iconUrl} alt="" className="h-28 w-28 rounded-3xl object-cover shadow-xl" />
-                    ) : (
-                      <span>{featured.iconUrl || "📱"}</span>
-                    )}
-                  </div>
-                </Link>
+                <>
+                  <Link to={`/apps/${featured.slug}`} className="block">
+                    <p className="mb-2 text-sm font-bold text-green">⏰ {STATUS_LABEL[featured.status]}</p>
+                    <h3 className="font-display text-2xl font-extrabold leading-snug">
+                      {featured.name}
+                    </h3>
+                    <p className="mt-3 max-w-md text-[15px] text-muted">{featured.tagline}</p>
+                    <div className="mt-8 grid h-64 place-items-center overflow-hidden rounded-2xl bg-gradient-to-b from-paper to-lime/15 text-7xl">
+                      {/^(https?:\/\/|\/)/.test(featured.iconUrl ?? "") ? (
+                        <img src={featured.iconUrl} alt="" className="h-28 w-28 rounded-3xl object-cover shadow-xl" />
+                      ) : (
+                        <span>{featured.iconUrl || "📱"}</span>
+                      )}
+                    </div>
+                  </Link>
+                  {featured.storeUrlAndroid && (
+                    <div className="mt-6 flex flex-col items-center gap-5 rounded-2xl border border-line bg-paper/60 p-5 sm:flex-row sm:justify-between">
+                      <div className="flex-1 text-center sm:text-left">
+                        <p className="font-display text-base font-extrabold">지금 설치하기</p>
+                        <p className="mt-1 text-sm text-muted">Google Play에서 받거나, 폰으로 QR을 스캔하세요.</p>
+                        <a
+                          href={featured.storeUrlAndroid}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-4 inline-block rounded-xl bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-green"
+                        >
+                          ▶ Google Play에서 받기
+                        </a>
+                      </div>
+                      <div className="text-center">
+                        <img
+                          src={`/api/apps/${featured.slug}/qr?platform=android`}
+                          alt={`${featured.name} Google Play QR 코드`}
+                          className="h-32 w-32 rounded-xl border border-line bg-white p-1.5"
+                        />
+                        <p className="mt-2 text-xs font-medium text-muted">📷 QR 스캔 설치</p>
+                      </div>
+                    </div>
+                  )}
+                </>
               ) : (
                 <>
                   <p className="mb-2 text-sm font-bold text-green">⏰ 개발 중 · 2026 출시 목표</p>
