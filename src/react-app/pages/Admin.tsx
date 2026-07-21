@@ -41,10 +41,12 @@ export default function Admin({ me, meLoading }: { me: Me; meLoading: boolean })
   const [msg, setMsg] = useState("");
 
   const isAdmin = me?.role === "admin";
-  const canView = me && (me.role === "admin" || me.role === "staff");
+  const isStaff = me?.role === "admin" || me?.role === "staff";
+  const canView = Boolean(me && (me.role === "admin" || me.role === "staff" || me.role === "crew"));
 
   const loadApps = useCallback(async () => {
-    const res = await api<{ apps: AppRow[] }>("/api/apps");
+    // 소유자(owner_id) 포함 목록 — crew는 자기 앱만 관리하도록 구분
+    const res = await api<{ apps: AppRow[] }>("/api/admin/apps-list");
     if (res.ok) setApps(res.data.apps);
   }, []);
 
@@ -61,9 +63,9 @@ export default function Admin({ me, meLoading }: { me: Me; meLoading: boolean })
   useEffect(() => {
     if (!canView) return;
     void loadApps();
-    void loadStats();
+    if (isStaff) void loadStats();
     if (isAdmin) void loadUsers();
-  }, [canView, isAdmin, loadApps, loadUsers, loadStats]);
+  }, [canView, isStaff, isAdmin, loadApps, loadUsers, loadStats]);
 
   if (meLoading) {
     return <main className="mx-auto max-w-6xl px-6 py-24 text-center text-muted">확인 중…</main>;
@@ -83,6 +85,10 @@ export default function Admin({ me, meLoading }: { me: Me; meLoading: boolean })
   const input =
     "w-full rounded-xl border border-line bg-card px-3.5 py-2.5 text-sm focus:border-green focus:outline-none";
   const label = "mb-1.5 block text-xs font-semibold text-muted";
+
+  // crew는 자기 앱만 목록·관리; staff 이상은 전체
+  const canManage = (app: AppRow) => isStaff || (app.ownerId != null && app.ownerId === me?.id);
+  const visibleApps = isStaff ? apps : apps.filter((a) => a.ownerId != null && a.ownerId === me?.id);
 
   const submitApp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -138,7 +144,9 @@ export default function Admin({ me, meLoading }: { me: Me; meLoading: boolean })
   return (
     <main className="mx-auto max-w-6xl px-6 py-14">
       <h1 className="font-display text-3xl font-extrabold tracking-tight">관리자</h1>
-      <p className="mt-1 text-sm text-muted">{me!.name} · {me!.role === "admin" ? "관리자" : "직원"}</p>
+      <p className="mt-1 text-sm text-muted">
+        {me!.name} · {isAdmin ? "관리자" : isStaff ? "직원" : "크루"}
+      </p>
 
       <div className="mt-7 flex gap-1.5 border-b border-line">
         <button
@@ -155,17 +163,19 @@ export default function Admin({ me, meLoading }: { me: Me; meLoading: boolean })
             회원 관리
           </button>
         )}
-        <button
-          onClick={() => setTab("stats")}
-          className={`rounded-t-lg px-4 py-2.5 text-sm font-semibold ${tab === "stats" ? "border border-b-0 border-line bg-card" : "text-muted"}`}
-        >
-          방문 통계
-        </button>
+        {isStaff && (
+          <button
+            onClick={() => setTab("stats")}
+            className={`rounded-t-lg px-4 py-2.5 text-sm font-semibold ${tab === "stats" ? "border border-b-0 border-line bg-card" : "text-muted"}`}
+          >
+            방문 통계
+          </button>
+        )}
       </div>
 
       {tab === "apps" && (
         <div className="mt-8 grid gap-8 lg:grid-cols-2">
-          {isAdmin && (
+          {canView && (
             <form onSubmit={submitApp} className="rounded-2xl border border-line bg-card p-6">
               <h2 className="font-display mb-5 text-lg font-bold">
                 {editingId ? `앱 수정 (#${editingId})` : "새 앱 등록"}
@@ -233,13 +243,15 @@ export default function Admin({ me, meLoading }: { me: Me; meLoading: boolean })
           )}
 
           <div className="space-y-3">
-            <h2 className="font-display text-lg font-bold">등록된 앱 {apps.length}개</h2>
-            {apps.length === 0 && (
+            <h2 className="font-display text-lg font-bold">
+              {isStaff ? "등록된 앱" : "내 앱"} {visibleApps.length}개
+            </h2>
+            {visibleApps.length === 0 && (
               <p className="rounded-2xl border border-dashed border-line p-6 text-sm text-muted">
                 아직 등록된 앱이 없습니다. 왼쪽 폼으로 첫 앱을 등록해 보세요.
               </p>
             )}
-            {apps.map((app) => (
+            {visibleApps.map((app) => (
               <div key={app.id} className="flex items-center gap-4 rounded-2xl border border-line bg-card p-4">
                 <div className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-xl bg-lime/15 text-xl">
                   {/^(https?:\/\/|\/)/.test(app.iconUrl ?? "") ? (
@@ -257,7 +269,7 @@ export default function Admin({ me, meLoading }: { me: Me; meLoading: boolean })
                 <Link to={`/apps/${app.slug}`} className="text-xs font-semibold text-cobalt hover:underline">
                   보기
                 </Link>
-                {isAdmin && (
+                {canManage(app) && (
                   <>
                     <button
                       onClick={() => setAssetsApp(assetsApp?.id === app.id ? null : app)}

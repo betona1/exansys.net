@@ -1,5 +1,5 @@
 // TechDex PWA 서비스워커 — 앱 셸 오프라인 캐시 (런타임 캐싱)
-const CACHE = "techdex-v1";
+const CACHE = "techdex-v2";
 const SHELL = ["/techdex", "/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png"];
 
 self.addEventListener("install", (e) => {

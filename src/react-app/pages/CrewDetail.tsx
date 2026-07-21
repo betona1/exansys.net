@@ -126,17 +126,23 @@ export default function CrewDetail({ me }: { me: Me }) {
       </div>
 
       <h2 className="font-display mt-8 text-lg font-bold">댓글 {comments.length}</h2>
-      <form onSubmit={comment} className="mt-3">
-        <textarea
-          className="h-20 w-full rounded-xl border border-line bg-card px-3.5 py-2.5 text-sm focus:border-green focus:outline-none"
-          maxLength={1000} value={body} placeholder="응원과 피드백을 남겨주세요."
-          onChange={(e) => setBody(e.target.value)}
-        />
-        <button type="submit"
-          className="mt-2 rounded-full bg-green px-5 py-2 text-sm font-semibold text-white transition hover:bg-green-deep">
-          댓글 등록
-        </button>
-      </form>
+      {me && (me.role === "crew" || me.role === "staff" || me.role === "admin") ? (
+        <form onSubmit={comment} className="mt-3">
+          <textarea
+            className="h-20 w-full rounded-xl border border-line bg-card px-3.5 py-2.5 text-sm focus:border-green focus:outline-none"
+            maxLength={1000} value={body} placeholder="응원과 피드백을 남겨주세요."
+            onChange={(e) => setBody(e.target.value)}
+          />
+          <button type="submit"
+            className="mt-2 rounded-full bg-green px-5 py-2 text-sm font-semibold text-white transition hover:bg-green-deep">
+            댓글 등록
+          </button>
+        </form>
+      ) : (
+        <p className="mt-3 rounded-xl border border-line bg-card px-4 py-3 text-sm text-muted">
+          댓글 작성은 크루 멤버만 가능합니다. 누구나 갤러리와 댓글은 볼 수 있어요.
+        </p>
+      )}
 
       <div className="mt-6 space-y-5">
         {comments.map((cm) => (

@@ -32,6 +32,7 @@ export type AppRow = {
   downloadCount: number;
   storeUrlAndroid: string | null;
   storeUrlIos: string | null;
+  ownerId?: number | null; // 관리자 목록(/api/admin/apps-list)에서만 채워짐
 };
 
 export const STATUS_LABEL: Record<AppRow["status"], string> = {

@@ -14,9 +14,21 @@ import {
   visitStats,
 } from "../../db/schema";
 import type { Env } from "../types";
-import { ok, err } from "../types";
+import { ok, err, ROLE_LEVEL } from "../types";
 import { requireRole, type AuthedUser } from "../middleware";
+import { ensureOwnerCol } from "./apps";
 import { kstDate } from "./visits";
+
+// 앱 소유자(owner_id)는 apps 테이블의 런타임 추가 컬럼 — 원시 SQL로만 읽는다.
+async function appOwnerId(DB: D1Database, id: number): Promise<number | null> {
+  await ensureOwnerCol(DB);
+  const row = await DB.prepare("SELECT owner_id AS o FROM apps WHERE id = ?").bind(id).first<{ o: number | null }>();
+  return row ? row.o : null;
+}
+// staff 이상은 모든 앱, crew는 자기가 등록한 앱만 관리
+function canManageApp(user: AuthedUser, ownerId: number | null): boolean {
+  return ROLE_LEVEL[user.role] >= ROLE_LEVEL["staff"] || (ownerId !== null && ownerId === user.id);
+}
 
 const appSchema = z.object({
   slug: z
@@ -41,12 +53,22 @@ type Vars = { Variables: { user: AuthedUser } };
 
 export const adminRoutes = new Hono<{ Bindings: Env } & Vars>();
 
-// 앱 등록/수정/삭제는 admin 전용 (CLAUDE.md 3절)
-adminRoutes.post("/apps", requireRole("admin"), async (c) => {
+// 앱 목록(소유자 포함) — crew 이상. crew는 프런트에서 자기 앱만 관리하도록 owner_id로 구분.
+adminRoutes.get("/apps-list", requireRole("crew"), async (c) => {
+  await ensureOwnerCol(c.env.DB);
+  const { results } = await c.env.DB.prepare(
+    "SELECT id, slug, name, tagline, description, icon_url AS iconUrl, store_url_android AS storeUrlAndroid, store_url_ios AS storeUrlIos, status, download_count AS downloadCount, owner_id AS ownerId FROM apps ORDER BY id ASC",
+  ).all();
+  return c.json(ok({ apps: results }));
+});
+
+// 앱 등록 — crew 이상 (등록자가 소유자가 됨). 수정/삭제는 소유자 또는 staff 이상만.
+adminRoutes.post("/apps", requireRole("crew"), async (c) => {
   const parsed = appSchema.safeParse(await c.req.json().catch(() => null));
   if (!parsed.success) return c.json(err(parsed.error.issues[0]?.message ?? "invalid_input"), 400);
   const d = parsed.data;
   const db = drizzle(c.env.DB);
+  await ensureOwnerCol(c.env.DB);
   const dup = await db.select({ id: apps.id }).from(apps).where(eq(apps.slug, d.slug)).limit(1);
   if (dup.length > 0) return c.json(err("slug_exists"), 409);
   const inserted = await db
@@ -63,12 +85,15 @@ adminRoutes.post("/apps", requireRole("admin"), async (c) => {
       createdAt: new Date(),
     })
     .returning();
+  // 등록자를 소유자로 기록
+  await c.env.DB.prepare("UPDATE apps SET owner_id = ? WHERE id = ?").bind(c.get("user").id, inserted[0].id).run();
   return c.json(ok({ app: inserted[0] }));
 });
 
-adminRoutes.put("/apps/:id", requireRole("admin"), async (c) => {
+adminRoutes.put("/apps/:id", requireRole("crew"), async (c) => {
   const id = Number(c.req.param("id"));
   if (!Number.isInteger(id)) return c.json(err("invalid_id"), 400);
+  if (!canManageApp(c.get("user"), await appOwnerId(c.env.DB, id))) return c.json(err("forbidden"), 403);
   const parsed = appSchema.partial().safeParse(await c.req.json().catch(() => null));
   if (!parsed.success) return c.json(err(parsed.error.issues[0]?.message ?? "invalid_input"), 400);
   const d = parsed.data;
@@ -91,9 +116,10 @@ adminRoutes.put("/apps/:id", requireRole("admin"), async (c) => {
   return c.json(ok({ app: updated[0] }));
 });
 
-adminRoutes.delete("/apps/:id", requireRole("admin"), async (c) => {
+adminRoutes.delete("/apps/:id", requireRole("crew"), async (c) => {
   const id = Number(c.req.param("id"));
   if (!Number.isInteger(id)) return c.json(err("invalid_id"), 400);
+  if (!canManageApp(c.get("user"), await appOwnerId(c.env.DB, id))) return c.json(err("forbidden"), 403);
   const db = drizzle(c.env.DB);
   const found = await db.select().from(apps).where(eq(apps.id, id)).limit(1);
   if (found.length === 0) return c.json(err("not_found"), 404);
@@ -146,9 +172,10 @@ const SHOT_TYPES: Record<string, { ext: string; max: number }> = {
   "video/mp4": { ext: "mp4", max: 30 * 1024 * 1024 },
 };
 
-adminRoutes.post("/apps/:id/screenshots", requireRole("admin"), async (c) => {
+adminRoutes.post("/apps/:id/screenshots", requireRole("crew"), async (c) => {
   const id = Number(c.req.param("id"));
   if (!Number.isInteger(id)) return c.json(err("invalid_id"), 400);
+  if (!canManageApp(c.get("user"), await appOwnerId(c.env.DB, id))) return c.json(err("forbidden"), 403);
   const type = (c.req.header("Content-Type") ?? "").split(";")[0].trim();
   const spec = SHOT_TYPES[type];
   if (!spec) return c.json(err("webp_gif_mp4_only"), 400);
@@ -173,12 +200,13 @@ adminRoutes.post("/apps/:id/screenshots", requireRole("admin"), async (c) => {
   return c.json(ok({ screenshot: inserted[0] }));
 });
 
-adminRoutes.delete("/screenshots/:id", requireRole("admin"), async (c) => {
+adminRoutes.delete("/screenshots/:id", requireRole("crew"), async (c) => {
   const id = Number(c.req.param("id"));
   if (!Number.isInteger(id)) return c.json(err("invalid_id"), 400);
   const db = drizzle(c.env.DB);
   const rows = await db.select().from(appScreenshots).where(eq(appScreenshots.id, id)).limit(1);
   if (rows.length === 0) return c.json(err("not_found"), 404);
+  if (!canManageApp(c.get("user"), await appOwnerId(c.env.DB, rows[0].appId))) return c.json(err("forbidden"), 403);
   const key = rows[0].imageUrl.replace(/^\/api\/media\//, "");
   if (key.startsWith("shots/")) await c.env.MEDIA.delete(key);
   await db.delete(appScreenshots).where(eq(appScreenshots.id, id));
@@ -195,9 +223,10 @@ const buildStartSchema = z.object({
   size: z.number().int().positive().max(MAX_APK_BYTES),
 });
 
-adminRoutes.post("/apps/:id/builds/start", requireRole("admin"), async (c) => {
+adminRoutes.post("/apps/:id/builds/start", requireRole("crew"), async (c) => {
   const id = Number(c.req.param("id"));
   if (!Number.isInteger(id)) return c.json(err("invalid_id"), 400);
+  if (!canManageApp(c.get("user"), await appOwnerId(c.env.DB, id))) return c.json(err("forbidden"), 403);
   const parsed = buildStartSchema.safeParse(await c.req.json().catch(() => null));
   if (!parsed.success) return c.json(err("invalid_input"), 400);
   const db = drizzle(c.env.DB);
@@ -211,7 +240,7 @@ adminRoutes.post("/apps/:id/builds/start", requireRole("admin"), async (c) => {
   return c.json(ok({ key, uploadId: mpu.uploadId }));
 });
 
-adminRoutes.put("/builds/part", requireRole("admin"), async (c) => {
+adminRoutes.put("/builds/part", requireRole("crew"), async (c) => {
   const key = c.req.query("key") ?? "";
   const uploadId = c.req.query("uploadId") ?? "";
   const part = Number(c.req.query("part"));
@@ -236,9 +265,10 @@ const buildCompleteSchema = z.object({
   size: z.number().int().positive().max(MAX_APK_BYTES),
 });
 
-adminRoutes.post("/apps/:id/builds/complete", requireRole("admin"), async (c) => {
+adminRoutes.post("/apps/:id/builds/complete", requireRole("crew"), async (c) => {
   const id = Number(c.req.param("id"));
   if (!Number.isInteger(id)) return c.json(err("invalid_id"), 400);
+  if (!canManageApp(c.get("user"), await appOwnerId(c.env.DB, id))) return c.json(err("forbidden"), 403);
   const parsed = buildCompleteSchema.safeParse(await c.req.json().catch(() => null));
   if (!parsed.success) return c.json(err("invalid_input"), 400);
   const d = parsed.data;
@@ -261,7 +291,7 @@ adminRoutes.post("/apps/:id/builds/complete", requireRole("admin"), async (c) =>
   return c.json(ok({ build: inserted[0] }));
 });
 
-adminRoutes.post("/builds/abort", requireRole("admin"), async (c) => {
+adminRoutes.post("/builds/abort", requireRole("crew"), async (c) => {
   const body = (await c.req.json().catch(() => null)) as { key?: string; uploadId?: string } | null;
   if (!body?.key || !BUILD_KEY_RE.test(body.key) || !body.uploadId)
     return c.json(err("invalid_input"), 400);
@@ -270,12 +300,13 @@ adminRoutes.post("/builds/abort", requireRole("admin"), async (c) => {
   return c.json(ok({ aborted: true }));
 });
 
-adminRoutes.delete("/builds/:id", requireRole("admin"), async (c) => {
+adminRoutes.delete("/builds/:id", requireRole("crew"), async (c) => {
   const id = Number(c.req.param("id"));
   if (!Number.isInteger(id)) return c.json(err("invalid_id"), 400);
   const db = drizzle(c.env.DB);
   const rows = await db.select().from(appBuilds).where(eq(appBuilds.id, id)).limit(1);
   if (rows.length === 0) return c.json(err("not_found"), 404);
+  if (!canManageApp(c.get("user"), await appOwnerId(c.env.DB, rows[0].appId))) return c.json(err("forbidden"), 403);
   await c.env.MEDIA.delete(rows[0].fileKey);
   await db.delete(appBuilds).where(eq(appBuilds.id, id));
   return c.json(ok({ deleted: id }));

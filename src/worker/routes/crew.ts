@@ -5,11 +5,27 @@ import { drizzle } from "drizzle-orm/d1";
 import { asc, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { galleryPosts, galleryImages, galleryComments, users } from "../../db/schema";
-import type { Env } from "../types";
+import type { Env, Role } from "../types";
 import { ok, err, ROLE_LEVEL } from "../types";
 import { requireRole, type AuthedUser } from "../middleware";
+import { readSession } from "../auth/session";
+import appEducationHtml from "../resources/app-education.html?raw";
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5MB (5-6절)
+
+// 크루 자료실 — 학습용 정적 문서(HTML)를 crew 전용으로 서빙.
+// 새 자료는 여기에 항목을 추가하면 목록·서빙에 함께 반영된다.
+const RESOURCES: Record<
+  string,
+  { title: string; description: string; emoji: string; html: string }
+> = {
+  "app-education": {
+    title: "앱 개발 교육 · 통합 대시보드",
+    description: "기획 · 시장 분석 · 기초용어 · 개발언어 · 역할&DB · 세팅까지 초보 팀을 위한 학습 자료 모음",
+    emoji: "📚",
+    html: appEducationHtml,
+  },
+};
 
 const postSchema = z.object({
   title: z.string().min(2).max(80),
@@ -43,19 +59,48 @@ crewRoutes.post("/crew/upload", requireRole("crew"), async (c) => {
   return c.json(ok({ key, url: `/api/media/${key}` }));
 });
 
-/** 갤러리 이미지 서빙 — 내부 갤러리이므로 crew 이상만 */
-crewRoutes.get("/media/gallery/:file", requireRole("crew"), async (c) => {
+/** 갤러리 이미지 서빙 — 갤러리는 공개 열람이므로 누구나 */
+crewRoutes.get("/media/gallery/:file", async (c) => {
   const key = `gallery/${c.req.param("file") ?? ""}`;
   const obj = await c.env.MEDIA.get(key);
   if (!obj) return c.json(err("not_found"), 404);
   return c.body(obj.body, 200, {
     "Content-Type": obj.httpMetadata?.contentType ?? "image/webp",
-    "Cache-Control": "private, max-age=86400",
+    "Cache-Control": "public, max-age=86400",
   });
 });
 
+/** 자료실 목록 — crew 이상 (메타데이터만, HTML 본문 제외) */
+crewRoutes.get("/crew/resources", requireRole("crew"), (c) => {
+  const list = Object.entries(RESOURCES).map(([slug, r]) => ({
+    slug,
+    title: r.title,
+    description: r.description,
+    emoji: r.emoji,
+  }));
+  return c.json(ok({ resources: list }));
+});
+
+/**
+ * 자료실 문서 서빙 — 브라우저 새 탭 내비게이션용.
+ * 인증 실패 시 JSON 대신 /crew 안내 페이지로 리다이렉트(깔끔한 UX).
+ * requireRole과 동일하게 DB 최신 역할로 재확인(로그인 후 승격 반영).
+ */
+crewRoutes.get("/crew/resources/:slug", async (c) => {
+  const res = RESOURCES[c.req.param("slug") ?? ""];
+  if (!res) return c.redirect("/crew");
+  const sess = await readSession(c);
+  if (!sess) return c.redirect("/crew");
+  const db = drizzle(c.env.DB);
+  const rows = await db.select().from(users).where(eq(users.id, sess.userId)).limit(1);
+  if (rows.length === 0 || ROLE_LEVEL[rows[0].role as Role] < ROLE_LEVEL.crew) {
+    return c.redirect("/crew");
+  }
+  return c.html(res.html, 200, { "Cache-Control": "private, max-age=3600" });
+});
+
 /** 게시글 목록 — 카드형 갤러리용 (첫 이미지 + 댓글 수) */
-crewRoutes.get("/crew/posts", requireRole("crew"), async (c) => {
+crewRoutes.get("/crew/posts", async (c) => {
   const db = drizzle(c.env.DB);
   const posts = await db
     .select({
@@ -125,8 +170,8 @@ crewRoutes.post("/crew/posts", requireRole("crew"), async (c) => {
   return c.json(ok({ id: postId }));
 });
 
-/** 게시글 상세 + 댓글 */
-crewRoutes.get("/crew/posts/:id", requireRole("crew"), async (c) => {
+/** 게시글 상세 + 댓글 — 공개 열람 (로그인 시 mine 플래그로 본인 글/댓글 표시) */
+crewRoutes.get("/crew/posts/:id", async (c) => {
   const id = Number(c.req.param("id"));
   if (!Number.isInteger(id)) return c.json(err("invalid_id"), 400);
   const db = drizzle(c.env.DB);
@@ -147,7 +192,8 @@ crewRoutes.get("/crew/posts/:id", requireRole("crew"), async (c) => {
     .limit(1);
   if (rows.length === 0) return c.json(err("not_found"), 404);
 
-  const me = c.get("user");
+  const sess = await readSession(c);
+  const meId = sess?.userId ?? -1;
   const images = await db
     .select({ id: galleryImages.id, imageUrl: galleryImages.imageUrl })
     .from(galleryImages)
@@ -169,9 +215,9 @@ crewRoutes.get("/crew/posts/:id", requireRole("crew"), async (c) => {
 
   return c.json(
     ok({
-      post: { ...rows[0], mine: rows[0].userId === me.id },
+      post: { ...rows[0], mine: rows[0].userId === meId },
       images,
-      comments: comments.map((cm) => ({ ...cm, mine: cm.userId === me.id })),
+      comments: comments.map((cm) => ({ ...cm, mine: cm.userId === meId })),
     }),
   );
 });

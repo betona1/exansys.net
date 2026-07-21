@@ -15,6 +15,13 @@ type PostCard = {
   commentCount: number;
 };
 
+type Resource = {
+  slug: string;
+  title: string;
+  description: string;
+  emoji: string;
+};
+
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
 function isCrew(me: Me) {
@@ -23,6 +30,7 @@ function isCrew(me: Me) {
 
 export default function Crew({ me, meLoading }: { me: Me; meLoading: boolean }) {
   const [posts, setPosts] = useState<PostCard[]>([]);
+  const [resources, setResources] = useState<Resource[]>([]);
   const [writing, setWriting] = useState(false);
   const [form, setForm] = useState({ title: "", body: "", linkUrl: "" });
   const [files, setFiles] = useState<File[]>([]);
@@ -30,42 +38,27 @@ export default function Crew({ me, meLoading }: { me: Me; meLoading: boolean }) 
   const [submitting, setSubmitting] = useState(false);
 
   const load = useCallback(async () => {
-    const res = await api<{ posts: PostCard[] }>("/api/crew/posts");
-    if (res.ok) setPosts(res.data.posts);
-  }, []);
+    // 갤러리 목록은 공개 열람
+    const postsRes = await api<{ posts: PostCard[] }>("/api/crew/posts");
+    if (postsRes.ok) setPosts(postsRes.data.posts);
+    // 자료실은 크루 전용
+    if (isCrew(me)) {
+      const resourcesRes = await api<{ resources: Resource[] }>("/api/crew/resources");
+      if (resourcesRes.ok) setResources(resourcesRes.data.resources);
+    } else {
+      setResources([]);
+    }
+  }, [me]);
 
   useEffect(() => {
-    if (isCrew(me)) void load();
-  }, [me, load]);
+    void load();
+  }, [load]);
 
   if (meLoading) {
     return <main className="mx-auto max-w-6xl px-6 py-24 text-center text-muted">확인 중…</main>;
   }
 
-  // 비로그인·member는 안내 페이지 (5-6절)
-  if (!isCrew(me)) {
-    return (
-      <main className="mx-auto max-w-2xl px-6 py-24 text-center">
-        <div className="mb-6 text-5xl">🐍</div>
-        <h1 className="font-display text-3xl font-extrabold tracking-tight">크루 전용 공간입니다</h1>
-        <p className="mx-auto mt-4 max-w-md text-muted">
-          이곳은 EXANSYS와 함께하는 앱개발자 모임 <b>크루</b>의 내부 갤러리입니다.
-          크루 멤버들이 서로의 앱을 공유하고 피드백을 나눕니다.
-        </p>
-        <div className="mt-8 rounded-2xl border border-line bg-card p-6 text-left text-sm text-muted">
-          <p className="font-semibold text-ink">크루에 참여하려면</p>
-          <ol className="mt-2 list-decimal space-y-1 pl-5">
-            <li>우측 상단에서 소셜 계정으로 로그인해 주세요.</li>
-            <li>
-              <Link to="/contact" className="font-semibold text-cobalt hover:underline">개발 문의 게시판</Link>
-              에 크루 참여 희망 글을 남겨주세요.
-            </li>
-            <li>운영진 승인 후 크루 권한이 부여됩니다.</li>
-          </ol>
-        </div>
-      </main>
-    );
-  }
+  const crew = isCrew(me);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -113,18 +106,28 @@ export default function Crew({ me, meLoading }: { me: Me; meLoading: boolean }) 
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="mb-2 text-[13px] font-semibold uppercase tracking-[0.18em] text-green">CREW</p>
-          <h1 className="font-display text-3xl font-extrabold tracking-tight">크루 갤러리</h1>
-          <p className="mt-2 text-muted">서로의 앱을 자랑하고, 피드백을 나눠요.</p>
+          <h1 className="font-display text-3xl font-extrabold tracking-tight">크루 라운지</h1>
+          <p className="mt-2 text-muted">크루가 만든 앱을 구경하고, 서로 피드백을 나누는 공간이에요.</p>
         </div>
-        <button
-          onClick={() => setWriting(!writing)}
-          className="rounded-full bg-green px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-green-deep"
-        >
-          {writing ? "닫기" : "내 앱 올리기"}
-        </button>
+        {crew && (
+          <button
+            onClick={() => setWriting(!writing)}
+            className="rounded-full bg-green px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-green-deep"
+          >
+            {writing ? "닫기" : "내 앱 올리기"}
+          </button>
+        )}
       </div>
 
-      {writing && (
+      {!crew && (
+        <div className="mt-6 rounded-2xl border border-line bg-card p-5 text-sm text-muted">
+          누구나 크루 갤러리를 구경할 수 있어요. 직접 앱을 올리고 자료실을 이용하려면{" "}
+          <Link to="/contact" className="font-semibold text-cobalt hover:underline">개발 문의 게시판</Link>
+          에서 크루 참여를 신청해 주세요 (운영진 승인 후 크루 권한 부여).
+        </div>
+      )}
+
+      {crew && writing && (
         <form onSubmit={submit} className="mt-8 rounded-2xl border border-line bg-card p-6">
           <div className="grid gap-4">
             <div>
@@ -166,7 +169,45 @@ export default function Crew({ me, meLoading }: { me: Me; meLoading: boolean }) 
         </form>
       )}
 
-      <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {resources.length > 0 && (
+        <section className="mt-12">
+          <div className="mb-4 flex items-baseline gap-3">
+            <h2 className="font-display text-xl font-bold tracking-tight">자료실</h2>
+            <span className="text-sm text-muted">크루가 함께 보는 학습 자료</span>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {resources.map((r) => (
+              <a
+                key={r.slug}
+                href={`/api/crew/resources/${r.slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex gap-4 rounded-2xl border border-line bg-card p-5 transition hover:-translate-y-1 hover:border-green/50 hover:shadow-xl hover:shadow-ink/8"
+              >
+                <span className="grid h-12 w-12 flex-none place-items-center rounded-xl bg-lime/25 text-2xl">
+                  {r.emoji}
+                </span>
+                <div className="min-w-0">
+                  <h3 className="font-display font-bold leading-snug transition group-hover:text-green-deep">
+                    {r.title}
+                  </h3>
+                  <p className="mt-1 line-clamp-2 text-xs text-muted">{r.description}</p>
+                  <span className="mt-2 inline-block text-xs font-semibold text-green">새 탭으로 열기 ↗</span>
+                </div>
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <section className="mt-12">
+        <div className="mb-4 flex items-baseline gap-3">
+          <h2 className="font-display text-xl font-bold tracking-tight">크루 갤러리</h2>
+          <span className="text-sm text-muted">서로의 앱을 자랑하고, 피드백을 나눠요</span>
+        </div>
+      </section>
+
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {posts.length === 0 && (
           <p className="col-span-full rounded-2xl border border-dashed border-line p-10 text-center text-sm text-muted">
             아직 게시글이 없습니다. 첫 번째로 앱을 자랑해 보세요!

@@ -8,6 +8,19 @@ import { ok, err } from "../types";
 import { requireRole } from "../middleware";
 import { readSession } from "../auth/session";
 
+// owner_id 컬럼은 Drizzle 스키마에 넣지 않고(기존 전체 SELECT 안전) 런타임 ALTER + 원시 SQL로만 다룬다.
+// 아이솔레이트 단위 캐시로 매 요청 ALTER 시도를 피한다(ALTER는 DB 전역 1회 반영).
+let _ownerColReady = false;
+export async function ensureOwnerCol(DB: D1Database) {
+  if (_ownerColReady) return;
+  try {
+    await DB.prepare("ALTER TABLE apps ADD COLUMN owner_id INTEGER").run();
+  } catch {
+    /* 이미 존재하면 무시 */
+  }
+  _ownerColReady = true;
+}
+
 export const appRoutes = new Hono<{ Bindings: Env }>();
 
 appRoutes.get("/", async (c) => {
