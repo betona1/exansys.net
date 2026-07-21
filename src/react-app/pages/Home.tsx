@@ -105,6 +105,44 @@ export default function Home() {
         </p>
       </section>
 
+      {/* ---------- 출시 앱 설치 배너 (Play + QR, 데스크톱에서 크게) ---------- */}
+      {featured?.status === "released" && featured.storeUrlAndroid && (
+        <section className="px-3 pt-8 sm:px-6 sm:pt-14">
+          <Reveal className="mx-auto flex max-w-[1100px] flex-col items-center gap-8 rounded-[2rem] border border-green/25 bg-gradient-to-br from-green/10 to-lime/15 p-7 sm:flex-row sm:justify-between sm:gap-12 sm:p-12">
+            <div className="flex flex-col items-center gap-5 text-center sm:flex-row sm:items-center sm:gap-6 sm:text-left">
+              <div className="grid h-24 w-24 shrink-0 place-items-center overflow-hidden rounded-[1.4rem] bg-white text-5xl shadow-lg sm:h-28 sm:w-28">
+                {/^(https?:\/\/|\/)/.test(featured.iconUrl ?? "") ? (
+                  <img src={featured.iconUrl!} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <span>{featured.iconUrl || "📱"}</span>
+                )}
+              </div>
+              <div>
+                <span className="inline-block rounded-full bg-green px-3 py-1 text-xs font-bold text-white">🎉 새 앱 출시</span>
+                <h2 className="font-display mt-3 text-3xl font-extrabold tracking-tight sm:text-5xl">{featured.name}</h2>
+                <p className="mt-2 max-w-md text-[15px] text-muted sm:text-lg">{featured.tagline}</p>
+                <a
+                  href={featured.storeUrlAndroid}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-5 inline-block rounded-2xl bg-ink px-7 py-4 text-base font-semibold text-white transition hover:bg-green sm:text-lg"
+                >
+                  ▶ Google Play에서 받기
+                </a>
+              </div>
+            </div>
+            <div className="shrink-0 text-center">
+              <img
+                src={`/api/apps/${featured.slug}/qr?platform=android`}
+                alt={`${featured.name} Google Play 설치 QR 코드`}
+                className="h-44 w-44 rounded-2xl border border-line bg-white p-2 shadow-md sm:h-56 sm:w-56"
+              />
+              <p className="mt-3 text-sm font-semibold text-green-deep">📷 폰으로 스캔하면 바로 설치</p>
+            </div>
+          </Reveal>
+        </section>
+      )}
+
       {/* ---------- 소셜 프루프 + 지표 ---------- */}
       <section className="px-6 py-24 text-center sm:py-32">
         <Reveal className="mx-auto max-w-3xl">
