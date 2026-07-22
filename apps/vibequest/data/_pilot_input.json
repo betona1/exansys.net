@@ -1,0 +1,146 @@
+[
+ {
+  "id": "base-0001",
+  "termKo": "AI 에이전트",
+  "termEn": "agent",
+  "def": "스스로 여러 단계를 실행하는 AI. 파일을 읽고 코드를 고치고 실행까지 이어서 합니다.",
+  "category": "에이전트·바이브코딩",
+  "subcategory": "AI·클로드코드",
+  "difficulty": 2
+ },
+ {
+  "id": "base-0012",
+  "termKo": "관계",
+  "termEn": "relationship",
+  "def": "테이블 간 연결 방식. 1:1, 1:다(1:N), 다:다(N:M).",
+  "category": "데이터베이스·데이터",
+  "subcategory": "DB 구조",
+  "difficulty": 2
+ },
+ {
+  "id": "base-0031",
+  "termKo": "ADB",
+  "termEn": "안드로이드 디버그 브리지",
+  "def": "PC와 안드로이드 기기를 명령어로 연결해 설치·로그 확인 등을 하는 도구.",
+  "category": "Git·DevOps·클라우드",
+  "subcategory": "개발 도구",
+  "difficulty": 2
+ },
+ {
+  "id": "base-0038",
+  "termKo": "Dart",
+  "termEn": "다트",
+  "def": "Flutter 앱을 만드는 언어. 구글이 만들었고 배우기 쉬운 편.",
+  "category": "프로그래밍 핵심",
+  "subcategory": "개발 언어",
+  "difficulty": 2
+ },
+ {
+  "id": "base-0087",
+  "termKo": "ASO",
+  "termEn": "앱스토어 최적화",
+  "def": "스토어에서 앱이 잘 검색·노출되게 이름·아이콘·설명을 다듬는 것.",
+  "category": "모바일·앱 출시",
+  "subcategory": "수익화",
+  "difficulty": 2
+ },
+ {
+  "id": "base-0117",
+  "termKo": "Capacitor",
+  "termEn": "Capacitor",
+  "def": "웹 기술로 만든 앱이 카메라 같은 네이티브 기능을 사용하도록 연결하는 런타임.",
+  "category": "웹·프론트엔드",
+  "subcategory": "앱 프레임워크",
+  "difficulty": 2
+ },
+ {
+  "id": "base-0137",
+  "termKo": "BaaS",
+  "termEn": "백엔드 서비스형",
+  "def": "백엔드(서버·DB)를 직접 만들지 않고 빌려 쓰는 방식. Firebase가 대표적.",
+  "category": "백엔드·API",
+  "subcategory": "파이어베이스·구글",
+  "difficulty": 2
+ },
+ {
+  "id": "base-0178",
+  "termKo": "드롭다운",
+  "termEn": "Dropdown",
+  "def": "눌러서 목록에서 고르는 것",
+  "category": "UX·UI·제품·학습게임",
+  "subcategory": "UI 컴포넌트",
+  "difficulty": 2
+ },
+ {
+  "id": "base-0269",
+  "termKo": "QA",
+  "termEn": "Quality Assurance",
+  "def": "출시 전 품질 점검",
+  "category": "테스트·품질·보안",
+  "subcategory": "테스트·품질",
+  "difficulty": 2
+ },
+ {
+  "id": "base-0307",
+  "termKo": "샌드박스",
+  "termEn": "Sandbox",
+  "def": "에이전트가 갇혀 도는 격리 환경(컨테이너·VM·제한 셸). 행동의 피해 범위를 제한한다.",
+  "category": "테스트·품질·보안",
+  "subcategory": "권한·안전",
+  "difficulty": 2
+ },
+ {
+  "id": "base-0309",
+  "termKo": "입력 토큰",
+  "termEn": "Input tokens",
+  "def": "매 요청에서 하네스가 보내는 토큰. 출력 토큰보다 싸게 과금된다.",
+  "category": "생성형 AI·모델",
+  "subcategory": "비용·토큰경제",
+  "difficulty": 2
+ },
+ {
+  "id": "base-0310",
+  "termKo": "추론량(노력)",
+  "termEn": "Effort",
+  "def": "답하기 전 모델이 얼마나 생각할지 조절하는 다이얼. 더 쓰면 출력 토큰을 더 써서 어려운 문제에 유리.",
+  "category": "생성형 AI·모델",
+  "subcategory": "비용·토큰경제",
+  "difficulty": 2
+ },
+ {
+  "id": "base-0316",
+  "termKo": "세션",
+  "termEn": "Session",
+  "def": "에이전트와의 한 번의 작업 구간. 비어서 시작해 쌓이다가 초기화·종료·압축으로 끝난다.",
+  "category": "에이전트·바이브코딩",
+  "subcategory": "세션·핸드오프",
+  "difficulty": 1
+ },
+ {
+  "id": "base-0331",
+  "termKo": "1차 자료",
+  "termEn": "Primary source",
+  "def": "코드·원본 데이터 그 자체. 완전하고 권위 있지만 컨텍스트에 넣기엔 비싸다.",
+  "category": "프롬프트·컨텍스트·RAG",
+  "subcategory": "컨텍스트·메모리",
+  "difficulty": 3
+ },
+ {
+  "id": "base-0342",
+  "termKo": "컨텍스트 윈도우",
+  "termEn": "Context window",
+  "def": "모델이 한 요청에서 보는 전부. 유한하고 모델마다 다르며, 모델이 세상을 인식하는 유일한 창.",
+  "category": "프롬프트·컨텍스트·RAG",
+  "subcategory": "컨텍스트·메모리",
+  "difficulty": 2
+ },
+ {
+  "id": "new-0147",
+  "termKo": "스코프",
+  "termEn": "scope",
+  "def": "변수나 함수 이름을 사용할 수 있는 코드 범위.",
+  "category": "프로그래밍 핵심",
+  "subcategory": "프로그래밍 핵심",
+  "difficulty": 2
+ }
+]
