@@ -6,6 +6,7 @@ import 'screens/glossary_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/intro_screen.dart';
 import 'screens/learn_screen.dart';
+import 'screens/onboarding_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/quiz_screen.dart';
 
@@ -22,6 +23,8 @@ final router = GoRouter(
   routes: [
     // 인트로 — 비비가 바이브코딩하며 콘텐츠 로딩
     GoRoute(path: '/intro', builder: (c, s) => const IntroScreen()),
+    // 온보딩 + 언노운 진단 (§7)
+    GoRoute(path: '/onboarding', builder: (c, s) => const OnboardingScreen()),
     // 문제 화면은 전체화면 (하단 탭 없음)
     GoRoute(
       path: '/quiz',

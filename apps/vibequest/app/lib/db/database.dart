@@ -225,4 +225,41 @@ class VqDatabase extends _$VqDatabase {
             ..orderBy([(s) => OrderingTerm.desc(s.startedAt)])
             ..limit(limit))
           .get();
+
+  /// 언노운 진단 12장 선정 (§7.3): 핵심 6 + 관심 분야 4 + 공통 기초 2
+  Future<List<Term>> onboardingPicks(List<String> interestDomains) async {
+    final all = (await activeTerms()).where((t) => t.quizEnabled).toList();
+    final picked = <String>{};
+    final out = <Term>[];
+    void take(Iterable<Term> src, int n) {
+      for (final t in src) {
+        if (out.length >= 12 || n <= 0) return;
+        if (picked.add(t.id)) {
+          out.add(t);
+          n--;
+        }
+      }
+    }
+
+    int byEasy(Term a, Term b) => a.difficulty.compareTo(b.difficulty);
+    take((all.where((t) => t.vibeCore).toList()..sort(byEasy)), 6);
+    if (interestDomains.isNotEmpty) {
+      take((all.where((t) => interestDomains.contains(t.category)).toList()..sort(byEasy)), 4);
+    }
+    take((all.where((t) => t.category == '프로그래밍 핵심').toList()..sort(byEasy)), 2);
+    take(all..sort(byEasy), 12 - out.length); // 부족분 채우기
+    // 비슷한 용어(같은 카테고리) 연속 배치 완화: 간단 셔플 후 인접 동일 카테고리 스왑
+    out.shuffle();
+    for (var i = 1; i < out.length - 1; i++) {
+      if (out[i].category == out[i - 1].category) {
+        final j = out.indexWhere((t) => t.category != out[i - 1].category, i + 1);
+        if (j > i) {
+          final tmp = out[i];
+          out[i] = out[j];
+          out[j] = tmp;
+        }
+      }
+    }
+    return out;
+  }
 }

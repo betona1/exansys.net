@@ -74,8 +74,9 @@ class _IntroScreenState extends ConsumerState<IntroScreen> {
       _done = true;
       _status = updated ? '따끈한 새 용어 도착! ✨' : '완성! 출발하자 🐾';
     });
+    final onboarded = (await db.getMeta('onboardingDone')) == '1';
     await Future.delayed(const Duration(milliseconds: 900));
-    if (mounted) context.go('/');
+    if (mounted) context.go(onboarded ? '/' : '/onboarding');
   }
 
   @override

@@ -148,9 +148,11 @@ class SessionController extends StateNotifier<SessionState> {
     List<Term> review = [];
     List<Term> fresh = [];
     switch (mode) {
-      case SessionMode.dailyMission: // 7문제, 신규:복습 60:40
-        review = await db.dueTerms(DateTime.now(), limit: 3);
-        fresh = await db.freshTerms(limit: 7 - review.length);
+      case SessionMode.dailyMission: // 하루 목표(3/5/10분)에 따라 7/11/18문제, 신규:복습 60:40
+        final goal = int.tryParse(await db.getMeta('dailyGoal') ?? '') ?? 3;
+        final count = goal >= 10 ? 18 : (goal >= 5 ? 11 : 7);
+        review = await db.dueTerms(DateTime.now(), limit: (count * 0.4).round());
+        fresh = await db.freshTerms(limit: count - review.length);
       case SessionMode.quickReview: // 만기 복습 5문제
         review = await db.dueTerms(DateTime.now(), limit: 5);
       case SessionMode.newExplore: // 새 용어 8개
