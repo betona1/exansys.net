@@ -12,11 +12,13 @@
 원문 "Android·iOS 동시 대응" → **Android 먼저 출시**. 개발환경이 Windows라 iOS 로컬 빌드가 불가하다.
 Flutter로 작성해 iOS 호환은 유지하고(플랫폼 분기 최소화), iOS 출시는 CI(macOS) 확보 후 진행한다.
 
-### A-2. 웹 TechDex 전면 대체
+### A-2. 웹 TechDex 전면 대체 + Flutter Web PWA
 기존 techdex.exansys.net(웹/PWA)은 VibeQuest가 대체한다.
 - 신규 기능은 VibeQuest에만 구현
-- 웹 TechDex는 앱 출시까지 현행 유지 → 출시 후 앱 설치 안내 페이지로 전환
+- **같은 Flutter 코드베이스를 `flutter build web`으로 빌드해 홈페이지에서도 PWA로 제공** (예: vibequest.exansys.net, Cloudflare Workers Assets로 서빙) — 별도 웹 개발 없음
+- 웹 TechDex는 VibeQuest 웹 배포 시점에 교체
 - 기존 D1 용어 데이터·사용자 제안은 마이그레이션 대상
+- 로컬 저장은 네이티브=SQLite, 웹=IndexedDB/WASM(sqlite3) — Drift가 양쪽 지원
 
 ### A-3. 인프라: Cloudflare 무료 플랜 유지
 원문의 Firebase Analytics/Crashlytics/Supabase 제안 → MVP에서는 도입하지 않는다.
