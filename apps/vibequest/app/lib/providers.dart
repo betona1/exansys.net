@@ -21,7 +21,15 @@ class HomeStats {
   final int totalTerms;
   final int dueReviews;
   final int learnedTerms;
-  const HomeStats({required this.totalTerms, required this.dueReviews, required this.learnedTerms});
+  final int gems;
+  final int xp;
+  const HomeStats({
+    required this.totalTerms,
+    required this.dueReviews,
+    required this.learnedTerms,
+    required this.gems,
+    required this.xp,
+  });
 }
 
 final homeStatsProvider = FutureProvider<HomeStats>((ref) async {
@@ -30,7 +38,9 @@ final homeStatsProvider = FutureProvider<HomeStats>((ref) async {
   final total = await db.termCount();
   final due = await db.dueReviewCount(DateTime.now());
   final learned = (await db.select(db.termStates).get()).length;
-  return HomeStats(totalTerms: total, dueReviews: due, learnedTerms: learned);
+  final gems = await db.metaInt('gems');
+  final xp = await db.metaInt('xp');
+  return HomeStats(totalTerms: total, dueReviews: due, learnedTerms: learned, gems: gems, xp: xp);
 });
 
 /// 도감 검색어

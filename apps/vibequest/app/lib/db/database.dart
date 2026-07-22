@@ -132,4 +132,47 @@ class VqDatabase extends _$VqDatabase {
       (select(termStates)..where((s) => s.termId.equals(termId))).getSingleOrNull();
 
   Future<void> upsertState(TermStatesCompanion c) => into(termStates).insertOnConflictUpdate(c);
+
+  // ── 세션 구성용 (§5.1) ──
+
+  /// 만기 복습 용어 — nextReviewAt 이 빠른 순
+  Future<List<Term>> dueTerms(DateTime now, {int limit = 10}) async {
+    final q = select(terms).join([
+      innerJoin(termStates, termStates.termId.equalsExp(terms.id)),
+    ])
+      ..where(termStates.nextReviewAt.isSmallerOrEqualValue(now) &
+          terms.retired.equals(false) &
+          terms.quizEnabled.equals(true))
+      ..orderBy([OrderingTerm.asc(termStates.nextReviewAt)])
+      ..limit(limit);
+    final rows = await q.get();
+    return rows.map((r) => r.readTable(terms)).toList();
+  }
+
+  /// 아직 만나지 않은 새 용어 — vibeCore·쉬운 난이도 우선 (§7.3 취지)
+  Future<List<Term>> freshTerms({int limit = 10}) async {
+    final sub = selectOnly(termStates)..addColumns([termStates.termId]);
+    final q = select(terms)
+      ..where((t) =>
+          t.retired.equals(false) & t.quizEnabled.equals(true) & t.id.isNotInQuery(sub))
+      ..orderBy([
+        (t) => OrderingTerm.desc(t.vibeCore),
+        (t) => OrderingTerm.asc(t.difficulty),
+        (t) => OrderingTerm.asc(t.id),
+      ])
+      ..limit(limit);
+    return q.get();
+  }
+
+  /// 문제 오답 풀 — 전체 활성 용어 (867개, 로컬이라 부담 없음)
+  Future<List<Term>> activeTerms() =>
+      (select(terms)..where((t) => t.retired.equals(false))).get();
+
+  // ── 보석·XP 누계 (Meta) ──
+  Future<int> metaInt(String k) async => int.tryParse(await getMeta(k) ?? '') ?? 0;
+
+  Future<void> addMetaInt(String k, int delta) async {
+    final cur = await metaInt(k);
+    await setMeta(k, '${cur + delta}');
+  }
 }

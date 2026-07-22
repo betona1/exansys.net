@@ -26,7 +26,7 @@ class HomeScreen extends ConsumerWidget {
 
             // 큰 CTA (§25: 오늘의 3분 퀘스트)
             FilledButton(
-              onPressed: () => context.go('/learn'),
+              onPressed: () => context.push('/quiz'),
               style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(64)),
               child: const Text('⚡ 오늘의 3분 퀘스트'),
             ),
@@ -49,7 +49,7 @@ class HomeScreen extends ConsumerWidget {
                   Row(children: [
                     Expanded(child: _statCard('🌱', '만난 용어', '${s.learnedTerms}개')),
                     const SizedBox(width: 10),
-                    Expanded(child: _statCard('💎', '보석', '0')),
+                    Expanded(child: _statCard('💎', '보석', '${s.gems}')),
                   ]),
                 ],
               ),

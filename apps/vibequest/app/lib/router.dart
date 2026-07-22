@@ -5,11 +5,14 @@ import 'screens/glossary_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/learn_screen.dart';
 import 'screens/profile_screen.dart';
+import 'screens/quiz_screen.dart';
 
 /// 하단 탭 4개: 홈 / 학습 / 용어도감 / 내 기록 (TECHSPEC §6.1)
 final router = GoRouter(
   initialLocation: '/',
   routes: [
+    // 문제 화면은 전체화면 (하단 탭 없음)
+    GoRoute(path: '/quiz', builder: (c, s) => const QuizScreen()),
     StatefulShellRoute.indexedStack(
       builder: (context, state, shell) => _Shell(shell: shell),
       branches: [
