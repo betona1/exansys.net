@@ -144,14 +144,56 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
                         Text('💎${s.gems}',
                             style: const TextStyle(
                                 fontWeight: FontWeight.w800, fontSize: 15, color: vqPurple)),
-                        const SizedBox(width: 4),
-                        // 문제 신고 — 이전 문제 다시보기 포함
-                        InkWell(
-                          borderRadius: BorderRadius.circular(10),
-                          onTap: () => _openReportSheet(s),
-                          child: const Padding(
-                            padding: EdgeInsets.all(6),
-                            child: Text('🚩', style: TextStyle(fontSize: 16)),
+                      ],
+                    ),
+                  ),
+
+                  // 방금 문제 다시보기(크게) + 신고하기 — 상시 노출
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+                    child: Row(
+                      children: [
+                        if (s.history.isNotEmpty)
+                          Expanded(
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(14),
+                              onTap: () => _openPrevReview(s),
+                              child: Container(
+                                height: 44,
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  color: vqCard,
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(color: vqBorder, width: 2),
+                                ),
+                                child: const Text('↩ 방금 문제 다시보기',
+                                    style: TextStyle(
+                                        fontSize: 14.5,
+                                        fontWeight: FontWeight.w800,
+                                        color: vqInk)),
+                              ),
+                            ),
+                          ),
+                        if (s.history.isNotEmpty) const SizedBox(width: 10),
+                        Expanded(
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(14),
+                            onTap: () => _openReportSheet(s),
+                            child: Container(
+                              height: 44,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFFEDEF),
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                    color: vqCoral.withValues(alpha: 0.4), width: 2),
+                              ),
+                              child: const Text('🚩 신고하기',
+                                  style: TextStyle(
+                                      fontSize: 14.5,
+                                      fontWeight: FontWeight.w800,
+                                      color: vqCoral)),
+                            ),
                           ),
                         ),
                       ],
@@ -543,6 +585,92 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
     setState(() => _suggestions = []);
   }
 
+  // ── ↩ 방금 푼 문제 다시보기 — 정답·설명 확인 + 신고 ──
+  void _openPrevReview(SessionState s) {
+    final q = s.history.last;
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: vqBg,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
+      ),
+      builder: (ctx) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.62,
+        maxChildSize: 0.9,
+        builder: (ctx, scroll) => ListView(
+          controller: scroll,
+          padding: const EdgeInsets.fromLTRB(22, 20, 22, 28),
+          children: [
+            Row(
+              children: [
+                const Bibi(size: 44),
+                const SizedBox(width: 10),
+                Expanded(child: Text('방금 푼 문제야! ↩', style: jua(20))),
+              ],
+            ),
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: vqInk,
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Text('"${q.prompt}"',
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      height: 1.5,
+                      fontWeight: FontWeight.w600)),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: vqCard,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: vqBorder, width: 1.5),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('정답: ${q.term.termKo}',
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w800, fontSize: 16, color: vqMintDark)),
+                  const SizedBox(height: 6),
+                  Text(q.explanation,
+                      style: const TextStyle(fontSize: 14.5, height: 1.5)),
+                  if (q.term.whyItMatters.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Text('💡 ${q.term.whyItMatters}',
+                        style: const TextStyle(
+                            fontSize: 13.5, height: 1.45, color: vqMutedText)),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            _BeaconReportButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                _openReasonSheet(q);
+              },
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('괜찮아, 계속 풀래'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   // ── 🚩 문제 신고 — 현재 문제 + 방금 푼 문제(다시보기) ──
   void _openReportSheet(SessionState s) {
     final current = s.current;
@@ -846,6 +974,60 @@ class _FeedbackSheet extends ConsumerWidget {
               ),
               ),
             ),
+    );
+  }
+}
+
+/// 🚨 경광등 신고 버튼 — 붉은 광이 깜빡이며 시선을 끈다 (모션감소 시 정적)
+class _BeaconReportButton extends StatefulWidget {
+  final VoidCallback onPressed;
+  const _BeaconReportButton({required this.onPressed});
+
+  @override
+  State<_BeaconReportButton> createState() => _BeaconReportButtonState();
+}
+
+class _BeaconReportButtonState extends State<_BeaconReportButton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c =
+      AnimationController(vsync: this, duration: const Duration(milliseconds: 850))
+        ..repeat(reverse: true);
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final reduce = MediaQuery.of(context).disableAnimations;
+    return AnimatedBuilder(
+      animation: _c,
+      builder: (c, child) {
+        final glow = reduce ? 0.5 : _c.value;
+        return Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            boxShadow: [
+              BoxShadow(
+                color: vqCoral.withValues(alpha: 0.25 + 0.4 * glow),
+                blurRadius: 14 + 14 * glow,
+                spreadRadius: 1 + 3 * glow,
+              ),
+            ],
+          ),
+          child: child,
+        );
+      },
+      child: Vq3dButton(
+        label: '🚨 신고하기',
+        color: vqCoral,
+        shadowColor: const Color(0xFFD9414F),
+        height: 56,
+        fontSize: 17,
+        onPressed: widget.onPressed,
+      ),
     );
   }
 }
