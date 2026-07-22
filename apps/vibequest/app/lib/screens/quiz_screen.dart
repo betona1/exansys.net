@@ -84,7 +84,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
       body: SafeArea(
         child: GestureDetector(
           onHorizontalDragEnd: (d) {
-            if (answered && (d.primaryVelocity?.abs() ?? 0) > 150) _goNext();
+            if (answered && (d.primaryVelocity?.abs() ?? 0) > 60) _goNext();
           },
           behavior: HitTestBehavior.translucent,
           child: Stack(
@@ -538,7 +538,13 @@ class _FeedbackSheet extends ConsumerWidget {
       offset: f == null ? const Offset(0, 1.15) : Offset.zero,
       child: f == null
           ? const SizedBox.shrink()
-          : Container(
+          : GestureDetector(
+              // 시트 위에서의 좌우 스와이프도 확실히 잡는다
+              onHorizontalDragEnd: (d) {
+                if ((d.primaryVelocity?.abs() ?? 0) > 60) onNext();
+              },
+              behavior: HitTestBehavior.opaque,
+              child: Container(
               width: double.infinity,
               padding: const EdgeInsets.fromLTRB(22, 18, 22, 20),
               decoration: BoxDecoration(
@@ -619,18 +625,63 @@ class _FeedbackSheet extends ConsumerWidget {
                       shadowColor: const Color(0xFFD9414F),
                       onPressed: onNext,
                     ),
-                    const SizedBox(height: 4),
-                    const Center(
-                      child: Text('좌우로 밀어도 넘어가요',
-                          style: TextStyle(
-                              fontSize: 11.5,
-                              color: vqMuted2,
-                              fontWeight: FontWeight.w600)),
-                    ),
+                    const SizedBox(height: 8),
+                    const Center(child: _SwipeHint()),
                   ],
                 ],
               ),
+              ),
             ),
+    );
+  }
+}
+
+/// 좌우 스와이프 안내 — 화살표가 살랑이는 애니메이션
+class _SwipeHint extends StatefulWidget {
+  const _SwipeHint();
+
+  @override
+  State<_SwipeHint> createState() => _SwipeHintState();
+}
+
+class _SwipeHintState extends State<_SwipeHint> with SingleTickerProviderStateMixin {
+  late final AnimationController _c =
+      AnimationController(vsync: this, duration: const Duration(milliseconds: 900))
+        ..repeat(reverse: true);
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (MediaQuery.of(context).disableAnimations) {
+      return const Text('👈 화면을 좌우로 밀면 다음 문제 👉',
+          style: TextStyle(fontSize: 12.5, color: vqMuted2, fontWeight: FontWeight.w700));
+    }
+    return AnimatedBuilder(
+      animation: _c,
+      builder: (c, _) {
+        final dx = 5 * (_c.value - 0.5);
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Transform.translate(
+                offset: Offset(-dx, 0),
+                child: const Text('👈', style: TextStyle(fontSize: 15))),
+            const SizedBox(width: 7),
+            const Text('화면을 좌우로 밀면 다음 문제',
+                style: TextStyle(
+                    fontSize: 12.5, color: vqMutedText, fontWeight: FontWeight.w700)),
+            const SizedBox(width: 7),
+            Transform.translate(
+                offset: Offset(dx, 0),
+                child: const Text('👉', style: TextStyle(fontSize: 15))),
+          ],
+        );
+      },
     );
   }
 }
