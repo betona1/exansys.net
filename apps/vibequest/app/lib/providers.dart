@@ -17,13 +17,7 @@ final FutureProvider<bool> contentReadyProvider = FutureProvider<bool>((ref) asy
   final importer = ContentImporter(db);
   await importer.importIfNeeded();
   Sfx.muted = (await db.getMeta('muted')) == '1'; // 소리 설정 복원 (UX-06)
-  // 관리자가 웹에서 고친 용어 받아오기 (신고 → 수정 → 자동 반영)
-  Future(() async {
-    if (await importer.checkRemoteUpdate()) {
-      ref.invalidate(glossaryResultsProvider);
-      ref.invalidate(homeStatsProvider);
-    }
-  });
+  // 원격 업데이트는 인트로 화면(_boot)에서 수행 — 여기서는 중복 확인하지 않는다
   return true;
 });
 

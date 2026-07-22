@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'learning/session_controller.dart';
 import 'screens/glossary_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/intro_screen.dart';
 import 'screens/learn_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/quiz_screen.dart';
@@ -17,8 +18,10 @@ SessionMode _modeFrom(String? s) => switch (s) {
 
 /// 하단 탭 4개: 홈 / 학습 / 용어도감 / 내 기록 (TECHSPEC §6.1)
 final router = GoRouter(
-  initialLocation: '/',
+  initialLocation: '/intro',
   routes: [
+    // 인트로 — 비비가 바이브코딩하며 콘텐츠 로딩
+    GoRoute(path: '/intro', builder: (c, s) => const IntroScreen()),
     // 문제 화면은 전체화면 (하단 탭 없음)
     GoRoute(
       path: '/quiz',
