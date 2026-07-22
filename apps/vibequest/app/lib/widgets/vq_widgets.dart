@@ -56,6 +56,57 @@ class Vq3dButton extends StatelessWidget {
   }
 }
 
+/// 좌우 스와이프 감지. 속도가 아니라 **이동 거리**(48px) 기준이라
+/// 천천히 밀어도 동작하고, 임계 도달 즉시 발동해 반응이 빠르다.
+/// onSwipe(dir): dir = -1 왼쪽, +1 오른쪽.
+class SwipeNext extends StatefulWidget {
+  final bool enabled;
+  final void Function(int dir) onSwipe;
+  final Widget child;
+  final HitTestBehavior behavior;
+  const SwipeNext({
+    super.key,
+    required this.enabled,
+    required this.onSwipe,
+    required this.child,
+    this.behavior = HitTestBehavior.translucent,
+  });
+
+  @override
+  State<SwipeNext> createState() => _SwipeNextState();
+}
+
+class _SwipeNextState extends State<SwipeNext> {
+  double _dx = 0;
+  bool _fired = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: widget.behavior,
+      onHorizontalDragStart: (_) {
+        _dx = 0;
+        _fired = false;
+      },
+      onHorizontalDragUpdate: (d) {
+        if (_fired || !widget.enabled) return;
+        _dx += d.delta.dx;
+        if (_dx.abs() > 48) {
+          _fired = true;
+          widget.onSwipe(_dx < 0 ? -1 : 1);
+        }
+      },
+      onHorizontalDragEnd: (d) {
+        final v = d.primaryVelocity ?? 0;
+        if (!_fired && widget.enabled && v.abs() > 60) {
+          widget.onSwipe(v < 0 ? -1 : 1);
+        }
+      },
+      child: widget.child,
+    );
+  }
+}
+
 /// 마스코트 '비비' (러시안 블루 · 민트 스카프)
 class Bibi extends StatelessWidget {
   final double size;

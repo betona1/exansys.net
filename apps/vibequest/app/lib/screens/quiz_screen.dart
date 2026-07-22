@@ -82,11 +82,17 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
 
     return Scaffold(
       body: SafeArea(
-        child: GestureDetector(
-          onHorizontalDragEnd: (d) {
-            if (answered && (d.primaryVelocity?.abs() ?? 0) > 60) _goNext();
+        // 스와이프: 답변 전 O/X 문제 = 왼쪽 O·오른쪽 X 입력 / 답변 후 = 다음 문제
+        child: SwipeNext(
+          enabled: true,
+          onSwipe: (dir) {
+            if (answered) {
+              _goNext();
+            } else if (q.type == QType.ox) {
+              HapticFeedback.selectionClick();
+              ref.read(sessionProvider.notifier).answer(oxChoice: dir < 0);
+            }
           },
-          behavior: HitTestBehavior.translucent,
           child: Stack(
             children: [
               Column(
@@ -288,13 +294,19 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
     );
   }
 
-  // ── O/X: ◯ 참 / ✕ 거짓 화이트 카드 (디자인 킷) ──
+  // ── O/X: ◯ 참 / ✕ 거짓 화이트 카드 + 스와이프 안내 (디자인 킷) ──
   Widget _oxButtons(bool answered) {
-    return Row(
+    return Column(
       children: [
-        Expanded(child: _oxButton('◯  참', true, answered)),
-        const SizedBox(width: 12),
-        Expanded(child: _oxButton('✕  거짓', false, answered)),
+        Row(
+          children: [
+            Expanded(child: _oxButton('← ◯  참', true, answered)),
+            const SizedBox(width: 12),
+            Expanded(child: _oxButton('✕  거짓 →', false, answered)),
+          ],
+        ),
+        const SizedBox(height: 12),
+        if (!answered) const _SwipeHint(text: '왼쪽으로 밀면 ◯ 참 · 오른쪽으로 밀면 ✕ 거짓'),
       ],
     );
   }
@@ -538,11 +550,10 @@ class _FeedbackSheet extends ConsumerWidget {
       offset: f == null ? const Offset(0, 1.15) : Offset.zero,
       child: f == null
           ? const SizedBox.shrink()
-          : GestureDetector(
+          : SwipeNext(
               // 시트 위에서의 좌우 스와이프도 확실히 잡는다
-              onHorizontalDragEnd: (d) {
-                if ((d.primaryVelocity?.abs() ?? 0) > 60) onNext();
-              },
+              enabled: true,
+              onSwipe: (_) => onNext(),
               behavior: HitTestBehavior.opaque,
               child: Container(
               width: double.infinity,
@@ -626,7 +637,7 @@ class _FeedbackSheet extends ConsumerWidget {
                       onPressed: onNext,
                     ),
                     const SizedBox(height: 8),
-                    const Center(child: _SwipeHint()),
+                    const Center(child: _SwipeHint(text: '화면을 좌우로 밀면 다음 문제')),
                   ],
                 ],
               ),
@@ -638,7 +649,8 @@ class _FeedbackSheet extends ConsumerWidget {
 
 /// 좌우 스와이프 안내 — 화살표가 살랑이는 애니메이션
 class _SwipeHint extends StatefulWidget {
-  const _SwipeHint();
+  final String text;
+  const _SwipeHint({required this.text});
 
   @override
   State<_SwipeHint> createState() => _SwipeHintState();
@@ -658,8 +670,9 @@ class _SwipeHintState extends State<_SwipeHint> with SingleTickerProviderStateMi
   @override
   Widget build(BuildContext context) {
     if (MediaQuery.of(context).disableAnimations) {
-      return const Text('👈 화면을 좌우로 밀면 다음 문제 👉',
-          style: TextStyle(fontSize: 12.5, color: vqMuted2, fontWeight: FontWeight.w700));
+      return Text('👈 ${widget.text} 👉',
+          style: const TextStyle(
+              fontSize: 12.5, color: vqMuted2, fontWeight: FontWeight.w700));
     }
     return AnimatedBuilder(
       animation: _c,
@@ -672,9 +685,11 @@ class _SwipeHintState extends State<_SwipeHint> with SingleTickerProviderStateMi
                 offset: Offset(-dx, 0),
                 child: const Text('👈', style: TextStyle(fontSize: 15))),
             const SizedBox(width: 7),
-            const Text('화면을 좌우로 밀면 다음 문제',
-                style: TextStyle(
-                    fontSize: 12.5, color: vqMutedText, fontWeight: FontWeight.w700)),
+            Flexible(
+              child: Text(widget.text,
+                  style: const TextStyle(
+                      fontSize: 12.5, color: vqMutedText, fontWeight: FontWeight.w700)),
+            ),
             const SizedBox(width: 7),
             Transform.translate(
                 offset: Offset(dx, 0),
