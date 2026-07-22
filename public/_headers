@@ -1,0 +1,4 @@
+# VibeQuest 웹앱 — SharedArrayBuffer/OPFS 활성화 (drift 고속 스토리지)
+/vibequest/*
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: require-corp

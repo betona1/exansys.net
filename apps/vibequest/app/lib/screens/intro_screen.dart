@@ -73,18 +73,26 @@ class _IntroScreenState extends ConsumerState<IntroScreen> {
   Future<void> _boot() async {
     final db = ref.read(databaseProvider);
     final importer = ContentImporter(db);
-    await importer.importIfNeeded();
-    bool updated = false;
+    // 웹의 느린 스토리지 폴백 등 어떤 경우에도 인트로에 갇히지 않게 —
+    // 전체 부팅에 상한을 두고, 초과하면 일단 진행(임포트는 백그라운드에서 계속됨)
     try {
-      updated = await importer
-          .checkRemoteUpdate()
-          .timeout(const Duration(seconds: 4), onTimeout: () => false);
-    } catch (_) {/* 오프라인 무시 */}
-    if (updated) {
-      ref.invalidate(glossaryResultsProvider);
-      ref.invalidate(homeStatsProvider);
-    }
-    _onboarded = (await db.getMeta('onboardingDone')) == '1';
+      await Future(() async {
+        await importer.importIfNeeded();
+        final updated = await importer
+            .checkRemoteUpdate()
+            .timeout(const Duration(seconds: 4), onTimeout: () => false);
+        if (updated) {
+          ref.invalidate(glossaryResultsProvider);
+          ref.invalidate(homeStatsProvider);
+        }
+      }).timeout(const Duration(seconds: 25));
+    } catch (_) {/* 타임아웃·오프라인 무시 */}
+    try {
+      final v = await db
+          .getMeta('onboardingDone')
+          .timeout(const Duration(seconds: 3), onTimeout: () => null);
+      _onboarded = v == '1';
+    } catch (_) {/* 무시 */}
     _bootDone = true;
     _maybeGo();
   }
