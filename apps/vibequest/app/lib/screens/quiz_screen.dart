@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,6 +24,7 @@ class QuizScreen extends ConsumerStatefulWidget {
 class _QuizScreenState extends ConsumerState<QuizScreen> {
   final _shortCtrl = TextEditingController();
   List<String> _suggestions = [];
+  Timer? _autoNext;
 
   @override
   void initState() {
@@ -31,13 +34,19 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
 
   @override
   void dispose() {
+    _autoNext?.cancel();
     _shortCtrl.dispose();
     super.dispose();
   }
 
+  void _goNext() {
+    _autoNext?.cancel();
+    ref.read(sessionProvider.notifier).next();
+  }
+
   @override
   Widget build(BuildContext context) {
-    // 효과음 — 정답/오답/콤보/완료 (UX-06: 음소거 가능)
+    // 효과음 + 정답 시 0.5초 자동 진행
     ref.listen(sessionProvider, (prev, next) {
       if (prev?.feedback == null && next.feedback != null) {
         if (next.feedback!.correct) {
@@ -45,6 +54,11 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
           if (next.feedback!.gems > 0) {
             Future.delayed(const Duration(milliseconds: 260), Sfx.gem);
           }
+          // 맞으면 0.5초 뒤 자동으로 다음 문제
+          _autoNext?.cancel();
+          _autoNext = Timer(const Duration(milliseconds: 500), () {
+            if (mounted) ref.read(sessionProvider.notifier).next();
+          });
         } else {
           Sfx.wrong();
         }
@@ -89,7 +103,13 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
 
     return Scaffold(
       body: SafeArea(
-        child: Column(
+        // 답변 후 좌우 스와이프로 다음 문제
+        child: GestureDetector(
+          onHorizontalDragEnd: (d) {
+            if (answered && (d.primaryVelocity?.abs() ?? 0) > 150) _goNext();
+          },
+          behavior: HitTestBehavior.translucent,
+          child: Column(
           children: [
             // 상단: 닫기 / 진행바 / 콤보 (§11.3)
             Padding(
@@ -195,8 +215,9 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
             ),
 
             // 하단 피드백 시트 — 답변 후에만 (FR-QUIZ-001/002)
-            _FeedbackBar(s: s),
+            _FeedbackBar(s: s, onNext: _goNext),
           ],
+          ),
         ),
       ),
     );
@@ -282,25 +303,49 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
   Widget _oxButtons(bool answered) {
     return Row(
       children: [
-        Expanded(child: _oxButton('O', true, vqCorrect, answered)),
+        Expanded(child: _oxButton('O', true, answered)),
         const SizedBox(width: 12),
-        Expanded(child: _oxButton('X', false, vqWrong, answered)),
+        Expanded(child: _oxButton('X', false, answered)),
       ],
     );
   }
 
-  Widget _oxButton(String label, bool value, Color color, bool answered) {
+  /// 차분한 브랜드 톤 — 카드형 버튼 (튀는 원색 금지)
+  Widget _oxButton(String label, bool value, bool answered) {
+    final isO = value;
     return SizedBox(
       height: 72, // 버튼 높이 56dp 이상 (§8.1)
-      child: FilledButton(
-        style: FilledButton.styleFrom(backgroundColor: color.withValues(alpha: answered ? 0.4 : 1)),
-        onPressed: answered
-            ? null
-            : () {
-                HapticFeedback.selectionClick();
-                ref.read(sessionProvider.notifier).answer(oxChoice: value);
-              },
-        child: Text(label, style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w900)),
+      child: Material(
+        color: answered
+            ? const Color(0xFFEDEFF3)
+            : (isO ? vqGreen.withValues(alpha: 0.1) : const Color(0xFFF0F1F5)),
+        borderRadius: BorderRadius.circular(18),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: answered
+              ? null
+              : () {
+                  HapticFeedback.selectionClick();
+                  ref.read(sessionProvider.notifier).answer(oxChoice: value);
+                },
+          child: Container(
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: answered
+                    ? const Color(0xFFE7EAF0)
+                    : (isO ? vqGreen.withValues(alpha: 0.45) : const Color(0xFFD5D9E2)),
+                width: 1.5,
+              ),
+            ),
+            child: Text(label,
+                style: TextStyle(
+                    fontSize: 30,
+                    fontWeight: FontWeight.w900,
+                    color: answered ? Colors.black26 : (isO ? vqGreenDeep : vqInk))),
+          ),
+        ),
       ),
     );
   }
@@ -362,59 +407,99 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
   }
 }
 
-/// 하단 피드백 — 정답/오답 아이콘+텍스트+설명+다음 버튼 한 영역 (UX-05, FR-QUIZ-002)
+/// 하단 피드백 (UX-05, FR-QUIZ-002)
+/// 정답: 크게 '정답!' + 0.5초 자동 진행 (버튼 없음)
+/// 오답: 교정 설명 + 왜 중요한지·예시까지 보여주고 사용자가 넘어감 (버튼/스와이프)
 class _FeedbackBar extends ConsumerWidget {
   final SessionState s;
-  const _FeedbackBar({required this.s});
+  final VoidCallback onNext;
+  const _FeedbackBar({required this.s, required this.onNext});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final f = s.feedback;
+    final term = s.current?.term;
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 220),
+      duration: const Duration(milliseconds: 150),
       width: double.infinity,
-      padding: EdgeInsets.fromLTRB(20, f == null ? 0 : 16, 20, f == null ? 0 : 20),
+      padding: EdgeInsets.fromLTRB(20, f == null ? 0 : 14, 20, f == null ? 0 : 16),
       decoration: BoxDecoration(
         color: f == null
             ? Colors.transparent
-            : (f.correct ? vqCorrect.withValues(alpha: 0.1) : vqWrong.withValues(alpha: 0.08)),
+            : (f.correct ? vqCorrect.withValues(alpha: 0.12) : vqWrong.withValues(alpha: 0.09)),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: f == null
           ? const SizedBox.shrink()
-          : Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+          : f.correct
+              // ── 정답: 짧고 강하게, 0.5초 뒤 자동 진행 ──
+              ? Row(
                   children: [
-                    Icon(f.correct ? Icons.check_circle_rounded : Icons.cancel_rounded,
-                        color: f.correct ? vqCorrect : vqWrong, size: 26),
-                    const SizedBox(width: 8),
-                    Text(f.correct ? '정답!' : '괜찮아요, 곧 다시 만나요',
+                    const Icon(Icons.check_circle_rounded, color: vqCorrect, size: 32),
+                    const SizedBox(width: 10),
+                    const Text('정답!',
                         style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            color: f.correct ? vqCorrect : vqWrong)),
+                            fontSize: 24, fontWeight: FontWeight.w900, color: vqCorrect)),
                     const Spacer(),
-                    if (f.correct) ...[
-                      _GemPop(gems: f.gems),
-                    ],
+                    _GemPop(gems: f.gems),
+                  ],
+                )
+              // ── 오답: 명확한 글씨로 '아~' 하게 충분히 설명 ──
+              : Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: const [
+                        Icon(Icons.cancel_rounded, color: vqWrong, size: 30),
+                        SizedBox(width: 10),
+                        Text('오답',
+                            style: TextStyle(
+                                fontSize: 22, fontWeight: FontWeight.w900, color: vqWrong)),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxHeight: 190),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(f.explanation,
+                                style: const TextStyle(
+                                    fontSize: 16.5,
+                                    height: 1.5,
+                                    fontWeight: FontWeight.w600,
+                                    color: vqInk)),
+                            if (term != null && term.whyItMatters.isNotEmpty) ...[
+                              const SizedBox(height: 8),
+                              Text('💡 ${term.whyItMatters}',
+                                  style: const TextStyle(
+                                      fontSize: 14.5, height: 1.45, color: Colors.black87)),
+                            ],
+                            if (term != null && term.example.isNotEmpty) ...[
+                              const SizedBox(height: 6),
+                              Text('📌 ${term.example}',
+                                  style: const TextStyle(
+                                      fontSize: 14.5, height: 1.45, color: Colors.black87)),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    FilledButton(
+                      style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(56)),
+                      onPressed: onNext,
+                      child: const Text('알겠어요, 다음 →'),
+                    ),
+                    const SizedBox(height: 4),
+                    const Center(
+                      child: Text('좌우로 밀어도 넘어가요',
+                          style: TextStyle(fontSize: 11.5, color: Colors.black38)),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                Text(f.explanation,
-                    maxLines: 4,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 15, height: 1.45)),
-                const SizedBox(height: 14),
-                FilledButton(
-                  style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(56)),
-                  onPressed: () => ref.read(sessionProvider.notifier).next(),
-                  child: const Text('다음'),
-                ),
-              ],
-            ),
     );
   }
 }
