@@ -40,6 +40,8 @@ dependencies:
   drift: ^2.22.1
   drift_flutter: ^0.2.4
   path_provider: ^2.1.5
+  # 효과음
+  audioplayers: ^6.1.0
 
 dev_dependencies:
   flutter_test:
@@ -63,6 +65,7 @@ flutter:
 
   assets:
     - assets/glossary/glossary_v2.json
+    - assets/sfx/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

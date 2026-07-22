@@ -1,18 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'learning/session_controller.dart';
 import 'screens/glossary_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/learn_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/quiz_screen.dart';
 
+SessionMode _modeFrom(String? s) => switch (s) {
+      'review' => SessionMode.quickReview,
+      'new' => SessionMode.newExplore,
+      'wrong' => SessionMode.wrongFix,
+      _ => SessionMode.dailyMission,
+    };
+
 /// 하단 탭 4개: 홈 / 학습 / 용어도감 / 내 기록 (TECHSPEC §6.1)
 final router = GoRouter(
   initialLocation: '/',
   routes: [
     // 문제 화면은 전체화면 (하단 탭 없음)
-    GoRoute(path: '/quiz', builder: (c, s) => const QuizScreen()),
+    GoRoute(
+      path: '/quiz',
+      builder: (c, s) => QuizScreen(mode: _modeFrom(s.uri.queryParameters['mode'])),
+    ),
     StatefulShellRoute.indexedStack(
       builder: (context, state, shell) => _Shell(shell: shell),
       branches: [

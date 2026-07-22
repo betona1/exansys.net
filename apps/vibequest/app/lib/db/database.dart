@@ -149,15 +149,15 @@ class VqDatabase extends _$VqDatabase {
     return rows.map((r) => r.readTable(terms)).toList();
   }
 
-  /// 아직 만나지 않은 새 용어 — vibeCore·쉬운 난이도 우선 (§7.3 취지)
+  /// 아직 만나지 않은 새 용어 — **쉬운 난이도부터** (UX-02), 같은 난이도면 핵심 우선
   Future<List<Term>> freshTerms({int limit = 10}) async {
     final sub = selectOnly(termStates)..addColumns([termStates.termId]);
     final q = select(terms)
       ..where((t) =>
           t.retired.equals(false) & t.quizEnabled.equals(true) & t.id.isNotInQuery(sub))
       ..orderBy([
-        (t) => OrderingTerm.desc(t.vibeCore),
         (t) => OrderingTerm.asc(t.difficulty),
+        (t) => OrderingTerm.desc(t.vibeCore),
         (t) => OrderingTerm.asc(t.id),
       ])
       ..limit(limit);
@@ -175,4 +175,54 @@ class VqDatabase extends _$VqDatabase {
     final cur = await metaInt(k);
     await setMeta(k, '${cur + delta}');
   }
+
+  // ── V3: 오답 수리·기록 (§5.2, §11.6) ──
+
+  /// 최근 오답 용어 — 스트릭 0(직전 오답) 순으로
+  Future<List<Term>> recentWrongTerms({int limit = 5}) async {
+    final q = select(terms).join([
+      innerJoin(termStates, termStates.termId.equalsExp(terms.id)),
+    ])
+      ..where(termStates.correctStreak.equals(0) &
+          termStates.lastSeenAt.isNotNull() &
+          terms.retired.equals(false) &
+          terms.quizEnabled.equals(true))
+      ..orderBy([OrderingTerm.desc(termStates.lastSeenAt)])
+      ..limit(limit);
+    final rows = await q.get();
+    return rows.map((r) => r.readTable(terms)).toList();
+  }
+
+  /// 용어별 상태 맵 (도감 뱃지용)
+  Future<Map<String, TermState>> allStates() async {
+    final rows = await select(termStates).get();
+    return {for (final r in rows) r.termId: r};
+  }
+
+  /// 카테고리별 평균 숙련도 (학습한 용어만)
+  Future<Map<String, ({int count, double avg})>> categoryMastery() async {
+    final rows = await (select(terms).join([
+      innerJoin(termStates, termStates.termId.equalsExp(terms.id)),
+    ])
+          ..where(terms.retired.equals(false)))
+        .get();
+    final sums = <String, List<int>>{};
+    for (final r in rows) {
+      final t = r.readTable(terms);
+      final s = r.readTable(termStates);
+      sums.putIfAbsent(t.category, () => []).add(s.masteryScore);
+    }
+    return {
+      for (final e in sums.entries)
+        e.key: (count: e.value.length, avg: e.value.reduce((a, b) => a + b) / e.value.length),
+    };
+  }
+
+  /// 완료 세션 목록 (최근순)
+  Future<List<Session>> recentSessions({int limit = 60}) =>
+      (select(sessions)
+            ..where((s) => s.completed.equals(true))
+            ..orderBy([(s) => OrderingTerm.desc(s.startedAt)])
+            ..limit(limit))
+          .get();
 }

@@ -38,16 +38,33 @@ class GlossaryScreen extends ConsumerWidget {
               ),
             ),
           ),
+          // 필터 칩 (§11.5)
+          SizedBox(
+            height: 44,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              children: [
+                _filterChip(ref, GlossaryFilter.all, '전체'),
+                _filterChip(ref, GlossaryFilter.notStarted, '학습 전'),
+                _filterChip(ref, GlossaryFilter.learning, '학습 중'),
+                _filterChip(ref, GlossaryFilter.mastered, '숙련'),
+                _filterChip(ref, GlossaryFilter.wrong, '오답'),
+                _filterChip(ref, GlossaryFilter.core, '⭐ 핵심'),
+              ],
+            ),
+          ),
           Expanded(
             child: results.when(
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) => Center(child: Text('불러오지 못했어요: $e')),
-              data: (terms) => terms.isEmpty
+              data: (entries) => entries.isEmpty
                   ? const Center(child: Text('검색 결과가 없어요.'))
                   : ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                      itemCount: terms.length,
-                      itemBuilder: (c, i) => _TermTile(term: terms[i]),
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                      itemCount: entries.length,
+                      itemBuilder: (c, i) =>
+                          _TermTile(term: entries[i].term, state: entries[i].state),
                     ),
             ),
           ),
@@ -57,9 +74,27 @@ class GlossaryScreen extends ConsumerWidget {
   }
 }
 
+Widget _filterChip(WidgetRef ref, GlossaryFilter f, String label) {
+  final on = ref.watch(glossaryFilterProvider) == f;
+  return Padding(
+    padding: const EdgeInsets.only(right: 8),
+    child: FilterChip(
+      selected: on,
+      showCheckmark: false,
+      label: Text(label),
+      selectedColor: vqGreen,
+      labelStyle: TextStyle(
+          color: on ? Colors.white : vqInk, fontWeight: FontWeight.w600, fontSize: 13),
+      backgroundColor: vqCard,
+      onSelected: (_) => ref.read(glossaryFilterProvider.notifier).state = f,
+    ),
+  );
+}
+
 class _TermTile extends StatelessWidget {
   final Term term;
-  const _TermTile({required this.term});
+  final TermState? state;
+  const _TermTile({required this.term, this.state});
 
   @override
   Widget build(BuildContext context) {
@@ -89,10 +124,30 @@ class _TermTile extends StatelessWidget {
         ),
         subtitle: Text('${term.termEn} · ${term.category}',
             overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12.5)),
-        trailing: _diffBadge(term.difficulty),
+        trailing: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            _masteryBadge(),
+            const SizedBox(height: 2),
+            _diffBadge(term.difficulty),
+          ],
+        ),
         onTap: () => _showDetail(context, term),
       ),
     );
+  }
+
+  /// 숙련도 뱃지 — 학습 전/중/숙련/오답
+  Widget _masteryBadge() {
+    final (String label, Color color) = switch (state) {
+      null => ('🌫 학습 전', Colors.black38),
+      final s when s.state == 'MASTERED' => ('🏅 숙련', vqCorrect),
+      final s when s.correctStreak == 0 => ('🔧 오답', vqWrong),
+      _ => ('🌱 학습 중', vqGreen),
+    };
+    return Text(label,
+        style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: color));
   }
 
   Widget _diffBadge(int d) {

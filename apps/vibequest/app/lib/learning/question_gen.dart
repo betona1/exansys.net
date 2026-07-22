@@ -47,24 +47,44 @@ class QuestionGen {
   List<Term> _confusionTerms(Term t) =>
       confusionOf(t).map((n) => _byKo[n]).whereType<Term>().where((c) => c.id != t.id).toList();
 
-  List<Term> _distractors(Term t, int count) {
+  /// 오답 선택.
+  /// [easy]=true (아직 익숙하지 않은 용어): 혼동쌍을 **배제**하고 다른 분야에서
+  /// 명백히 다른 것을 뽑는다 — 초보자에게 함정 금지 (UX-02).
+  /// [easy]=false (숙련 단계): 혼동쌍 우선 → 같은 카테고리·±1 난이도 (§8.2).
+  List<Term> _distractors(Term t, int count, {required bool easy}) {
     final picked = <String>{t.id};
     final out = <Term>[];
-    for (final c in _confusionTerms(t)) {
-      if (out.length >= count) break;
-      if (picked.add(c.id)) out.add(c);
-    }
-    if (out.length < count) {
-      final sameCat = pool
+    if (easy) {
+      final confusionNames = confusionOf(t).toSet();
+      final farAway = pool
           .where((p) =>
               !picked.contains(p.id) &&
-              p.category == t.category &&
-              (p.difficulty - t.difficulty).abs() <= 1)
+              p.category != t.category && // 다른 분야 = 명백히 구별됨
+              !confusionNames.contains(p.termKo) &&
+              p.difficulty <= 2)
           .toList()
         ..shuffle(rng);
-      for (final p in sameCat) {
+      for (final p in farAway) {
         if (out.length >= count) break;
         if (picked.add(p.id)) out.add(p);
+      }
+    } else {
+      for (final c in _confusionTerms(t)) {
+        if (out.length >= count) break;
+        if (picked.add(c.id)) out.add(c);
+      }
+      if (out.length < count) {
+        final sameCat = pool
+            .where((p) =>
+                !picked.contains(p.id) &&
+                p.category == t.category &&
+                (p.difficulty - t.difficulty).abs() <= 1)
+            .toList()
+          ..shuffle(rng);
+        for (final p in sameCat) {
+          if (out.length >= count) break;
+          if (picked.add(p.id)) out.add(p);
+        }
       }
     }
     if (out.length < count) {
@@ -77,14 +97,25 @@ class QuestionGen {
     return out;
   }
 
-  QuizQuestion build(Term t, QType type, {required bool isReview}) => switch (type) {
-        QType.ox => _ox(t, isReview),
-        _ => _mcq4(t, isReview),
+  QuizQuestion build(Term t, QType type, {required bool isReview, bool easy = true}) =>
+      switch (type) {
+        QType.ox => _ox(t, isReview, easy),
+        QType.shortText => _short(t, isReview),
+        _ => _mcq4(t, isReview, easy),
       };
 
-  /// O/X: 절반은 자기 정의(O), 절반은 혼동 용어의 정의(X) (§8.1)
-  QuizQuestion _ox(Term t, bool isReview) {
-    final useTrue = rng.nextBool();
+  /// 주관식: 정의를 보고 용어를 직접 인출 (§8.3)
+  QuizQuestion _short(Term t, bool isReview) => QuizQuestion(
+        term: t,
+        type: QType.shortText,
+        prompt: t.def,
+        explanation: '${t.termKo} (${t.termEn})\n${t.def}',
+        isReview: isReview,
+      );
+
+  /// O/X (§8.1). easy: O 비중 60% + X 문장은 다른 분야의 명백히 틀린 정의.
+  QuizQuestion _ox(Term t, bool isReview, bool easy) {
+    final useTrue = easy ? rng.nextInt(5) < 3 : rng.nextBool();
     if (useTrue) {
       return QuizQuestion(
         term: t,
@@ -95,7 +126,7 @@ class QuestionGen {
         isReview: isReview,
       );
     }
-    final d = _distractors(t, 1).first;
+    final d = _distractors(t, 1, easy: easy).first;
     return QuizQuestion(
       term: t,
       type: QType.ox,
@@ -107,8 +138,8 @@ class QuestionGen {
   }
 
   /// 4지선다: 용어→정의 / 정의→용어 랜덤 (§8.2 변형)
-  QuizQuestion _mcq4(Term t, bool isReview) {
-    final ds = _distractors(t, 3);
+  QuizQuestion _mcq4(Term t, bool isReview, bool easy) {
+    final ds = _distractors(t, 3, easy: easy);
     final termToDef = rng.nextBool();
     final correct = termToDef ? t.def : t.termKo;
     final options = [correct, ...ds.map((d) => termToDef ? d.def : d.termKo)]..shuffle(rng);

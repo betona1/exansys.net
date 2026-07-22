@@ -7,29 +7,77 @@ import '../learning/mastery.dart';
 import '../learning/question_gen.dart';
 import '../learning/session_controller.dart';
 import '../providers.dart';
+import '../sfx.dart';
 import '../theme.dart';
 
 /// 문제 화면 (§11.3) + 세션 결과 (§11.4)
 class QuizScreen extends ConsumerStatefulWidget {
-  const QuizScreen({super.key});
+  final SessionMode mode;
+  const QuizScreen({super.key, this.mode = SessionMode.dailyMission});
 
   @override
   ConsumerState<QuizScreen> createState() => _QuizScreenState();
 }
 
 class _QuizScreenState extends ConsumerState<QuizScreen> {
+  final _shortCtrl = TextEditingController();
+  List<String> _suggestions = [];
+
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => ref.read(sessionProvider.notifier).start());
+    Future.microtask(() => ref.read(sessionProvider.notifier).start(mode: widget.mode));
+  }
+
+  @override
+  void dispose() {
+    _shortCtrl.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    // 효과음 — 정답/오답/콤보/완료 (UX-06: 음소거 가능)
+    ref.listen(sessionProvider, (prev, next) {
+      if (prev?.feedback == null && next.feedback != null) {
+        if (next.feedback!.correct) {
+          next.combo >= 3 ? Sfx.combo() : Sfx.correct();
+          if (next.feedback!.gems > 0) {
+            Future.delayed(const Duration(milliseconds: 260), Sfx.gem);
+          }
+        } else {
+          Sfx.wrong();
+        }
+      }
+      if (prev?.finished == false && next.finished) Sfx.complete();
+    });
+
     final s = ref.watch(sessionProvider);
 
     if (s.loading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    if (s.empty) {
+      return Scaffold(
+        body: SafeArea(
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('🎉', style: TextStyle(fontSize: 56)),
+                const SizedBox(height: 12),
+                const Text('지금은 풀 문제가 없어요!',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+                const SizedBox(height: 6),
+                const Text('복습이나 오답이 쌓이면 다시 열려요.',
+                    style: TextStyle(color: Colors.black54)),
+                const SizedBox(height: 20),
+                FilledButton(onPressed: () => context.pop(), child: const Text('돌아가기')),
+              ],
+            ),
+          ),
+        ),
+      );
     }
     if (s.finished) return _ResultView(s: s);
 
@@ -103,16 +151,44 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
                     Expanded(
                       child: Center(
                         child: SingleChildScrollView(
-                          child: Text(
-                            q.type == QType.ox ? '다음 설명이 맞을까요?\n\n${q.prompt}' : q.prompt,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700, height: 1.45),
+                          child: Column(
+                            children: [
+                              Text(
+                                switch (q.type) {
+                                  QType.ox => '다음 설명이 맞을까요?\n\n${q.prompt}',
+                                  QType.shortText => '이 설명에 해당하는 용어는?\n\n${q.prompt}',
+                                  _ => q.prompt,
+                                },
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                    fontSize: 22, fontWeight: FontWeight.w700, height: 1.45),
+                              ),
+                              // 공개된 힌트 (§8.3)
+                              for (final h in s.hints)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 10),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      color: vqLime.withValues(alpha: 0.3),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text('💡 $h',
+                                        style: const TextStyle(
+                                            fontSize: 14, fontWeight: FontWeight.w600)),
+                                  ),
+                                ),
+                            ],
                           ),
                         ),
                       ),
                     ),
                     // 답변 영역
-                    if (q.type == QType.ox) _oxButtons(answered) else _mcqOptions(q, s, answered),
+                    switch (q.type) {
+                      QType.ox => _oxButtons(answered),
+                      QType.shortText => _shortInput(answered),
+                      _ => _mcqOptions(q, s, answered),
+                    },
                   ],
                 ),
               ),
@@ -124,6 +200,83 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
         ),
       ),
     );
+  }
+
+  /// 주관식 입력 — 자동완성 후보 + 힌트 (§8.3)
+  Widget _shortInput(bool answered) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (_suggestions.isNotEmpty && !answered)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final sug in _suggestions)
+                  ActionChip(
+                    label: Text(sug),
+                    backgroundColor: vqCard,
+                    onPressed: () {
+                      _shortCtrl.text = sug;
+                      _submitShort();
+                    },
+                  ),
+              ],
+            ),
+          ),
+        Row(
+          children: [
+            IconButton.filledTonal(
+              onPressed: answered ? null : () => ref.read(sessionProvider.notifier).requestHint(),
+              icon: const Icon(Icons.lightbulb_outline),
+              tooltip: '힌트',
+              style: IconButton.styleFrom(minimumSize: const Size(56, 56)),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: TextField(
+                controller: _shortCtrl,
+                enabled: !answered,
+                onChanged: (v) => setState(
+                    () => _suggestions = ref.read(sessionProvider.notifier).suggest(v)),
+                onSubmitted: (_) => _submitShort(),
+                textInputAction: TextInputAction.done,
+                decoration: InputDecoration(
+                  hintText: '용어를 입력하세요',
+                  filled: true,
+                  fillColor: vqCard,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(color: Color(0xFFE7EAF0)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(color: Color(0xFFE7EAF0)),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            FilledButton(
+              onPressed: answered ? null : _submitShort,
+              style: FilledButton.styleFrom(minimumSize: const Size(72, 56)),
+              child: const Text('제출'),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  void _submitShort() {
+    if (_shortCtrl.text.trim().isEmpty) return;
+    HapticFeedback.selectionClick();
+    ref.read(sessionProvider.notifier).answer(shortInput: _shortCtrl.text);
+    _shortCtrl.clear();
+    setState(() => _suggestions = []);
   }
 
   Widget _oxButtons(bool answered) {
