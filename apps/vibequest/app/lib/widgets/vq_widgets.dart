@@ -123,6 +123,22 @@ class Bibi extends StatelessWidget {
   }
 }
 
+/// 비비 뒷모습 — 화면을 바라보며 타이핑 (인트로용)
+class BibiBack extends StatelessWidget {
+  final double size;
+  const BibiBack({super.key, this.size = 120});
+
+  @override
+  Widget build(BuildContext context) {
+    return SvgPicture.asset(
+      'assets/mascot/bibi_back.svg',
+      width: size,
+      height: size,
+      semanticsLabel: '타이핑하는 비비',
+    );
+  }
+}
+
 /// 위아래로 살랑이는 비비 (floaty 애니메이션)
 class FloatyBibi extends StatefulWidget {
   final double size;

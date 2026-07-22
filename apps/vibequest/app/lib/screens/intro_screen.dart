@@ -10,8 +10,21 @@ import '../providers.dart';
 import '../theme.dart';
 import '../widgets/vq_widgets.dart';
 
-/// 인트로 — 콘텐츠 로딩(번들 import + 웹 JSON 업데이트) 동안
-/// 비비가 열심히 바이브코딩하는 애니메이션 → 완성 컷 → 홈.
+// ── 디자인 킷 로딩 화면 팔레트 ──
+const _bgTop = Color(0xFF3A2C7A);
+const _bgMid = Color(0xFF241C55);
+const _bgBottom = Color(0xFF1A143F);
+const _term = Color(0xFF131029);
+const _termBorder = Color(0xFF2C2560);
+const _termLine = Color(0xFF241E4F);
+const _txt = Color(0xFFEDEBFF);
+const _mutedP = Color(0xFFB9B2E8);
+const _lav = Color(0xFFC9BEFF);
+const _mint = vqMint;
+
+/// 인트로 (디자인 킷 '로딩 애니메이션') — 콘텐츠 로딩 동안
+/// 비비가 claude code 터미널에서 실제 바이브코딩 시연:
+/// 프롬프트 타이핑 → API 분석 스트리밍 → 웹페이지가 짠! → 이동.
 class IntroScreen extends ConsumerStatefulWidget {
   const IntroScreen({super.key});
 
@@ -20,271 +33,487 @@ class IntroScreen extends ConsumerStatefulWidget {
 }
 
 class _IntroScreenState extends ConsumerState<IntroScreen> {
-  bool _done = false; // 코딩 끝 → 결과물 컷
-  String _status = '비비가 열심히 바이브코딩 중… 🐾';
-  Timer? _statusTimer;
-  int _statusIdx = 0;
+  Timer? _tick;
+  double _t = 0; // 연출 경과 시간(초)
+  bool _bootDone = false;
+  bool _onboarded = true;
+  bool _skipped = false;
+  bool _navigated = false;
 
-  static const _statuses = [
-    '비비가 열심히 바이브코딩 중… 🐾',
-    '최신 용어 데이터 받아오는 중… 📡',
-    'AI한테 문제 만들어 달라는 중… 🤖',
-    '보석 창고 정리하는 중… 💎',
-  ];
+  // 시나리오 타이밍(초)
+  static const _prompt = '환율 계산기 웹앱 만들어줘. 하나은행 API로 1분마다 실시간 갱신!';
+  static const _typeEnd = 2.6;
+  static const _l1 = 2.9; // ⟳ API 연결
+  static const _l2 = 3.9; // ✓ 파싱 완료
+  static const _l3 = 4.6; // ⟳ 웹페이지 빌드
+  static const _pop = 5.6; // 결과 짠!
+  static const _seqEnd = 7.2;
 
   @override
   void initState() {
     super.initState();
-    _statusTimer = Timer.periodic(const Duration(milliseconds: 1300), (_) {
-      if (!mounted || _done) return;
-      setState(() => _status = _statuses[++_statusIdx % _statuses.length]);
+    _tick = Timer.periodic(const Duration(milliseconds: 50), (_) {
+      if (!mounted) return;
+      setState(() {
+        _t += 0.05;
+        // 로딩이 길면 연출 반복 (프롬프트는 유지)
+        if (_t >= _seqEnd && !_bootDone) _t = _typeEnd;
+      });
+      _maybeGo();
     });
     _boot();
   }
 
   @override
   void dispose() {
-    _statusTimer?.cancel();
+    _tick?.cancel();
     super.dispose();
   }
 
   Future<void> _boot() async {
-    final t0 = DateTime.now();
     final db = ref.read(databaseProvider);
     final importer = ContentImporter(db);
     await importer.importIfNeeded();
-    // 웹에서 최신 용어 JSON 확인 (오프라인·느린 망이면 4초 안에 포기하고 진행)
     bool updated = false;
     try {
       updated = await importer
           .checkRemoteUpdate()
           .timeout(const Duration(seconds: 4), onTimeout: () => false);
-    } catch (_) {/* 무시 */}
+    } catch (_) {/* 오프라인 무시 */}
     if (updated) {
       ref.invalidate(glossaryResultsProvider);
       ref.invalidate(homeStatsProvider);
     }
-    // 애니메이션이 보이도록 최소 2.2초는 유지
-    final elapsed = DateTime.now().difference(t0);
-    if (elapsed < const Duration(milliseconds: 2200)) {
-      await Future.delayed(const Duration(milliseconds: 2200) - elapsed);
+    _onboarded = (await db.getMeta('onboardingDone')) == '1';
+    _bootDone = true;
+    _maybeGo();
+  }
+
+  void _maybeGo() {
+    if (_navigated || !_bootDone) return;
+    // 스킵했거나 연출이 결과 컷까지 끝났으면 이동
+    if (_skipped || _t >= _seqEnd) {
+      _navigated = true;
+      _tick?.cancel();
+      if (mounted) context.go(_onboarded ? '/' : '/onboarding');
     }
-    if (!mounted) return;
-    setState(() {
-      _done = true;
-      _status = updated ? '따끈한 새 용어 도착! ✨' : '완성! 출발하자 🐾';
-    });
-    final onboarded = (await db.getMeta('onboardingDone')) == '1';
-    await Future.delayed(const Duration(milliseconds: 900));
-    if (mounted) context.go(onboarded ? '/' : '/onboarding');
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF0B0820),
-      body: SafeArea(
-        child: Column(
-          children: [
-            const Spacer(flex: 2),
-            Text('Vibe Quest', style: jua(34, color: Colors.white)),
-            const SizedBox(height: 4),
-            const Text('AI 용어, 퀘스트로 클리어!',
-                style: TextStyle(
-                    color: Color(0xFFC9BEFF),
-                    fontWeight: FontWeight.w700,
-                    fontSize: 14)),
-            const Spacer(),
-            _CodingBibi(done: _done),
-            const Spacer(),
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 250),
-              child: Text(
-                _status,
-                key: ValueKey(_status),
-                style: const TextStyle(
-                    color: Color(0xFF9A95B8),
-                    fontWeight: FontWeight.w700,
-                    fontSize: 14),
-              ),
-            ),
-            const SizedBox(height: 14),
-            if (!_done)
-              const SizedBox(
-                width: 130,
-                child: LinearProgressIndicator(
-                  minHeight: 6,
-                  backgroundColor: Color(0xFF221B4A),
-                  valueColor: AlwaysStoppedAnimation(vqMint),
-                ),
-              )
-            else
-              const SizedBox(height: 6),
-            const Spacer(),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// 비비가 노트북 앞에서 타닥타닥 → 완성되면 화면에 ✨ 결과물 팝
-class _CodingBibi extends StatefulWidget {
-  final bool done;
-  const _CodingBibi({required this.done});
-
-  @override
-  State<_CodingBibi> createState() => _CodingBibiState();
-}
-
-class _CodingBibiState extends State<_CodingBibi> with TickerProviderStateMixin {
-  late final AnimationController _type = AnimationController(
-      vsync: this, duration: const Duration(milliseconds: 260))
-    ..repeat(reverse: true);
-  Timer? _lineTimer;
-  int _lines = 0;
-  final _rng = Random();
-  List<List<(double, Color)>> _code = [];
-
-  static const _tokenColors = [vqMint, Color(0xFFC9BEFF), vqCoral, Color(0xFFFFC93C), Color(0xFF7B9EFF)];
-
-  @override
-  void initState() {
-    super.initState();
-    _code = _genCode();
-    _lineTimer = Timer.periodic(const Duration(milliseconds: 380), (_) {
-      if (!mounted || widget.done) return;
-      setState(() {
-        _lines++;
-        if (_lines > _code.length) {
-          // 다 치면 새 파일(?)을 다시 타이핑 — 로딩이 긴 경우 반복
-          _lines = 0;
-          _code = _genCode();
-        }
-      });
-    });
-  }
-
-  List<List<(double, Color)>> _genCode() => List.generate(6, (i) {
-        final n = 2 + _rng.nextInt(3);
-        return List.generate(
-            n, (_) => (18.0 + _rng.nextInt(46), _tokenColors[_rng.nextInt(_tokenColors.length)]));
-      });
-
-  @override
-  void dispose() {
-    _type.dispose();
-    _lineTimer?.cancel();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final reduce = MediaQuery.of(context).disableAnimations;
-    return Column(
-      children: [
-        // 노트북 화면 — 코드 타이핑 / 완성 컷
-        Container(
-          width: 240,
-          height: 150,
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: const Color(0xFF16113A),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-            border: Border.all(color: const Color(0xFF2B2360), width: 3),
-          ),
-          child: widget.done ? _resultCut() : _codeScreen(),
-        ),
-        // 노트북 하판(키보드)
-        Container(
-          width: 280,
-          height: 16,
-          decoration: BoxDecoration(
-            color: const Color(0xFF2B2360),
-            borderRadius: BorderRadius.circular(8),
+    return Scaffold(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: RadialGradient(
+            center: Alignment(0, -0.55),
+            radius: 1.3,
+            colors: [_bgTop, _bgMid, _bgBottom],
+            stops: [0, 0.58, 1],
           ),
         ),
-        const SizedBox(height: 12),
-        // 비비 — 타닥타닥 (빠른 바운스), 완성되면 살랑
-        reduce
-            ? const Bibi(size: 110)
-            : AnimatedBuilder(
-                animation: _type,
-                builder: (c, child) => Transform.translate(
-                  offset: Offset(0, widget.done ? -4 * _type.value : -3 * _type.value),
-                  child: Transform.rotate(
-                    angle: widget.done ? 0 : (_type.value - 0.5) * 0.05,
-                    child: child,
-                  ),
-                ),
-                child: const Bibi(size: 110),
-              ),
-      ],
-    );
-  }
-
-  /// 타이핑되는 코드 라인 (색 토큰 바) + 깜빡이는 커서
-  Widget _codeScreen() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        for (var i = 0; i < _lines.clamp(0, _code.length); i++)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 7),
-            child: Row(
-              children: [
-                for (final (w, color) in _code[i])
-                  Container(
-                    width: w,
-                    height: 8,
-                    margin: const EdgeInsets.only(right: 5),
-                    decoration: BoxDecoration(
-                        color: color.withValues(alpha: 0.85),
-                        borderRadius: BorderRadius.circular(3)),
-                  ),
-              ],
-            ),
-          ),
-        // 커서
-        AnimatedBuilder(
-          animation: _type,
-          builder: (c, _) => Opacity(
-            opacity: _type.value > 0.5 ? 1 : 0.15,
-            child: Container(width: 8, height: 12, color: vqMint),
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// 완성 컷 — 만들어진 앱 창이 뿅!
-  Widget _resultCut() {
-    return Center(
-      child: TweenAnimationBuilder<double>(
-        tween: Tween(begin: 0.5, end: 1),
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeOutBack,
-        builder: (c, v, child) =>
-            Transform.scale(scale: v, child: Opacity(opacity: v.clamp(0, 1), child: child)),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
-          ),
+        child: SafeArea(
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('✨', style: TextStyle(fontSize: 26)),
+              const Spacer(),
+              Text('Vibe Quest', style: jua(24, color: Colors.white)),
               const SizedBox(height: 2),
-              Text('앱 완성!', style: jua(16, color: vqInk)),
-              const Text('vibe check ✓',
+              const Text('오늘의 퀘스트를 준비하고 있어',
                   style: TextStyle(
-                      fontSize: 11, fontWeight: FontWeight.w700, color: vqMintDark)),
+                      color: _mutedP, fontWeight: FontWeight.w700, fontSize: 13)),
+              const SizedBox(height: 10),
+              _LaptopScene(t: _t, reduce: reduce),
+              const SizedBox(height: 12),
+              // 진행바 (민트→퍼플)
+              SizedBox(
+                width: 284,
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: const [
+                        Text('데이터 불러오는 중…',
+                            style: TextStyle(
+                                color: _lav,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 12)),
+                        Text('Claude Code',
+                            style: TextStyle(
+                                color: Color(0xFF8FE3C6),
+                                fontWeight: FontWeight.w800,
+                                fontSize: 12)),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(999),
+                      child: Stack(
+                        children: [
+                          Container(height: 10, color: Colors.white.withValues(alpha: 0.14)),
+                          FractionallySizedBox(
+                            widthFactor:
+                                _bootDone ? 1 : (0.08 + 0.86 * ((_t / _seqEnd).clamp(0, 1))),
+                            child: Container(
+                              height: 10,
+                              decoration: const BoxDecoration(
+                                gradient:
+                                    LinearGradient(colors: [_mint, Color(0xFF7B5CFF)]),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _Dots(t: _t),
+                  ],
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  _skipped = true;
+                  _maybeGo();
+                },
+                child: const Text('바로 시작하기 →',
+                    style: TextStyle(
+                        color: Color(0xFF8983B8),
+                        fontWeight: FontWeight.w800,
+                        fontSize: 13)),
+              ),
+              const Spacer(),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+/// 노트북 + 비비 장면 — 터미널에서 바이브코딩 시연
+class _LaptopScene extends StatelessWidget {
+  final double t;
+  final bool reduce;
+  const _LaptopScene({required this.t, required this.reduce});
+
+  @override
+  Widget build(BuildContext context) {
+    final bob = reduce ? 0.0 : sin(t * 2 * pi / 0.5) * 1.6; // 타이핑 리듬으로 들썩
+    final pawL = reduce ? 0.0 : (sin(t * 2 * pi / 0.5) * 3).clamp(-3, 0).toDouble();
+    final pawR = reduce ? 0.0 : (sin(t * 2 * pi / 0.5 + pi) * 3).clamp(-3, 0).toDouble();
+    return SizedBox(
+      width: 310,
+      height: 300,
+      child: Stack(
+        alignment: Alignment.topCenter,
+        clipBehavior: Clip.none,
+        children: [
+          // 터미널 화면 (위)
+          Positioned(
+            top: 0,
+            child: Container(
+              width: 272,
+              height: 158,
+              padding: const EdgeInsets.fromLTRB(13, 10, 13, 10),
+              decoration: BoxDecoration(
+                color: _term,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: _termBorder, width: 3),
+                boxShadow: [
+                  BoxShadow(
+                      color: const Color(0xFF12D8A0)
+                          .withValues(alpha: reduce ? 0.1 : 0.10 + 0.08 * sin(t * 2.6)),
+                      blurRadius: 26,
+                      spreadRadius: 2),
+                ],
+              ),
+              child: _TerminalContent(t: t),
+            ),
+          ),
+          // 키보드 하판
+          Positioned(
+            top: 162,
+            child: Container(
+              width: 306,
+              height: 22,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Color(0xFF3A3178), Color(0xFF26205C)]),
+                borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(7), bottom: Radius.circular(13)),
+                boxShadow: [
+                  BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.6),
+                      blurRadius: 22,
+                      offset: const Offset(0, 12)),
+                ],
+              ),
+            ),
+          ),
+          // 타이핑하는 앞발 (키보드 위, 몸 옆으로 보이게)
+          Positioned(
+            top: 160 + pawL,
+            left: 310 / 2 - 72,
+            child: _paw(),
+          ),
+          Positioned(
+            top: 160 + pawR,
+            left: 310 / 2 + 44,
+            child: _paw(),
+          ),
+          // 화면을 바라보는 비비 뒷모습 (맨 앞)
+          Positioned(
+            top: 128 + bob,
+            child: const BibiBack(size: 168),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _paw() => Container(
+        width: 28,
+        height: 15,
+        decoration: BoxDecoration(
+          color: const Color(0xFFB7C2D6),
+          borderRadius: BorderRadius.circular(10),
+        ),
+      );
+}
+
+/// 터미널 내용 — 프롬프트 타이핑 → 분석 스트리밍 → 웹페이지 짠!
+class _TerminalContent extends StatelessWidget {
+  final double t;
+  const _TerminalContent({required this.t});
+
+  static const _mono = TextStyle(
+    fontFamily: 'monospace',
+    fontSize: 11.5,
+    height: 1.35,
+    color: _mutedP,
+    fontWeight: FontWeight.w600,
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    final typedCount =
+        ((t / _IntroScreenState._typeEnd) * _IntroScreenState._prompt.length)
+            .clamp(0, _IntroScreenState._prompt.length)
+            .toInt();
+    final caretOn = (t * 2.5).floor() % 2 == 0;
+    final showResult = t >= _IntroScreenState._pop;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 타이틀 바 (신호등 + claude code)
+        Row(
+          children: [
+            _dot(const Color(0xFFFF5B6E)),
+            const SizedBox(width: 6),
+            _dot(const Color(0xFFFFC93C)),
+            const SizedBox(width: 6),
+            _dot(_mint),
+            const Spacer(),
+            const Text('claude code',
+                style: TextStyle(
+                    color: Color(0xFF6E67A8),
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w700,
+                    fontFamily: 'monospace')),
+          ],
+        ),
+        Container(
+            height: 1, color: _termLine, margin: const EdgeInsets.symmetric(vertical: 7)),
+        Expanded(
+          child: showResult
+              ? _ResultWebPage(t: t)
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ❯ 프롬프트 타이핑
+                    RichText(
+                      maxLines: 2,
+                      text: TextSpan(
+                        style: _mono.copyWith(color: _txt),
+                        children: [
+                          const TextSpan(
+                              text: '❯ ',
+                              style: TextStyle(
+                                  color: _mint, fontWeight: FontWeight.w800)),
+                          TextSpan(
+                              text: _IntroScreenState._prompt
+                                  .substring(0, typedCount)),
+                          if (caretOn)
+                            const TextSpan(
+                                text: '▏', style: TextStyle(color: _mint)),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    if (t >= _IntroScreenState._l1)
+                      _line(
+                        spinner: t < _IntroScreenState._l2,
+                        text: '하나은행 환율 API 연결 중…',
+                        done: t >= _IntroScreenState._l2,
+                      ),
+                    if (t >= _IntroScreenState._l2)
+                      _line(spinner: false, text: '실시간 데이터 파싱 완료', done: true),
+                    if (t >= _IntroScreenState._l3)
+                      _line(
+                        spinner: t < _IntroScreenState._pop,
+                        text: '웹페이지 빌드 중…',
+                        done: t >= _IntroScreenState._pop,
+                      ),
+                  ],
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _dot(Color c) =>
+      Container(width: 9, height: 9, decoration: BoxDecoration(color: c, shape: BoxShape.circle));
+
+  Widget _line({required bool spinner, required String text, required bool done}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        children: [
+          if (spinner)
+            const SizedBox(
+              width: 11,
+              height: 11,
+              child: CircularProgressIndicator(
+                  strokeWidth: 2, color: _mint, backgroundColor: Color(0xFF4A3E9E)),
+            )
+          else
+            const Text('✓',
+                style: TextStyle(
+                    color: _mint, fontWeight: FontWeight.w800, fontSize: 12)),
+          const SizedBox(width: 7),
+          Expanded(child: Text(text, style: _mono, maxLines: 1, overflow: TextOverflow.ellipsis)),
+        ],
+      ),
+    );
+  }
+}
+
+/// 완성된 환율 계산기 웹페이지 — 짠! (popin)
+class _ResultWebPage extends StatelessWidget {
+  final double t;
+  const _ResultWebPage({required this.t});
+
+  @override
+  Widget build(BuildContext context) {
+    final p = ((t - _IntroScreenState._pop) / 0.45).clamp(0.0, 1.0);
+    final scale = Curves.easeOutBack.transform(p);
+    return Center(
+      child: Transform.scale(
+        scale: 0.6 + 0.4 * scale,
+        child: Opacity(
+          opacity: p,
+          child: Container(
+            width: 200,
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                        width: 6,
+                        height: 6,
+                        decoration: const BoxDecoration(
+                            color: Color(0xFFE7E2FF), shape: BoxShape.circle)),
+                    const SizedBox(width: 4),
+                    Container(
+                        width: 6,
+                        height: 6,
+                        decoration: const BoxDecoration(
+                            color: Color(0xFFE7E2FF), shape: BoxShape.circle)),
+                    const SizedBox(width: 6),
+                    const Text('💱 환율 계산기',
+                        style: TextStyle(
+                            fontSize: 10, fontWeight: FontWeight.w800, color: vqInk)),
+                    const Spacer(),
+                    const Text('LIVE',
+                        style: TextStyle(
+                            fontSize: 8,
+                            fontWeight: FontWeight.w900,
+                            color: vqCoral)),
+                  ],
+                ),
+                const SizedBox(height: 7),
+                const Text('1 USD = 1,383.20원',
+                    style: TextStyle(
+                        fontSize: 15, fontWeight: FontWeight.w900, color: vqInk)),
+                const Text('▲ 2.4  ·  1분마다 자동 갱신',
+                    style: TextStyle(
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w700,
+                        color: vqMintDark)),
+                const SizedBox(height: 7),
+                Row(
+                  children: [
+                    for (final h in const [14.0, 20.0, 11.0, 24.0, 17.0, 28.0])
+                      Padding(
+                        padding: const EdgeInsets.only(right: 4),
+                        child: Container(
+                          width: 12,
+                          height: h,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF7B5CFF)
+                                .withValues(alpha: 0.25 + h / 40),
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                const Text('✓ 완성! 배포까지 끝났어 🎉',
+                    style: TextStyle(
+                        fontSize: 9.5, fontWeight: FontWeight.w800, color: vqMintDark)),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 점 3개 페이드
+class _Dots extends StatelessWidget {
+  final double t;
+  const _Dots({required this.t});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        for (var i = 0; i < 3; i++)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 3),
+            child: Opacity(
+              opacity: 0.35 + 0.65 * ((sin(t * 2 * pi / 1.2 - i * 0.9) + 1) / 2),
+              child: Container(
+                width: 7,
+                height: 7,
+                decoration:
+                    const BoxDecoration(color: _lav, shape: BoxShape.circle),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }
