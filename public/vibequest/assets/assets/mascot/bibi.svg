@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 216">
+  <!-- 비비 (A안) — 러시안 블루 · 민트 스카프 · 초록 눈 -->
+  <path d="M50 98 L38 46 L94 76 Z" fill="#6E80A6"/>
+  <path d="M150 98 L162 46 L106 76 Z" fill="#6E80A6"/>
+  <path d="M57 90 L49 58 L84 76 Z" fill="#F4C4D0"/>
+  <path d="M143 90 L151 58 L116 76 Z" fill="#F4C4D0"/>
+  <ellipse cx="100" cy="120" rx="67" ry="60" fill="#8FA0BE"/>
+  <ellipse cx="100" cy="143" rx="35" ry="25" fill="#E7ECF5" opacity=".55"/>
+  <circle cx="61" cy="136" r="11" fill="#FF9FB5" opacity=".55"/>
+  <circle cx="139" cy="136" r="11" fill="#FF9FB5" opacity=".55"/>
+  <ellipse cx="76" cy="118" rx="13" ry="16.5" fill="#79DE5A"/>
+  <ellipse cx="124" cy="118" rx="13" ry="16.5" fill="#79DE5A"/>
+  <ellipse cx="76" cy="120" rx="8.4" ry="12.6" fill="#221B33"/>
+  <ellipse cx="124" cy="120" rx="8.4" ry="12.6" fill="#221B33"/>
+  <circle cx="79.5" cy="114" r="3.4" fill="#fff"/>
+  <circle cx="127.5" cy="114" r="3.4" fill="#fff"/>
+  <path d="M100 134 l-6 5 h12 z" fill="#F0819A"/>
+  <path d="M100 139 q-8 8 -15 2 M100 139 q8 8 15 2" stroke="#5B4A63" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M39 124 q16 -3 27 2 M37 136 q18 -1 29 4 M161 124 q-16 -3 -27 2 M163 136 q-18 -1 -29 4" stroke="#C3CDDE" stroke-width="2.3" fill="none" stroke-linecap="round" opacity=".85"/>
+  <path d="M55 174 q45 27 90 0 l0 13 q-45 25 -90 0 z" fill="#12D8A0"/>
+  <path d="M121 180 l19 24 -12 4 -12 -20 z" fill="#12D8A0"/>
+</svg>

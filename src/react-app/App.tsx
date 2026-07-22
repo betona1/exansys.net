@@ -28,6 +28,17 @@ export default function App() {
   const techdexHost =
     typeof window !== "undefined" && /^techdex\./i.test(window.location.hostname);
 
+  // vibequest.exansys.net → Flutter 웹 PWA(/vibequest/)로 이동
+  useEffect(() => {
+    if (
+      typeof window !== "undefined" &&
+      /^vibequest\./i.test(window.location.hostname) &&
+      !window.location.pathname.startsWith("/vibequest/")
+    ) {
+      window.location.replace("/vibequest/");
+    }
+  }, []);
+
   useEffect(() => {
     if (visitTracked) return;
     visitTracked = true;

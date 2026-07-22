@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <!-- 비비 뒷모습 — 화면을 바라보며 타이핑하는 뒤통수 -->
+  <!-- 꼬리 (오른쪽으로 살랑) -->
+  <path d="M138 168 q42 6 44 -34 q1 -18 -12 -24 q14 12 6 26 q-8 16 -40 20 z" fill="#6E80A6"/>
+  <!-- 귀 (뒤에서 본 모습 — 안쪽은 어둡게) -->
+  <path d="M52 78 L40 28 L96 58 Z" fill="#8FA0BE"/>
+  <path d="M148 78 L160 28 L104 58 Z" fill="#8FA0BE"/>
+  <path d="M58 70 L50 40 L85 58 Z" fill="#5F719A"/>
+  <path d="M142 70 L150 40 L115 58 Z" fill="#5F719A"/>
+  <!-- 뒤통수 -->
+  <ellipse cx="100" cy="100" rx="64" ry="57" fill="#8FA0BE"/>
+  <!-- 정수리 하이라이트 -->
+  <ellipse cx="88" cy="76" rx="34" ry="22" fill="#9DACC7" opacity=".55"/>
+  <!-- 어깨·몸통 -->
+  <ellipse cx="100" cy="182" rx="74" ry="46" fill="#8FA0BE"/>
+  <ellipse cx="100" cy="186" rx="74" ry="42" fill="#7E90B0" opacity=".35"/>
+  <!-- 스카프 (뒤에서 본 매듭) -->
+  <path d="M42 142 q58 26 116 0 l0 15 q-58 24 -116 0 z" fill="#12D8A0"/>
+  <path d="M96 152 l-9 30 q9 5 18 0 l-9 -30 z" fill="#0FB88A"/>
+  <circle cx="100" cy="153" r="8" fill="#12D8A0"/>
+</svg>
