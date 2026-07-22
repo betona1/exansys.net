@@ -35,6 +35,7 @@ class IntroScreen extends ConsumerStatefulWidget {
 class _IntroScreenState extends ConsumerState<IntroScreen> {
   Timer? _tick;
   double _t = 0; // 연출 경과 시간(초)
+  final DateTime _startedAt = DateTime.now(); // 벽시계 (백그라운드 탭 타이머 제한 대비)
   bool _bootDone = false;
   bool _onboarded = true;
   bool _skipped = false;
@@ -110,8 +111,9 @@ class _IntroScreenState extends ConsumerState<IntroScreen> {
 
   void _maybeGo() {
     if (_navigated || !_bootDone) return;
-    // 스킵했거나 연출이 결과 컷까지 끝났으면 이동
-    if (_skipped || _t >= _seqEnd) {
+    // 스킵 / 연출 완료 / 벽시계 10초 초과(백그라운드 탭 등 타이머 제한 환경) 시 이동
+    final wall = DateTime.now().difference(_startedAt).inSeconds;
+    if (_skipped || _t >= _seqEnd || wall >= 10) {
       _navigated = true;
       _tick?.cancel();
       if (mounted) context.go(_onboarded ? '/' : '/onboarding');
