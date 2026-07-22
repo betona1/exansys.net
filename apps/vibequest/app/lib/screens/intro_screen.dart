@@ -448,13 +448,16 @@ class _ResultWebPage extends StatelessWidget {
     final p = ((t - _IntroScreenState._pop) / 0.45).clamp(0.0, 1.0);
     final scale = Curves.easeOutBack.transform(p);
     return Center(
-      child: Transform.scale(
+      // 터미널 높이 안에 항상 들어가게 (완성 문구 잘림 방지)
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Transform.scale(
         scale: 0.6 + 0.4 * scale,
         child: Opacity(
           opacity: p,
           child: Container(
             width: 200,
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(9),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
@@ -500,7 +503,7 @@ class _ResultWebPage extends StatelessWidget {
                 const SizedBox(height: 7),
                 Row(
                   children: [
-                    for (final h in const [14.0, 20.0, 11.0, 24.0, 17.0, 28.0])
+                    for (final h in const [10.0, 15.0, 8.0, 18.0, 13.0, 21.0])
                       Padding(
                         padding: const EdgeInsets.only(right: 4),
                         child: Container(
@@ -522,6 +525,7 @@ class _ResultWebPage extends StatelessWidget {
               ],
             ),
           ),
+        ),
         ),
       ),
     );
