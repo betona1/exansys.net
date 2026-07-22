@@ -77,22 +77,33 @@ class _IntroScreenState extends ConsumerState<IntroScreen> {
     // 전체 부팅에 상한을 두고, 초과하면 일단 진행(임포트는 백그라운드에서 계속됨)
     try {
       await Future(() async {
+        // ignore: avoid_print
+        print('[VQ] boot: import 시작');
         await importer.importIfNeeded();
+        // ignore: avoid_print
+        print('[VQ] boot: import 완료');
         final updated = await importer
             .checkRemoteUpdate()
             .timeout(const Duration(seconds: 4), onTimeout: () => false);
+        // ignore: avoid_print
+        print('[VQ] boot: remote=$updated');
         if (updated) {
           ref.invalidate(glossaryResultsProvider);
           ref.invalidate(homeStatsProvider);
         }
       }).timeout(const Duration(seconds: 25));
-    } catch (_) {/* 타임아웃·오프라인 무시 */}
+    } catch (e) {
+      // ignore: avoid_print
+        print('[VQ] boot: 예외/타임아웃 $e');
+    }
     try {
       final v = await db
           .getMeta('onboardingDone')
           .timeout(const Duration(seconds: 3), onTimeout: () => null);
       _onboarded = v == '1';
     } catch (_) {/* 무시 */}
+    // ignore: avoid_print
+        print('[VQ] boot: 완료, onboarded=$_onboarded');
     _bootDone = true;
     _maybeGo();
   }
