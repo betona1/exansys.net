@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
+import '../net/vq_api.dart';
 import 'database.dart';
 
 /// 번들 콘텐츠 버전 — glossary 교체 시 올린다.
@@ -19,10 +20,28 @@ class ContentImporter {
   Future<bool> importIfNeeded() async {
     final current = int.tryParse(await db.getMeta(_kMetaKey) ?? '') ?? 0;
     if (current >= kBundledContentVersion) return false;
-
     final raw = await rootBundle.loadString(_kAssetPath);
     final list = (jsonDecode(raw) as List).cast<Map<String, dynamic>>();
+    await _importList(list, kBundledContentVersion);
+    return true;
+  }
 
+  /// 서버에서 새 버전이 있으면 받아서 반영 (오프라인이면 조용히 통과 — §15.3).
+  /// 관리자가 웹에서 용어를 고치면 contentVersion이 올라가고 여기서 받아간다.
+  Future<bool> checkRemoteUpdate() async {
+    final local = int.tryParse(await db.getMeta(_kMetaKey) ?? '') ?? kBundledContentVersion;
+    final meta = await VqApi.contentMeta();
+    if (meta == null) return false;
+    final remote = (meta['contentVersion'] as num?)?.toInt() ?? 0;
+    if (remote <= local) return false;
+    final list = await VqApi.fetchGlossary();
+    // 검증 실패 시 기존 콘텐츠 유지 (§15.3)
+    if (list == null || list.length < 100) return false;
+    await _importList(list, remote);
+    return true;
+  }
+
+  Future<void> _importList(List<Map<String, dynamic>> list, int version) async {
     await db.transaction(() async {
       final bundledIds = <String>{};
       await db.batch((b) {
@@ -55,7 +74,7 @@ class ContentImporter {
         }
       });
 
-      // 번들에서 빠진 기존 용어는 삭제하지 않고 은퇴 처리 (§15.3)
+      // 목록에서 빠진 기존 용어는 삭제하지 않고 은퇴 처리 (§15.3)
       final existing = await db.select(db.terms).get();
       for (final row in existing) {
         if (!bundledIds.contains(row.id) && !row.retired) {
@@ -64,8 +83,7 @@ class ContentImporter {
         }
       }
 
-      await db.setMeta(_kMetaKey, '$kBundledContentVersion');
+      await db.setMeta(_kMetaKey, '$version');
     });
-    return true;
   }
 }

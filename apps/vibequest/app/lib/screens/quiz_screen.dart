@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../learning/mastery.dart';
 import '../learning/question_gen.dart';
 import '../learning/session_controller.dart';
+import '../net/vq_api.dart';
 import '../providers.dart';
 import '../sfx.dart';
 import '../theme.dart';
@@ -143,6 +144,16 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
                         Text('💎${s.gems}',
                             style: const TextStyle(
                                 fontWeight: FontWeight.w800, fontSize: 15, color: vqPurple)),
+                        const SizedBox(width: 4),
+                        // 문제 신고 — 이전 문제 다시보기 포함
+                        InkWell(
+                          borderRadius: BorderRadius.circular(10),
+                          onTap: () => _openReportSheet(s),
+                          child: const Padding(
+                            padding: EdgeInsets.all(6),
+                            child: Text('🚩', style: TextStyle(fontSize: 16)),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -530,6 +541,198 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
     ref.read(sessionProvider.notifier).answer(shortInput: _shortCtrl.text);
     _shortCtrl.clear();
     setState(() => _suggestions = []);
+  }
+
+  // ── 🚩 문제 신고 — 현재 문제 + 방금 푼 문제(다시보기) ──
+  void _openReportSheet(SessionState s) {
+    final current = s.current;
+    final prev = s.history.isNotEmpty ? s.history.last : null;
+    final showPrev = prev != null && prev.term.id != current?.term.id;
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: vqBg,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
+      ),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.fromLTRB(22, 20, 22, 28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Bibi(size: 44),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('이상한 문제 발견? 🚩', style: jua(20)),
+                      const Text('비비가 개발자한테 대신 전해줄게! 🐾',
+                          style: TextStyle(
+                              color: vqMutedText,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 13)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            if (current != null)
+              _reportTarget(ctx, '지금 이 문제', current),
+            if (showPrev) ...[
+              const SizedBox(height: 10),
+              _reportTarget(ctx, '↩ 방금 푼 문제', prev),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _reportTarget(BuildContext sheetCtx, String label, QuizQuestion q) {
+    return Container(
+      decoration: BoxDecoration(
+        color: vqCard,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: vqBorder, width: 1.5),
+      ),
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label,
+              style: const TextStyle(
+                  color: vqPurple, fontWeight: FontWeight.w800, fontSize: 12)),
+          const SizedBox(height: 4),
+          Text('${q.term.termKo} — ${q.prompt}',
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, height: 1.4)),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: Vq3dButton(
+              label: '🚩 이 문제 신고하기',
+              height: 46,
+              fontSize: 14,
+              color: vqCoral,
+              shadowColor: const Color(0xFFD9414F),
+              onPressed: () {
+                Navigator.pop(sheetCtx);
+                _openReasonSheet(q);
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openReasonSheet(QuizQuestion q) {
+    String reason = 'wrong_answer';
+    final detailCtrl = TextEditingController();
+    bool sending = false;
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: vqBg,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheet) => Padding(
+          padding: EdgeInsets.fromLTRB(22, 20, 22, 24 + MediaQuery.of(ctx).viewInsets.bottom),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('어디가 이상했어? 🤔', style: jua(20)),
+              const SizedBox(height: 4),
+              Text('「${q.term.termKo}」 문제를 신고할게!',
+                  style: const TextStyle(
+                      color: vqMutedText, fontWeight: FontWeight.w700, fontSize: 13.5)),
+              const SizedBox(height: 14),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final (code, label) in const [
+                    ('wrong_answer', '😵 정답이 틀린 것 같아'),
+                    ('typo', '✏️ 오타가 있어'),
+                    ('bad_explanation', '🤔 설명이 이상해'),
+                    ('other', '💬 기타'),
+                  ])
+                    ChoiceChip(
+                      selected: reason == code,
+                      label: Text(label),
+                      selectedColor: vqPurple,
+                      backgroundColor: vqCard,
+                      labelStyle: TextStyle(
+                          color: reason == code ? Colors.white : vqInk,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13.5),
+                      showCheckmark: false,
+                      onSelected: (_) => setSheet(() => reason = code),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: detailCtrl,
+                maxLength: 300,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  hintText: '자세히 알려주면 고치는 데 큰 도움이 돼! (선택)',
+                  hintStyle: const TextStyle(
+                      color: vqMuted2, fontWeight: FontWeight.w600, fontSize: 13.5),
+                  filled: true,
+                  fillColor: vqCard,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: const BorderSide(color: vqBorder, width: 2),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: const BorderSide(color: vqBorder, width: 2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Vq3dButton(
+                label: sending ? '전달하는 중…' : '비비야, 전해줘! 🐾',
+                onPressed: sending
+                    ? null
+                    : () async {
+                        setSheet(() => sending = true);
+                        final okSent = await VqApi.sendReport(
+                          termId: q.term.id,
+                          termKo: q.term.termKo,
+                          questionType: q.type.name,
+                          reason: reason,
+                          detail: detailCtrl.text.trim().isEmpty
+                              ? null
+                              : detailCtrl.text.trim(),
+                        );
+                        if (!ctx.mounted || !mounted) return;
+                        Navigator.pop(ctx);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(okSent
+                                ? '고마워! 비비가 잘 전달했어 🐾 확인하고 고쳐줄게!'
+                                : '앗, 인터넷이 안 되는 것 같아 😿 나중에 다시 해줘!'),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 

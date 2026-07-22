@@ -44,6 +44,7 @@ class SessionState {
   final LastFeedback? feedback; // null = 아직 답 안 함
   final int hintLevel; // 현재 문제에서 사용한 힌트 단계 (0=없음)
   final List<String> hints; // 공개된 힌트 문구들
+  final List<QuizQuestion> history; // 답변한 문제들 (이전 문제 다시보기·신고용)
   final bool finished;
   final bool loading;
   final bool empty; // 출제할 문제가 없음 (예: 오답 없음)
@@ -64,6 +65,7 @@ class SessionState {
     this.feedback,
     this.hintLevel = 0,
     this.hints = const [],
+    this.history = const [],
     this.finished = false,
     this.loading = true,
     this.empty = false,
@@ -89,6 +91,7 @@ class SessionState {
     bool clearFeedback = false,
     int? hintLevel,
     List<String>? hints,
+    List<QuizQuestion>? history,
     bool? finished,
     bool? loading,
     bool? empty,
@@ -109,6 +112,7 @@ class SessionState {
         feedback: clearFeedback ? null : (feedback ?? this.feedback),
         hintLevel: hintLevel ?? this.hintLevel,
         hints: hints ?? this.hints,
+        history: history ?? this.history,
         finished: finished ?? this.finished,
         loading: loading ?? this.loading,
         empty: empty ?? this.empty,
@@ -308,6 +312,7 @@ class SessionController extends StateNotifier<SessionState> {
       correctCount: state.correctCount + (correct ? 1 : 0),
       answeredCount: state.answeredCount + 1,
       wrongTermIds: wrong,
+      history: [...state.history, q],
       feedback: LastFeedback(correct: correct, explanation: q.explanation, gems: gems, xp: xp),
     );
   }

@@ -13,6 +13,7 @@ import { mediaRoutes } from "./routes/media";
 import { appReviewRoutes } from "./routes/appreview";
 import { eduRoutes } from "./routes/edu";
 import { techdexRoutes } from "./routes/techdex";
+import { vibequestRoutes } from "./routes/vibequest";
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -33,6 +34,7 @@ app.route("/api", eduRoutes); // /api/edu/* (AI교육 게시판)
 app.route("/api/visits", visitRoutes);
 app.route("/api/appreview", appReviewRoutes);
 app.route("/api/techdex", techdexRoutes);
+app.route("/api/vibequest", vibequestRoutes); // VibeQuest 앱: 신고·원격 콘텐츠
 app.route("/api/apps", appRoutes);
 app.route("/api/admin", adminRoutes);
 

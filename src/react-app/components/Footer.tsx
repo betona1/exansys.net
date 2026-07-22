@@ -20,6 +20,7 @@ export default function Footer() {
         <div className="space-y-1">
           <a className="block text-white/75 hover:text-white" href="/#apps">앱</a>
           <a className="block text-white/75 hover:text-white" href="/#about">소개</a>
+          <a className="block text-white/75 hover:text-white" href="/vibequest/reports">VibeQuest 문제 신고</a>
           <a className="block text-white/75 hover:text-white" href={`mailto:${COMPANY.email}`}>
             {COMPANY.email}
           </a>
