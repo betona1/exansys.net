@@ -249,36 +249,39 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
                           switch (q.type) {
                             QType.ox => '이 설명, 맞을까?',
                             QType.shortText => '이 설명에 맞는 용어는?',
+                            QType.wordStrip => '글자를 눌러 용어를 완성해봐!',
+                            QType.matchPair => '용어와 설명, 서로 짝을 찾아줘!',
                             _ => q.prompt.endsWith('?') ? '알맞은 것을 골라봐!' : '이 설명에 맞는 용어는?',
                           },
                           style: jua(16, color: vqPurple),
                         ),
                         const SizedBox(height: 8),
 
-                        // 다크 질문 카드
-                        Container(
-                          padding: const EdgeInsets.fromLTRB(22, 22, 22, 22),
-                          decoration: BoxDecoration(
-                            color: vqInk,
-                            borderRadius: BorderRadius.circular(22),
-                            boxShadow: [
-                              BoxShadow(
-                                  color: vqInk.withValues(alpha: 0.5),
-                                  blurRadius: 30,
-                                  offset: const Offset(0, 16)),
-                            ],
+                        // 다크 질문 카드 (짝맞추기는 보드가 곧 문제라 생략)
+                        if (q.type != QType.matchPair)
+                          Container(
+                            padding: const EdgeInsets.fromLTRB(22, 22, 22, 22),
+                            decoration: BoxDecoration(
+                              color: vqInk,
+                              borderRadius: BorderRadius.circular(22),
+                              boxShadow: [
+                                BoxShadow(
+                                    color: vqInk.withValues(alpha: 0.5),
+                                    blurRadius: 30,
+                                    offset: const Offset(0, 16)),
+                              ],
+                            ),
+                            child: Text(
+                              q.type == QType.mcq4 && q.prompt.contains('설명으로 알맞은')
+                                  ? q.prompt
+                                  : '"${q.prompt}"',
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 19,
+                                  height: 1.5,
+                                  fontWeight: FontWeight.w600),
+                            ),
                           ),
-                          child: Text(
-                            q.type == QType.mcq4 && q.prompt.contains('설명으로 알맞은')
-                                ? q.prompt
-                                : '"${q.prompt}"',
-                            style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 19,
-                                height: 1.5,
-                                fontWeight: FontWeight.w600),
-                          ),
-                        ),
                         // 힌트 (주관식)
                         for (final h in s.hints)
                           Padding(
@@ -302,6 +305,22 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
                         switch (q.type) {
                           QType.ox => _oxButtons(answered),
                           QType.shortText => _shortInput(answered),
+                          QType.wordStrip => _WordStripBoard(
+                              key: ValueKey('strip${s.index}'),
+                              q: q,
+                              answered: answered,
+                              onDone: (m) => ref
+                                  .read(sessionProvider.notifier)
+                                  .answer(puzzleMistakes: m),
+                            ),
+                          QType.matchPair => _MatchBoard(
+                              key: ValueKey('match${s.index}'),
+                              q: q,
+                              answered: answered,
+                              onDone: (m) => ref
+                                  .read(sessionProvider.notifier)
+                                  .answer(puzzleMistakes: m),
+                            ),
                           _ => _mcqOptions(q, s, answered),
                         },
                         const SizedBox(height: 120), // 피드백 시트 공간
@@ -771,8 +790,14 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
       ),
       builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setSheet) => Padding(
-          padding: EdgeInsets.fromLTRB(22, 20, 22, 24 + MediaQuery.of(ctx).viewInsets.bottom),
+        builder: (ctx, setSheet) => SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(
+              22,
+              20,
+              22,
+              24 +
+                  MediaQuery.of(ctx).viewInsets.bottom +
+                  MediaQuery.of(ctx).padding.bottom),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -830,7 +855,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
               ),
               const SizedBox(height: 8),
               Vq3dButton(
-                label: sending ? '전달하는 중…' : '비비야, 전해줘! 🐾',
+                label: sending ? '알리는 중…' : '📨 관리자에게 알리기',
                 onPressed: sending
                     ? null
                     : () async {
@@ -974,6 +999,274 @@ class _FeedbackSheet extends ConsumerWidget {
               ),
               ),
             ),
+    );
+  }
+}
+
+/// 워드 스트립 (§8.4) — 글자 칩을 순서대로 탭해 용어 조립, 정답 글자 즉시 고정
+class _WordStripBoard extends StatefulWidget {
+  final QuizQuestion q;
+  final bool answered;
+  final void Function(int mistakes) onDone;
+  const _WordStripBoard({super.key, required this.q, required this.answered, required this.onDone});
+
+  @override
+  State<_WordStripBoard> createState() => _WordStripBoardState();
+}
+
+class _WordStripBoardState extends State<_WordStripBoard> {
+  int _filled = 0;
+  int _mistakes = 0;
+  final Set<int> _used = {};
+  int? _shakeChip;
+
+  void _tap(int i) {
+    if (widget.answered || _used.contains(i)) return;
+    final target = widget.q.answerText[_filled];
+    if (widget.q.options[i] == target) {
+      HapticFeedback.selectionClick();
+      setState(() {
+        _used.add(i);
+        _filled++;
+      });
+      if (_filled >= widget.q.answerText.length) {
+        widget.onDone(_mistakes);
+      }
+    } else {
+      HapticFeedback.mediumImpact();
+      setState(() {
+        _mistakes++;
+        _shakeChip = i;
+      });
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted) setState(() => _shakeChip = null);
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final answer = widget.q.answerText;
+    return Column(
+      children: [
+        // 채워지는 칸
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          alignment: WrapAlignment.center,
+          children: [
+            for (var i = 0; i < answer.length; i++)
+              Container(
+                width: 42,
+                height: 48,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: i < _filled ? const Color(0xFFE9FBF4) : vqCard,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                      color: i < _filled ? vqMint : vqBorder, width: 2),
+                ),
+                child: Text(i < _filled ? answer[i] : '',
+                    style: jua(20, color: vqMintDark)),
+              ),
+          ],
+        ),
+        const SizedBox(height: 18),
+        // 글자 칩
+        Wrap(
+          spacing: 9,
+          runSpacing: 9,
+          alignment: WrapAlignment.center,
+          children: [
+            for (var i = 0; i < widget.q.options.length; i++)
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                transform: Matrix4.translationValues(
+                    _shakeChip == i ? 4 : 0, 0, 0),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(14),
+                  onTap: () => _tap(i),
+                  child: Container(
+                    width: 50,
+                    height: 54,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: _used.contains(i) ? vqBorder : vqCard,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                          color: _shakeChip == i ? vqCoral : vqBorder, width: 2),
+                      boxShadow: _used.contains(i)
+                          ? null
+                          : const [BoxShadow(color: vqBorder, offset: Offset(0, 3))],
+                    ),
+                    child: Text(widget.q.options[i],
+                        style: jua(20,
+                            color: _used.contains(i) ? vqMuted2 : vqInk)),
+                  ),
+                ),
+              ),
+          ],
+        ),
+        if (_mistakes > 0) ...[
+          const SizedBox(height: 10),
+          Text('앗! $_mistakes번 헷갈렸어 😅',
+              style: const TextStyle(
+                  color: vqMutedText, fontWeight: FontWeight.w700, fontSize: 12.5)),
+        ],
+      ],
+    );
+  }
+}
+
+/// 짝 맞추기 (§8.5.F) — 용어 3개 ↔ 설명 3개 연결
+class _MatchBoard extends StatefulWidget {
+  final QuizQuestion q;
+  final bool answered;
+  final void Function(int mistakes) onDone;
+  const _MatchBoard({super.key, required this.q, required this.answered, required this.onDone});
+
+  @override
+  State<_MatchBoard> createState() => _MatchBoardState();
+}
+
+class _MatchBoardState extends State<_MatchBoard> {
+  int? _selectedTerm; // 왼쪽에서 고른 인덱스
+  final Set<int> _doneTerms = {};
+  final Set<int> _doneDefs = {};
+  int _mistakes = 0;
+  int? _shakeDef;
+  late final List<int> _defOrder; // 오른쪽 정의 셔플 순서
+
+  @override
+  void initState() {
+    super.initState();
+    _defOrder = List.generate(widget.q.matchPairs.length, (i) => i)..shuffle();
+  }
+
+  void _tapDef(int pos) {
+    if (widget.answered || _doneDefs.contains(pos) || _selectedTerm == null) return;
+    final defPairIdx = _defOrder[pos];
+    if (defPairIdx == _selectedTerm) {
+      HapticFeedback.selectionClick();
+      setState(() {
+        _doneTerms.add(_selectedTerm!);
+        _doneDefs.add(pos);
+        _selectedTerm = null;
+      });
+      if (_doneTerms.length >= widget.q.matchPairs.length) {
+        widget.onDone(_mistakes);
+      }
+    } else {
+      HapticFeedback.mediumImpact();
+      setState(() {
+        _mistakes++;
+        _shakeDef = pos;
+      });
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted) setState(() => _shakeDef = null);
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final pairs = widget.q.matchPairs;
+    return Column(
+      children: [
+        // 용어 칩 (위)
+        Wrap(
+          spacing: 9,
+          runSpacing: 9,
+          alignment: WrapAlignment.center,
+          children: [
+            for (var i = 0; i < pairs.length; i++)
+              InkWell(
+                borderRadius: BorderRadius.circular(14),
+                onTap: widget.answered || _doneTerms.contains(i)
+                    ? null
+                    : () {
+                        HapticFeedback.selectionClick();
+                        setState(() => _selectedTerm = i);
+                      },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: _doneTerms.contains(i)
+                        ? const Color(0xFFE9FBF4)
+                        : (_selectedTerm == i ? vqLavender : vqCard),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                        color: _doneTerms.contains(i)
+                            ? vqMint
+                            : (_selectedTerm == i ? vqPurple : vqBorder),
+                        width: 2),
+                  ),
+                  child: Text(pairs[i].$1,
+                      style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 15,
+                          color: _doneTerms.contains(i) ? vqMintDark : vqInk)),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text(
+          _selectedTerm == null ? '① 용어를 먼저 골라줘!' : '② 이제 어울리는 설명을 찾아봐!',
+          style: const TextStyle(
+              color: vqMutedText, fontWeight: FontWeight.w700, fontSize: 12.5),
+        ),
+        const SizedBox(height: 8),
+        // 설명 카드 (아래, 셔플)
+        for (var pos = 0; pos < pairs.length; pos++)
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            transform: Matrix4.translationValues(_shakeDef == pos ? 4 : 0, 0, 0),
+            margin: const EdgeInsets.only(bottom: 10),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(16),
+              onTap: () => _tapDef(pos),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: _doneDefs.contains(pos) ? const Color(0xFFE9FBF4) : vqCard,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                      color: _doneDefs.contains(pos)
+                          ? vqMint
+                          : (_shakeDef == pos ? vqCoral : vqBorder),
+                      width: 2),
+                ),
+                child: Row(
+                  children: [
+                    if (_doneDefs.contains(pos)) ...[
+                      Text(pairs[_defOrder[pos]].$1,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 13.5,
+                              color: vqMintDark)),
+                      const SizedBox(width: 8),
+                    ],
+                    Expanded(
+                      child: Text(pairs[_defOrder[pos]].$2,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              fontSize: 13.5, height: 1.4, fontWeight: FontWeight.w600)),
+                    ),
+                    if (_doneDefs.contains(pos))
+                      const Text('✓',
+                          style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w900,
+                              color: vqMintDark)),
+                  ],
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

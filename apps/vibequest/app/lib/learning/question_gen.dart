@@ -9,9 +9,11 @@ class QuizQuestion {
   final Term term;
   final QType type;
   final String prompt;
-  final List<String> options; // MCQ4 전용
+  final List<String> options; // MCQ4: 선택지 / WORD_STRIP: 글자 칩(섞임)
   final int answerIndex; // MCQ4 전용
   final bool oxAnswer; // OX 전용
+  final String answerText; // WORD_STRIP: 조립할 단어
+  final List<(String, String)> matchPairs; // MATCH_PAIR: (용어, 정의) 쌍
   final String explanation; // 오답 시 보여줄 교정 설명 (§8.1)
   final bool isReview;
   const QuizQuestion({
@@ -21,6 +23,8 @@ class QuizQuestion {
     this.options = const [],
     this.answerIndex = 0,
     this.oxAnswer = true,
+    this.answerText = '',
+    this.matchPairs = const [],
     required this.explanation,
     required this.isReview,
   });
@@ -97,12 +101,72 @@ class QuestionGen {
     return out;
   }
 
+  /// 워드 스트립으로 낼 수 있는 용어인가 (§8.4: 3~6글자 중심)
+  static String? stripAnswerOf(Term t) {
+    final en = t.termEn.replaceAll(RegExp(r'[\s.\-_/]'), '').toUpperCase();
+    if (RegExp(r'^[A-Z0-9]{3,8}$').hasMatch(en)) return en;
+    final ko = t.termKo.replaceAll(RegExp(r'[\s·]'), '');
+    if (RegExp(r'^[가-힣]{2,6}$').hasMatch(ko)) return ko;
+    return null;
+  }
+
   QuizQuestion build(Term t, QType type, {required bool isReview, bool easy = true}) =>
       switch (type) {
         QType.ox => _ox(t, isReview, easy),
         QType.shortText => _short(t, isReview),
+        QType.wordStrip => _strip(t, isReview) ?? _mcq4(t, isReview, easy),
+        QType.matchPair => _match(t, isReview, easy),
         _ => _mcq4(t, isReview, easy),
       };
+
+  /// 워드 스트립 (§8.4 단계1): 글자 칩을 순서대로 탭해 용어를 조립
+  QuizQuestion? _strip(Term t, bool isReview) {
+    final answer = stripAnswerOf(t);
+    if (answer == null) return null;
+    final chars = answer.split('');
+    // 미끼 글자: 영문이면 랜덤 알파벳, 한글이면 다른 용어의 글자
+    final isEn = RegExp(r'^[A-Z0-9]+$').hasMatch(answer);
+    final decoys = <String>{};
+    if (isEn) {
+      const alpha = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      while (decoys.length < 3) {
+        final ch = alpha[rng.nextInt(alpha.length)];
+        if (!chars.contains(ch)) decoys.add(ch);
+      }
+    } else {
+      final poolChars = pool
+          .expand((p) => p.termKo.replaceAll(RegExp(r'[^가-힣]'), '').split(''))
+          .where((ch) => !chars.contains(ch))
+          .toList();
+      while (decoys.length < 3 && poolChars.isNotEmpty) {
+        decoys.add(poolChars[rng.nextInt(poolChars.length)]);
+      }
+    }
+    final chips = [...chars, ...decoys]..shuffle(rng);
+    return QuizQuestion(
+      term: t,
+      type: QType.wordStrip,
+      prompt: t.def,
+      options: chips,
+      answerText: answer,
+      explanation: '${t.termKo} (${t.termEn})\n${t.def}',
+      isReview: isReview,
+    );
+  }
+
+  /// 짝 맞추기 (§8.5.F): 용어 3개 ↔ 설명 3개 연결
+  QuizQuestion _match(Term t, bool isReview, bool easy) {
+    final others = _distractors(t, 2, easy: easy);
+    final pairs = [(t.termKo, t.def), for (final d in others) (d.termKo, d.def)];
+    return QuizQuestion(
+      term: t,
+      type: QType.matchPair,
+      prompt: '용어와 설명을 짝지어봐!',
+      matchPairs: pairs,
+      explanation: '${t.termKo}: ${t.def}',
+      isReview: isReview,
+    );
+  }
 
   /// 주관식: 정의를 보고 용어를 직접 인출 (§8.3)
   QuizQuestion _short(Term t, bool isReview) => QuizQuestion(

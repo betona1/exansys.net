@@ -204,11 +204,21 @@ class SessionController extends StateNotifier<SessionState> {
     if (forceType != null) {
       type = forceType;
     } else {
+      // §9.4 상태별 출제 형식 — 워드스트립·짝맞추기 포함
+      final canStrip = QuestionGen.stripAnswerOf(t) != null;
       type = switch (ls) {
         TermLearningState.newTerm => QType.ox,
-        TermLearningState.learning => rng.nextBool() ? QType.ox : QType.mcq4,
-        // REVIEWING 이상: 주관식 인출 연습 포함
-        _ => [QType.mcq4, QType.shortText, QType.ox][rng.nextInt(3)],
+        TermLearningState.learning =>
+          [QType.ox, QType.mcq4, QType.matchPair][rng.nextInt(3)],
+        // REVIEWING 이상: 주관식·워드스트립 등 인출 연습 포함
+        _ => ([
+          QType.mcq4,
+          QType.shortText,
+          QType.ox,
+          if (canStrip) QType.wordStrip,
+          QType.matchPair,
+        ]..shuffle(rng))
+            .first,
       };
     }
     return _gen!.build(t, type, isReview: isReview, easy: easy);
@@ -240,7 +250,8 @@ class SessionController extends StateNotifier<SessionState> {
   }
 
   /// 답 제출 — 중복 제출 방지 (FR-QUIZ-004)
-  Future<void> answer({int? mcqIndex, bool? oxChoice, String? shortInput}) async {
+  /// [puzzleMistakes]: 워드스트립·짝맞추기의 실수 횟수 (2번 이하면 정답 처리)
+  Future<void> answer({int? mcqIndex, bool? oxChoice, String? shortInput, int? puzzleMistakes}) async {
     final q = state.current;
     if (q == null || state.feedback != null || state.finished) return;
 
@@ -248,6 +259,7 @@ class SessionController extends StateNotifier<SessionState> {
       QType.ox => oxChoice == q.oxAnswer,
       QType.shortText =>
         gradeShortAnswer(shortInput ?? '', q.term, otherTermNames: _otherNames(q.term)),
+      QType.wordStrip || QType.matchPair => (puzzleMistakes ?? 99) <= 2,
       _ => mcqIndex == q.answerIndex,
     };
     final responseTime = DateTime.now().difference(_questionShownAt);

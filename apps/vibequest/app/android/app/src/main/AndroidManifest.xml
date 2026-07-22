@@ -1,6 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 문제 신고·원격 콘텐츠 업데이트용 (릴리스 빌드 필수) -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
-        android:label="vibequest"
+        android:label="VibeQuest"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
