@@ -15,6 +15,7 @@ import AiEdu from "./pages/AiEdu";
 import AiEduDetail from "./pages/AiEduDetail";
 import TechDex from "./pages/TechDex";
 import VqReports from "./pages/VqReports";
+import VqPrivacy from "./pages/VqPrivacy";
 import Login from "./pages/Login";
 import { useMe } from "./lib/useMe";
 
@@ -50,6 +51,7 @@ export default function App() {
         <Route path="/ai-edu/:id" element={<AiEduDetail me={me} />} />
         <Route path="/techdex" element={<TechDex me={me} />} />
         <Route path="/vibequest/reports" element={<VqReports me={me} />} />
+        <Route path="/vibequest/privacy" element={<VqPrivacy />} />
         <Route path="/admin" element={<Admin me={me} meLoading={loading} />} />
       </Routes>
       <Footer />
