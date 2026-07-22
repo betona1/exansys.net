@@ -102,8 +102,14 @@ class _IntroScreenState extends ConsumerState<IntroScreen> {
   @override
   Widget build(BuildContext context) {
     final reduce = MediaQuery.of(context).disableAnimations;
+    // 장면을 화면 폭에 맞춰 크게 (내부는 310x300 기준 → 통째로 스케일업)
+    final sceneW = (MediaQuery.of(context).size.width - 36).clamp(280.0, 420.0);
+    final sceneH = sceneW / 310 * 300;
     return Scaffold(
+      backgroundColor: _bgBottom, // 그라데이션 밖 픽셀도 다크 (흰 라인 방지)
       body: Container(
+        width: double.infinity,
+        height: double.infinity,
         decoration: const BoxDecoration(
           gradient: RadialGradient(
             center: Alignment(0, -0.55),
@@ -116,17 +122,28 @@ class _IntroScreenState extends ConsumerState<IntroScreen> {
           child: Column(
             children: [
               const Spacer(),
-              Text('Vibe Quest', style: jua(24, color: Colors.white)),
+              Text('Vibe Quest', style: jua(28, color: Colors.white)),
               const SizedBox(height: 2),
               const Text('오늘의 퀘스트를 준비하고 있어',
                   style: TextStyle(
-                      color: _mutedP, fontWeight: FontWeight.w700, fontSize: 13)),
+                      color: _mutedP, fontWeight: FontWeight.w700, fontSize: 14.5)),
               const SizedBox(height: 10),
-              _LaptopScene(t: _t, reduce: reduce),
+              SizedBox(
+                width: sceneW,
+                height: sceneH,
+                child: FittedBox(
+                  fit: BoxFit.contain,
+                  child: SizedBox(
+                    width: 310,
+                    height: 300,
+                    child: _LaptopScene(t: _t, reduce: reduce),
+                  ),
+                ),
+              ),
               const SizedBox(height: 12),
               // 진행바 (민트→퍼플)
               SizedBox(
-                width: 284,
+                width: sceneW * 0.92,
                 child: Column(
                   children: [
                     Row(
@@ -289,8 +306,8 @@ class _TerminalContent extends StatelessWidget {
 
   static const _mono = TextStyle(
     fontFamily: 'monospace',
-    fontSize: 11.5,
-    height: 1.35,
+    fontSize: 12.5,
+    height: 1.4,
     color: _mutedP,
     fontWeight: FontWeight.w600,
   );
