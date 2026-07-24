@@ -9,6 +9,7 @@ import type { Env } from "../types";
 import { ok, err, ROLE_LEVEL } from "../types";
 import { requireRole, type AuthedUser } from "../middleware";
 import { readSession } from "../auth/session";
+import apptuberAdvanced1Html from "../resources/apptuber-advanced-1.html?raw";
 
 type Vars = { Variables: { user: AuthedUser } };
 export const eduRoutes = new Hono<{ Bindings: Env } & Vars>();
@@ -336,6 +337,46 @@ eduRoutes.post("/edu/posts", requireRole("admin"), async (c) => {
 // 참고: 초기 교육 자료(용어집·가이드·바이브코딩 슬라이드 등)는 이미 R2+D1에 시드되어
 // `/api/edu/media/html/:file` 로 서빙된다. 워커 번들을 가볍게 유지하기 위해 일회성 시드 라우트와
 // 번들 HTML(?raw import)은 제거했다. 새 자료가 필요하면 관리자 업로드(/edu/upload/html)를 쓴다.
+// (예외: 대용량 HTML은 브라우저 업로드가 깨질 수 있어 아래처럼 번들+시드 후 정리하는 패턴을 쓴다)
+
+// 일회성 시드: 앱튜버 심화 과정1 (멱등 — 같은 제목 글 있으면 무시). 반영 확인 후 다음 배포에서 제거 가능.
+eduRoutes.post("/edu/seed-apptuber1", async (c) => {
+  const db = drizzle(c.env.DB);
+  await ensureTables(db);
+  const title = "앱튜버 심화 과정1 · 안드로이드 앱 개발 실무";
+  const dup = await db.select({ id: eduPosts.id }).from(eduPosts).where(eq(eduPosts.title, title)).limit(1);
+  if (dup.length > 0) return c.json(ok({ already: true, id: dup[0].id }));
+
+  const admin = await db.select({ id: users.id }).from(users).where(eq(users.role, "admin")).limit(1);
+  if (admin.length === 0) return c.json(err("no_admin"), 500);
+
+  const key = `edu/html/${crypto.randomUUID()}.html`;
+  await c.env.MEDIA.put(key, apptuberAdvanced1Html, {
+    httpMetadata: { contentType: "text/html; charset=utf-8" },
+  });
+
+  const now = new Date();
+  const inserted = await db
+    .insert(eduPosts)
+    .values({
+      userId: admin[0].id,
+      title,
+      body: "앱튜버 심화 과정 1편 — 안드로이드 앱 개발 실무 교육 자료입니다.\n\n아래 첨부를 열어 학습을 시작하세요.",
+      createdAt: now,
+      updatedAt: now,
+    })
+    .returning({ id: eduPosts.id });
+  await db.insert(eduAttachments).values({
+    postId: inserted[0].id,
+    kind: "html",
+    fileKey: key,
+    url: null,
+    name: "앱튜버 심화 과정1 (열어보기)",
+    size: apptuberAdvanced1Html.length,
+    sort: 0,
+  });
+  return c.json(ok({ seeded: true, id: inserted[0].id }));
+});
 
 // 수정 (admin) — 제목/본문만 (첨부는 삭제 후 재작성)
 eduRoutes.put("/edu/posts/:id", requireRole("admin"), async (c) => {

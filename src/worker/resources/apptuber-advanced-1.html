@@ -1,0 +1,1851 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>앱튜버 심화 과정1 · 안드로이드 앱 개발 실무</title>
+<style>
+:root{
+  --bg:#0b1020;
+  --bg2:#111834;
+  --panel:#161f42;
+  --panel2:#1d2a55;
+  --line:#2a396b;
+  --txt:#e8ecff;
+  --muted:#9fb0e0;
+  --accent:#42e6c8;
+  --accent2:#6c8cff;
+  --accent3:#ff7ad9;
+  --warn:#ffcf5c;
+  --danger:#ff6b7a;
+  --ok:#5be59a;
+  --anim-mult:1;           /* 애니메이션 속도 배율(슬라이더로 수정 가능) */
+  --shadow:0 20px 60px rgba(0,0,0,.45);
+  font-synthesis:none;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:radial-gradient(1200px 800px at 80% -10%,#1a2350 0%,transparent 60%),
+             radial-gradient(1000px 700px at -10% 110%,#241844 0%,transparent 55%),
+             var(--bg);
+  color:var(--txt);
+  font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,-apple-system,sans-serif;
+  overflow:hidden;
+  line-height:1.6;
+  letter-spacing:-.2px;
+}
+
+/* ===== 슬라이드 무대 ===== */
+#stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:56px 72px 90px;}
+.slide{
+  position:absolute;inset:0;
+  display:none;
+  flex-direction:column;
+  padding:56px 72px 96px;
+  opacity:0;
+  transform:translateY(18px) scale(.99);
+  transition:opacity .5s ease, transform .5s ease;
+  overflow:auto;
+}
+.slide.active{display:flex;opacity:1;transform:none;}
+.slide::-webkit-scrollbar{width:8px}
+.slide::-webkit-scrollbar-thumb{background:#2a396b;border-radius:8px}
+
+/* 챕터 표지 */
+.cover{align-items:flex-start;justify-content:center}
+.kicker{display:inline-flex;align-items:center;gap:10px;font-size:15px;color:var(--accent);
+  letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-bottom:18px}
+.kicker::before{content:"";width:34px;height:2px;background:linear-gradient(90deg,var(--accent),transparent)}
+.slide h1{font-size:64px;font-weight:800;line-height:1.08;letter-spacing:-1.5px;margin-bottom:18px}
+.slide h2{font-size:40px;font-weight:800;letter-spacing:-1px;margin-bottom:8px}
+.slide h3{font-size:22px;font-weight:700;color:var(--accent);margin:6px 0 14px}
+.lead{font-size:20px;color:var(--muted);max-width:900px}
+.slide p{font-size:18px;color:#d4dcff}
+.slidehead{display:flex;align-items:baseline;gap:16px;border-bottom:1px solid #24336a;padding-bottom:16px;margin-bottom:26px}
+.slidehead .cnum{font-size:14px;font-weight:800;color:var(--accent2);background:#18265a;background:#18265a;
+  padding:6px 12px;border-radius:999px;white-space:nowrap}
+.slidehead h2{font-size:34px;margin:0}
+.body{flex:1;display:flex;flex-direction:column;gap:20px}
+
+/* 카드/그리드 */
+.grid{display:grid;gap:20px}
+.g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:1fr 1fr 1fr}
+.g4{grid-template-columns:repeat(4,1fr)}
+.card{
+  background:linear-gradient(180deg,rgba(29,42,85,.9),rgba(22,31,66,.9));
+  border:1px solid #26366e;border-radius:18px;padding:22px 22px;box-shadow:var(--shadow);
+}
+.card h4{font-size:19px;margin-bottom:8px;display:flex;align-items:center;gap:9px}
+.card p, .card li{font-size:16.5px;color:#cdd7ff}
+.card .ico{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:18px;
+  background:linear-gradient(135deg,var(--accent2),var(--accent3));flex:none}
+ul.clean{list-style:none;display:flex;flex-direction:column;gap:9px}
+ul.clean li{padding-left:22px;position:relative}
+ul.clean li::before{content:"▸";position:absolute;left:0;color:var(--accent);font-weight:800}
+.pill{display:inline-block;padding:5px 12px;border-radius:999px;font-size:13.5px;font-weight:700;
+  background:#1c2b5e;color:var(--accent);border:1px solid #2c4088;margin:3px 3px 0 0}
+.tag-front{background:#20264f;color:#8fa6ff;border-color:#39468f}
+.tag-back{background:#1b3340;color:#57e0c4;border-color:#2b6b62}
+
+/* 코드블럭 */
+pre{background:#080d1f;border:1px solid #223066;border-radius:14px;padding:18px 20px;overflow:auto;
+  font-family:"JetBrains Mono","SF Mono",ui-monospace,Consolas,monospace;font-size:15px;line-height:1.7;color:#d8e2ff}
+pre .k{color:#ff9ecb}.pre .s{color:#9be7a1}
+code.k{color:#ff9ecb}code.s{color:#7fe3a6}code.c{color:#7f8fc7}code.n{color:#ffd479}
+.mono{font-family:"JetBrains Mono","SF Mono",ui-monospace,Consolas,monospace}
+
+/* ===== 용어 툴팁 (마우스 롤오버) ===== */
+.term{
+  position:relative;color:var(--accent);font-weight:700;cursor:help;
+  border-bottom:2px dotted rgba(66,230,200,.6);
+}
+.term:hover{color:#fff;background:rgba(66,230,200,.14);border-radius:4px}
+.term .tip{
+  position:absolute;left:50%;bottom:calc(100% + 12px);transform:translateX(-50%) translateY(6px);
+  width:320px;max-width:44vw;background:#0c1330;border:1px solid var(--accent);
+  border-radius:12px;padding:13px 15px;font-size:14.5px;font-weight:500;color:#e7ecff;line-height:1.55;
+  box-shadow:0 18px 40px rgba(0,0,0,.55);opacity:0;visibility:hidden;transition:.22s ease;z-index:60;
+  pointer-events:none;letter-spacing:-.2px;
+}
+.term .tip::after{content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);
+  border:8px solid transparent;border-top-color:var(--accent)}
+.term .tip b{color:var(--accent)}
+.term:hover .tip{opacity:1;visibility:visible;transform:translateX(-50%) translateY(0)}
+.term .tip.right{left:0;transform:translateX(-10%) translateY(6px)}
+.term:hover .tip.right{transform:translateX(-10%)}
+
+/* ===== 애니메이션 차트 ===== */
+.chart{display:flex;flex-direction:column;gap:14px}
+.bar-row{display:grid;grid-template-columns:150px 1fr 64px;align-items:center;gap:14px}
+.bar-label{font-size:15.5px;color:#cfd8ff;font-weight:600;text-align:right}
+.bar-track{height:26px;background:#0d1533;border:1px solid #223066;border-radius:8px;overflow:hidden;position:relative}
+.bar-fill{height:100%;width:0;border-radius:7px;
+  transition:width calc(1.2s * var(--anim-mult)) cubic-bezier(.22,1,.36,1);
+  background:linear-gradient(90deg,var(--accent2),var(--accent));}
+.slide.active .bar-fill.in{width:var(--w)}
+.bar-val{font-size:15px;font-weight:800;color:var(--accent);text-align:left}
+
+/* 흐름 다이어그램 노드 */
+.flow{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap}
+.node{background:linear-gradient(180deg,#20305f,#18265a);background:linear-gradient(180deg,#20305f,#16234f);
+  border:1px solid #33478f;border-radius:14px;padding:16px 20px;text-align:center;min-width:150px;
+  opacity:0;transform:translateY(14px);transition:all calc(.5s * var(--anim-mult)) ease;}
+.slide.active .node.in{opacity:1;transform:none}
+.node .t{font-weight:800;font-size:17px}
+.node .d{font-size:13.5px;color:var(--muted);margin-top:4px}
+.arrow{font-size:26px;color:var(--accent);opacity:0;transition:all calc(.5s * var(--anim-mult)) ease}
+.slide.active .arrow.in{opacity:1}
+
+/* MVC / 라이프사이클 특수 */
+.mvc{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;align-items:stretch}
+.mvc .card{text-align:center;opacity:0;transform:scale(.92);transition:all calc(.55s*var(--anim-mult)) cubic-bezier(.22,1,.36,1)}
+.slide.active .mvc .card.in{opacity:1;transform:none}
+.mvc .big{font-size:40px}
+.cycle{display:flex;flex-direction:column;gap:10px;max-width:520px;margin:0 auto}
+.life{display:flex;align-items:center;gap:14px;background:#141d40;border:1px solid #26366e;border-radius:12px;
+  padding:12px 16px;opacity:0;transform:translateX(-16px);transition:all calc(.5s*var(--anim-mult)) ease}
+.slide.active .life.in{opacity:1;transform:none}
+.life .m{font-family:"JetBrains Mono",monospace;color:var(--accent);font-weight:800;font-size:16px;min-width:130px}
+.life .x{font-size:14.5px;color:#cbd5ff}
+
+/* 폰 목업 & 제스처 데모 */
+.phone{width:230px;height:470px;border-radius:34px;background:#0a1130;border:6px solid #2a3a72;
+  box-shadow:var(--shadow);position:relative;overflow:hidden;flex:none}
+.phone .status{height:30px;background:#0c1533;display:flex;align-items:center;justify-content:center;
+  font-size:11px;color:#7f8fc7}
+.phone .screen{position:absolute;inset:30px 0 0 0;padding:14px}
+.demo-card{background:linear-gradient(135deg,var(--accent2),var(--accent3));border-radius:14px;padding:16px;
+  color:#fff;font-weight:700;cursor:grab;user-select:none;transition:transform .15s ease, opacity .2s}
+.fab{position:absolute;right:16px;bottom:20px;width:56px;height:56px;border-radius:18px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;
+  font-size:26px;color:#04121a;font-weight:800;box-shadow:0 10px 24px rgba(66,230,200,.4);cursor:pointer;
+  transition:transform .2s}
+.fab:active{transform:scale(.9) rotate(90deg)}
+.drawer{position:absolute;inset:0 40% 0 0;background:#0e1631;border-right:1px solid #2a3a72;
+  transform:translateX(-105%);transition:transform .35s cubic-bezier(.22,1,.36,1);padding:16px;z-index:5}
+.drawer.open{transform:none}
+.drawer .di{padding:11px 8px;border-bottom:1px solid #1e2b57;font-size:14px;color:#cdd7ff}
+.burger{cursor:pointer;font-size:22px;padding:4px 8px;color:var(--accent)}
+
+/* 비교 테이블 */
+table.cmp{width:100%;border-collapse:collapse;font-size:16px}
+table.cmp th,table.cmp td{border:1px solid #26366e;padding:12px 14px;text-align:left}
+table.cmp th{background:#18265a;background:#172550;color:var(--accent);font-weight:800}
+table.cmp tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+
+.note{background:linear-gradient(90deg,rgba(255,207,92,.12),transparent);border-left:4px solid var(--warn);
+  padding:14px 18px;border-radius:0 12px 12px 0;font-size:16px}
+.danger{background:linear-gradient(90deg,rgba(255,107,122,.14),transparent);border-left:4px solid var(--danger);
+  padding:14px 18px;border-radius:0 12px 12px 0;font-size:16px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:26px;align-items:center}
+
+/* ===== 상단 진행바 ===== */
+#progress{position:fixed;top:0;left:0;height:4px;background:linear-gradient(90deg,var(--accent),var(--accent2),var(--accent3));
+  width:0;z-index:80;transition:width .35s ease;box-shadow:0 0 12px rgba(66,230,200,.6)}
+
+/* ===== 하단 컨트롤바 ===== */
+#dock{position:fixed;left:0;right:0;bottom:0;height:64px;z-index:70;
+  display:flex;align-items:center;gap:14px;padding:0 22px;
+  background:linear-gradient(0deg,rgba(8,12,28,.96),rgba(8,12,28,.7));border-top:1px solid #1e2b57;backdrop-filter:blur(8px)}
+#dock button{background:#18234f;border:1px solid #2c3d78;color:var(--txt);border-radius:10px;
+  padding:9px 14px;font-size:14px;font-weight:700;cursor:pointer;transition:.15s}
+#dock button:hover{background:#22316b;border-color:var(--accent2)}
+#dock .brand{font-weight:800;font-size:14px;color:var(--muted);margin-right:auto;display:flex;gap:10px;align-items:center}
+#dock .brand b{color:var(--accent)}
+#counter{font-variant-numeric:tabular-nums;font-weight:800;color:var(--accent);min-width:60px;text-align:center}
+.spd{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.spd input[type=range]{width:120px;accent-color:var(--accent)}
+.spd b{color:var(--accent);min-width:34px;text-align:right}
+
+/* ===== 사이드 목차 ===== */
+#tocBtn{}
+#toc{position:fixed;top:0;left:0;bottom:0;width:360px;z-index:90;background:#0c1330;border-right:1px solid #26366e;
+  transform:translateX(-105%);transition:transform .35s cubic-bezier(.22,1,.36,1);padding:26px 20px;overflow:auto;box-shadow:var(--shadow)}
+#toc.open{transform:none}
+#toc h3{color:var(--accent);font-size:15px;letter-spacing:1px;text-transform:uppercase;margin-bottom:16px}
+#toc .ch{font-weight:800;font-size:16px;margin:16px 0 6px;color:#fff}
+#toc a{display:block;color:#b9c4ee;text-decoration:none;font-size:14.5px;padding:7px 10px;border-radius:8px;cursor:pointer}
+#toc a:hover{background:#18265a;background:#17224d;color:#fff}
+#toc a.cur{background:#1c2b5e;color:var(--accent)}
+#scrim{position:fixed;inset:0;background:rgba(4,7,18,.5);z-index:85;opacity:0;visibility:hidden;transition:.3s}
+#scrim.on{opacity:1;visibility:visible}
+
+.hint{position:fixed;bottom:76px;right:20px;font-size:12.5px;color:#6f7fb5;z-index:70}
+.badge{display:inline-block;background:#1c2b5e;border:1px solid #2c4088;color:var(--accent);
+  font-size:12px;font-weight:800;padding:3px 9px;border-radius:6px;margin-left:8px}
+.center{display:flex;flex-direction:column;justify-content:center;height:100%}
+.muted{color:var(--muted)}
+.small{font-size:14.5px}
+.kv{display:flex;gap:10px;font-size:16px;padding:8px 0;border-bottom:1px dashed #26366e}
+.kv b{color:var(--accent);min-width:120px}
+@media (max-width:1100px){.slide h1{font-size:44px}.g4{grid-template-columns:1fr 1fr}}
+
+/* =========================================================
+   VIBE-EDU1 THEME OVERRIDE — 테라코타/크림/다크브라운 워밍 테마
+   (APPTUBER STUDIO 디자인 시스템 반영)
+   ========================================================= */
+:root{
+  --accent:#C15F3C;     /* 테라코타 */
+  --accent2:#D98A5E;    /* 밝은 테라코타 */
+  --accent3:#A6482A;    /* 진한 테라코타 */
+  --txt:#2b211a; --muted:#7a6a5b;
+  --warn:#B8791F; --danger:#C1502F; --ok:#5f7d43;
+  --cream:#F3ECE0; --cream2:#EFE6D6; --cardbg:#FBF8F1; --cline:#E6D9C5;
+  --dark:#17100b; --darktxt:#F0E7D8;
+  --shadow:0 18px 46px rgba(45,25,10,.16);
+}
+body{ background:var(--dark); color:var(--txt);
+  font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,-apple-system,sans-serif; }
+
+/* 슬라이드: 기본은 크림(본문), .cover는 다크 브라운 */
+.slide{ background:var(--cream); color:var(--txt); padding:94px 72px 96px; }
+.slide.cover{ color:var(--darktxt);
+  background:radial-gradient(1150px 720px at 78% -10%, rgba(193,95,60,.30), transparent 60%),
+            radial-gradient(900px 620px at 6% 120%, rgba(166,72,42,.20), transparent 55%),
+            linear-gradient(160deg,#1d130c,#140d08); }
+
+.slide h1{ color:var(--darktxt); font-weight:900; letter-spacing:-2px; font-size:74px; }
+.slide h2{ color:#2b211a; font-weight:900; }
+.slide h3{ color:var(--accent3); }
+.slide p{ color:#4a3d31; }
+.lead{ color:#6a5b4c; }
+.slide.cover .lead{ color:#d6c6b0; }
+.slide.cover p{ color:#d6c6b0; }
+
+.slidehead{ border-bottom:1px solid #e2d5c0; }
+.slidehead .cnum{ background:var(--cream2); color:var(--accent3); }
+
+.card{ background:var(--cardbg); border:1px solid var(--cline); box-shadow:var(--shadow); }
+.card h4{ color:#2b211a; }
+.card p,.card li{ color:#5a4c3f; }
+.card .ico{ background:linear-gradient(135deg,#C15F3C,#D98A5E); color:#fff; }
+ul.clean li{ color:#5a4c3f; }
+ul.clean li::before{ color:var(--accent); }
+
+.pill{ background:var(--cream2); color:var(--accent3); border:1px solid #e2cfb2; }
+.tag-front{ background:#efe0d5; color:#a6532f; border-color:#e6c9b0; }
+.tag-back{ background:#e4ecda; color:#5f7d43; border-color:#cfe0bf; }
+
+.term{ color:var(--accent3); border-bottom:2px dotted rgba(193,95,60,.55); }
+.term:hover{ color:#7a2f16; background:rgba(193,95,60,.12); }
+.term .tip{ background:#241a12; border:1px solid var(--accent); color:#f2e9db; box-shadow:0 18px 40px rgba(20,10,4,.5); }
+.term .tip b{ color:var(--accent2); }
+.term .tip::after{ border-top-color:var(--accent); }
+.slide.cover .term{ color:var(--accent2); border-bottom-color:rgba(217,138,94,.6); }
+
+pre{ background:#231910; border:1px solid #3a2a1c; color:#f0e4d2; }
+code.k{color:#e79a6a}code.s{color:#a6c47f}code.c{color:#a8927d}code.n{color:#e0b25c}
+
+.bar-track{ background:#E7DAC6; border:1px solid #dcc9ad; }
+.bar-fill{ background:linear-gradient(90deg,#C15F3C,#D98A5E)!important; }
+.bar-val{ color:var(--accent3); }
+.bar-label{ color:#4a3d31; }
+
+.node{ background:var(--cardbg)!important; border:1px solid var(--cline); }
+.node .t{ color:#2b211a; } .node .d{ color:#7a6a5b; }
+.arrow{ color:var(--accent); }
+.life{ background:var(--cardbg); border:1px solid var(--cline); }
+.life .m{ color:var(--accent3); } .life .x{ color:#5a4c3f; }
+
+table.cmp th{ background:var(--cream2); color:var(--accent3); }
+table.cmp th,table.cmp td{ border:1px solid #e2d5c0; }
+table.cmp td{ color:#4a3d31; }
+table.cmp tr:nth-child(even) td{ background:rgba(90,50,20,.035); }
+
+.note{ background:linear-gradient(90deg,rgba(184,121,31,.15),transparent); border-left:4px solid var(--warn); color:#4a3d31; }
+.danger{ background:linear-gradient(90deg,rgba(193,80,47,.15),transparent); border-left:4px solid var(--danger); color:#4a3d31; }
+.kv{ border-bottom:1px dashed #e2d5c0; } .kv b{ color:var(--accent3); }
+.muted{ color:#7a6a5b; } .badge{ background:var(--cream2); color:var(--accent3); border:1px solid #e2cfb2; }
+
+/* 기기 목업은 다크 유지(따뜻하게) */
+.phone{ background:#160f09; border:6px solid #3a2a1c; }
+.phone .status{ background:#231910; color:#a8927d; }
+.drawer{ background:#160f09; border-right:1px solid #3a2a1c; }
+.drawer .di{ color:#e6d9c5; border-bottom:1px solid #2a1e14; }
+.drawer div[style]{ color:var(--accent2)!important; }
+
+/* 하단 도크 */
+#dock{ background:linear-gradient(0deg,rgba(23,16,11,.97),rgba(23,16,11,.82)); border-top:1px solid #3a2a1c; }
+#dock button{ background:#2a1e14; border:1px solid #43301f; color:#f0e7d8; }
+#dock button:hover{ background:#3a2a1c; border-color:var(--accent); }
+#dock .brand{ color:#b09a86; } #dock .brand b{ color:var(--accent2); }
+#counter{ color:var(--accent2); } .spd{ color:#b09a86; } .spd b{ color:var(--accent2); }
+.spd input[type=range]{ accent-color:var(--accent); }
+#progress{ background:linear-gradient(90deg,#C15F3C,#D98A5E,#B8791F); box-shadow:0 0 12px rgba(193,95,60,.6); }
+
+/* 목차 사이드바 */
+#toc{ background:#1c140d; border-right:1px solid #3a2a1c; }
+#toc h3{ color:var(--accent2); } #toc .ch{ color:#f0e7d8; } #toc a{ color:#c9b9a6; }
+#toc a:hover{ background:#2a1e14; color:#fff; } #toc a.cur{ background:#3a2a1c; color:var(--accent2); }
+.hint{ color:#8a7a68; }
+
+/* ===== 브랜드 바 / 챕터 번호 / 푸터 (모든 페이지 공통 아이콘) ===== */
+.brandbar{ position:absolute; top:38px; left:64px; display:flex; align-items:center; gap:13px; z-index:6; }
+.brandbar .spark{ width:30px; height:30px; display:block; flex:none; }
+.brandbar .spark svg{ width:100%; height:100%; display:block; }
+.brandbar .wm{ font-size:14px; font-weight:800; letter-spacing:4px; color:#9a8064; }
+.slide.cover .brandbar .wm{ color:#c9b49a; }
+.slidefoot{ position:absolute; right:64px; bottom:36px; font-size:12px; letter-spacing:2.5px;
+  font-weight:700; color:#a8927d; z-index:6; text-transform:uppercase; }
+.slide.cover .slidefoot{ color:var(--accent2); }
+.chapnum{ font-size:150px; font-weight:900; line-height:.86; color:var(--accent);
+  letter-spacing:-4px; margin:2px 0 10px; text-shadow:0 8px 30px rgba(193,95,60,.35); }
+.slide.cover .kicker{ color:var(--accent2); }
+.slide.cover .kicker::before{ background:linear-gradient(90deg,var(--accent2),transparent); }
+
+/* 린 캔버스 / 비즈니스 모델 캔버스 그리드 */
+.bmc{ display:grid; grid-template-columns:repeat(5,1fr); grid-auto-rows:minmax(86px,auto); gap:9px; }
+.bmc-cell{ background:var(--cardbg); border:1px solid var(--cline); border-radius:12px; padding:10px 12px;
+  opacity:0; transform:translateY(12px); transition:all calc(.5s*var(--anim-mult)) ease; }
+.slide.active .bmc-cell.in{ opacity:1; transform:none; }
+.bmc-cell h5{ font-size:13.5px; font-weight:800; color:var(--accent3); margin-bottom:5px; display:flex; align-items:center; gap:6px; }
+.bmc-cell ul{ list-style:none; display:flex; flex-direction:column; gap:2px; }
+.bmc-cell li{ font-size:12.5px; color:#5a4c3f; padding-left:11px; position:relative; line-height:1.45; }
+.bmc-cell li::before{ content:"·"; position:absolute; left:3px; color:var(--accent); font-weight:800; }
+.bmc-cell.vp{ background:linear-gradient(160deg,#F6E4D8,#EFD3C1); border-color:#e0b79c; box-shadow:0 8px 22px rgba(193,95,60,.14); }
+.bmc-cell.vp h5{ color:#a6482a; }
+.loop{ display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap; }
+.loop .lp{ background:var(--cardbg); border:1px solid var(--cline); border-radius:999px; padding:12px 20px;
+  font-weight:800; font-size:16px; color:#2b211a; opacity:0; transform:scale(.9);
+  transition:all calc(.5s*var(--anim-mult)) cubic-bezier(.22,1,.36,1); }
+.slide.active .loop .lp.in{ opacity:1; transform:none; }
+.loop .lp.hot{ background:linear-gradient(135deg,#C15F3C,#D98A5E); color:#fff; border-color:transparent; }
+.loop .la{ color:var(--accent); font-size:22px; font-weight:800; opacity:0; transition:all calc(.5s*var(--anim-mult)) ease; }
+.slide.active .loop .la.in{ opacity:1; }
+.card ul.mini{ gap:5px; } .card ul.mini li{ font-size:13px; line-height:1.42; color:#5a4c3f; }
+a.link{ color:var(--accent3); font-weight:800; text-decoration:none; border-bottom:2px solid rgba(193,95,60,.4); word-break:break-all; }
+a.link:hover{ color:#7a2f16; background:rgba(193,95,60,.1); }
+.slide.cover a.link{ color:var(--accent2); border-bottom-color:rgba(217,138,94,.5); }
+/* 컨텍스트 한 줄 팁 (챕터 표지 공통) */
+.ctxtip{ margin-top:28px; max-width:860px; background:rgba(193,95,60,.15);
+  border:1px solid rgba(217,138,94,.45); border-left:4px solid var(--accent);
+  border-radius:0 14px 14px 0; padding:15px 20px; font-size:17.5px; color:#f2e6d4; line-height:1.5; }
+.ctxtip .ctxlabel{ display:block; font-weight:900; color:var(--accent2); font-size:13px;
+  letter-spacing:2px; text-transform:uppercase; margin-bottom:5px; }
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+<div id="scrim" onclick="closeToc()"></div>
+
+<!-- 목차 사이드바 -->
+<nav id="toc">
+  <h3>목차 · Contents</h3>
+  <div id="tocList"></div>
+</nav>
+
+<div id="stage"></div>
+
+<div class="hint">← → 이동 · F 전체화면 · 숫자키 챕터</div>
+
+<!-- 하단 도크 -->
+<div id="dock">
+  <div class="brand">📱 <b>앱튜버 심화 과정1</b> · 안드로이드 실무</div>
+  <div class="spd" title="애니메이션 속도 조절(수정 가능)">
+    ⚙ 애니메이션
+    <input id="speed" type="range" min="0.3" max="2.2" step="0.1" value="1" oninput="setSpeed(this.value)">
+    <b id="spdv">1.0x</b>
+  </div>
+  <button onclick="replay()">↻ 애니 재생</button>
+  <button onclick="toggleToc()">☰ 목차</button>
+  <button onclick="go(-1)">◀ 이전</button>
+  <span id="counter">1 / 1</span>
+  <button onclick="go(1)">다음 ▶</button>
+</div>
+
+<script>
+/* ============================================================
+   슬라이드 데이터 — 각 슬라이드는 HTML 문자열.
+   .term 요소에 마우스를 올리면 용어 해설 툴팁이 나타납니다.
+   애니메이션 요소(.animate 대상)는 슬라이드 진입 시 .in 클래스가 붙어 재생됩니다.
+   ============================================================ */
+
+/* 용어 툴팁 헬퍼 */
+function T(word, desc, pos){
+  return `<span class="term">${word}<span class="tip ${pos||''}">${desc}</span></span>`;
+}
+
+const CH = [
+  "오리엔테이션", "1. 개발의 큰 그림", "2. 앱 기획", "3. 아키텍처 · MVC",
+  "4. UX/UI 디자인", "5. 개발 환경", "6. 데이터 저장 · 보안",
+  "7. 플랫폼 · 버전 · 테마", "8. 통신 · 네트워크", "9. 화면 · 라이프사이클", "마무리"
+];
+
+const slides = [];
+function S(chapter, html){ slides.push({ch:chapter, html}); }
+
+/* ---------- 표지 ---------- */
+S(0, `<div class="cover center">
+  <div class="kicker">APPTUBER · ADVANCED COURSE</div>
+  <h1>앱튜버 심화 과정<span style="color:var(--accent)">1</span></h1>
+  <div style="font-size:26px;font-weight:800;color:#e6d7c2;margin-bottom:22px">
+    안드로이드 앱 개발 실무 — 용어부터 아키텍처, 데이터, 통신, 라이프사이클까지</div>
+  <p class="lead">2차 교육 · 심화 과정입니다. 1차에서 다룬 기초를 바탕으로,
+  실무에서 실제로 쓰는 기술 용어와 설계 방법론을 한 번에 정리합니다.
+  각 <b style="color:var(--accent)">용어에 마우스를 올리면 해설</b>이 나타나고,
+  차트는 <b style="color:var(--accent2)">애니메이션 속도를 조절</b>할 수 있습니다.</p>
+  <div style="margin-top:30px">
+    <span class="pill">⏱ 90분</span><span class="pill">📚 9개 챕터</span>
+    <span class="pill">🎯 비기너 심화</span><span class="pill">🤖 Android / Kotlin</span>
+  </div>
+</div>`);
+
+/* ---------- 목차 ---------- */
+S(0, `<div class="slidehead"><span class="cnum">OVERVIEW</span><h2>과정 구성 — 1강 이론 · 2강 실습</h2></div>
+<div class="body">
+<div class="grid g2" style="margin-top:8px">
+  <div class="card" style="border-color:#e0b79c;background:linear-gradient(160deg,#FBF4ED,#F5E6D8)">
+    <h4><span class="ico">📖</span>1강 · 이론 설명 <span class="pill">약 1시간 10분</span></h4>
+    <p class="small" style="margin-top:8px">안드로이드 앱 개발의 <b>큰 그림부터 실무 용어·기술까지</b> 9개 챕터로 훑습니다.<br>기획(린 캔버스) → 설계(MVC/MVVM) → UI/UX → 개발 환경 → 데이터·보안 → 플랫폼·버전 → 통신 → 라이프사이클.</p>
+  </div>
+  <div class="card">
+    <h4><span class="ico">🛠️</span>2강 · 앱 개발 실습하기 <span class="pill">핸즈온</span></h4>
+    <p class="small" style="margin-top:8px"><b>실패한 앱을 함께 뜯어고치고</b>, 오늘 배운 구조(MVVM·테마·DAO·코루틴)로 <b>직접 새로 만들어</b> 봅니다.<br>"이렇게 만들면 어렵다"를 몸으로 이해하는 시간.</p>
+  </div>
+</div>
+<div class="note" style="margin-top:18px">🎯 오늘(<b>1강</b>)은 <b>개념과 감</b>을 잡고, 다음(<b>2강</b>)은 <b>손으로 만드는</b> 시간입니다. 모든 용어는 마우스를 올리면 해설이 나옵니다.</div>
+</div>`);
+
+S(0, `<div class="slidehead"><span class="cnum">WHY</span><h2>왜 '컨텍스트'인가 — 이 수업의 목표</h2></div>
+<div class="body">
+<p class="lead">앱 개발은 결국 <b>'무엇을, 어떻게 만들지' 정확히 전달하는 일</b>입니다. 그 전달 문서가 <b>${T('컨텍스트','명세·기획·요청서. 만들 것을 빠짐없이·정확히 적은 글. 팀·외주·미래의 나·AI 도구 모두 이걸 보고 같은 결과를 만듭니다.')}</b>. 우리는 이 컨텍스트를 <b>잘 쓰기 위해</b> 용어와 설계를 배웁니다.</p>
+<div class="grid g2" style="margin-top:6px">
+  <div class="card" style="border-color:#e0b79c"><h4><span class="ico">🧠</span>그래서 '용어'를 배운다</h4><p class="small">정확한 단어로 지칭해야 오해가 없습니다. "버튼" 대신 <b>FAB</b>, "저장" 대신 <b>SharedPreferences</b>.</p></div>
+  <div class="card" style="border-color:#e0b79c"><h4><span class="ico">🗺️</span>그래서 '기획·설계'를 배운다</h4><p class="small">빠짐없이 전달하려면 구조를 알아야 합니다. 화면·데이터·흐름·상태 변화까지.</p></div>
+</div>
+<div class="two" style="margin-top:16px;align-items:stretch">
+  <div class="danger" style="margin:0">🚫 <b>나쁜 컨텍스트</b><br><span class="small">"로그인 되게 해줘"</span></div>
+  <div class="note" style="margin:0">✅ <b>좋은 컨텍스트</b><br><span class="small">"이메일+비밀번호로 <b>POST /login</b> 호출 → 성공 시 홈 화면, 실패 시 <b>Toast</b> 안내. 토큰은 <b>EncryptedSharedPreferences</b>에 저장."</span></div>
+</div>
+<div class="note" style="margin-top:14px">👉 각 챕터 표지의 <b>'💬 컨텍스트 한 줄 팁'</b>만 모아도 그대로 <b>명세 체크리스트</b>가 됩니다.</div>
+</div>`);
+
+S(0, `<div class="slidehead"><span class="cnum">1강 · 목차</span><h2>1강 이론 · 목차 <span style="font-size:16px;color:var(--muted);font-weight:600">· 약 1시간 10분</span></h2></div>
+<div class="body">
+<div class="grid g3">
+  <div class="card"><h4><span class="ico">🗺️</span>1. 개발의 큰 그림</h4><p class="small muted">프론트엔드·백엔드 구분, 클라이언트-서버 흐름, 풀스택 엔지니어 역량</p></div>
+  <div class="card"><h4><span class="ico">📝</span>2. 앱 기획</h4><p class="small muted">기획 프로세스, 요구사항 정의, 스마트폰 화면(뷰) 이해</p></div>
+  <div class="card"><h4><span class="ico">🏛️</span>3. 아키텍처 · MVC</h4><p class="small muted">MVC 설계 방법론과 안드로이드의 MVVM</p></div>
+  <div class="card"><h4><span class="ico">🎨</span>4. UX/UI 디자인</h4><p class="small muted">스와이프·드래그·좌우 밀기, 햄버거 메뉴, FAB, Jetpack Compose</p></div>
+  <div class="card"><h4><span class="ico">🛠️</span>5. 개발 환경</h4><p class="small muted">안드로이드 스튜디오, 에뮬레이터 활용법</p></div>
+  <div class="card"><h4><span class="ico">💾</span>6. 데이터 저장·보안</h4><p class="small muted">SharedPreferences/DAO, 데이터 확인, 개인정보 보호</p></div>
+  <div class="card"><h4><span class="ico">🤖</span>7. 플랫폼·버전·테마</h4><p class="small muted">API 레벨(34→36), SDK, Manifest, 다크/화이트 테마</p></div>
+  <div class="card"><h4><span class="ico">🔌</span>8. 통신·네트워크</h4><p class="small muted">블루투스, API·포트, GET/POST, URL 표시</p></div>
+  <div class="card"><h4><span class="ico">🔄</span>9. 화면·라이프사이클</h4><p class="small muted">뷰 화면 구성, 액티비티 생명주기</p></div>
+</div>
+</div>`);
+
+/* =========================================================
+   CH1 개발의 큰 그림
+   ========================================================= */
+S(1, `<div class="cover center">
+  <div class="kicker">CHAPTER 1</div>
+  <h1>개발의 큰 그림</h1>
+  <p class="lead">개발의 큰 그림은 <b>기획</b>에서 나옵니다. 린 캔버스로 아이디어를 그리고 —
+  프론트엔드와 백엔드를 나누고, 이 둘을 함께 다루는 풀스택 엔지니어의 역량까지.</p>
+</div>`);
+
+S(1, `<div class="slidehead"><span class="cnum">CH1</span><h2>개발의 큰 그림은 'What'에서 시작</h2></div>
+<div class="body" style="gap:12px">
+  <div style="text-align:center">
+    <div style="font-size:78px;font-weight:900;color:var(--accent);line-height:1;letter-spacing:-4px;text-shadow:0 10px 34px rgba(193,95,60,.28)">What?</div>
+    <div style="font-size:28px;font-weight:800;color:#2b211a;margin-top:8px">무엇 <span class="muted" style="font-size:16px">(한)</span> &nbsp;·&nbsp; 什么 <span class="muted" style="font-size:16px">(中)</span> &nbsp;·&nbsp; 何 <span class="muted" style="font-size:16px">(日)</span></div>
+    <div class="muted" style="font-size:15px;margin-top:4px">무엇을 만들 것인가 — 모든 개발은 여기서 시작합니다</div>
+  </div>
+  <div class="loop animate" style="margin:4px 0">
+    <div class="lp">😣 나·우리의 불편함 발견</div><div class="la">→</div>
+    <div class="lp">🎯 세부 타깃 정하기</div><div class="la">→</div>
+    <div class="lp hot">🚀 여기서 시작!</div>
+  </div>
+  <div class="card vp" style="max-width:960px;margin:0 auto">
+    <h4><span class="ico">💡</span>예시 — 아주 구체적으로</h4>
+    <p style="font-size:18px;margin-top:4px;color:#2b211a"><b>"수학 문제를 못 푸는 2학년 딸을 위한 뺄셈 게임 앱"</b></p>
+    <p class="small" style="margin-top:6px">🎯 타깃: <b>초1~2 자녀를 둔 부모님</b> · 뺄셈·구구단을 놀이처럼 학습<br>💬 문제(이유): <b>처음부터 수학이 어려워지면 평생 어려워진다</b> — 바로 이 불편을 풀어줍니다.</p>
+  </div>
+  <div class="note" style="max-width:960px;margin:14px auto 0">💡 "모두를 위한 앱"은 아무도 안 씁니다. <b>내 주변의 진짜 불편 하나 + 구체적인 한 사람</b>에서 출발 → 이걸 한 장에 정리한 것이 다음의 <b>${T('린 캔버스','Lean Canvas. 문제·타깃·가치를 9칸에 정리하는 기획 도구.')}</b>입니다.</div>
+</div>`);
+
+S(1, `<div class="slidehead"><span class="cnum">CH1</span><h2>예시 — 건강 관리 앱을 캔버스로 그리면</h2></div>
+<div class="body">
+<div class="bmc animate">
+  <div class="bmc-cell" style="grid-column:1;grid-row:1/3"><h5>🤝 핵심 파트너</h5><ul><li>건강식품 회사</li><li>피트니스 센터</li></ul></div>
+  <div class="bmc-cell" style="grid-column:2;grid-row:1"><h5>🛠️ 핵심 활동</h5><ul><li>앱 개발·유지보수</li><li>건강 정보 큐레이션</li></ul></div>
+  <div class="bmc-cell" style="grid-column:2;grid-row:2"><h5>📦 핵심 자원</h5><ul><li>헬스케어 DB</li><li>AI 알고리즘</li></ul></div>
+  <div class="bmc-cell vp" style="grid-column:3;grid-row:1/3"><h5>💎 가치 제안 (UVP)</h5><ul><li><b>간편한 건강 관리</b></li><li>바쁜 직장인도 매일 쉽게</li></ul></div>
+  <div class="bmc-cell" style="grid-column:4;grid-row:1"><h5>💬 고객 관계</h5><ul><li>개인화된 건강 조언</li><li>커뮤니티 기능</li></ul></div>
+  <div class="bmc-cell" style="grid-column:4;grid-row:2"><h5>📢 채널</h5><ul><li>앱 스토어·구글 플레이</li><li>인스타그램 광고</li></ul></div>
+  <div class="bmc-cell" style="grid-column:5;grid-row:1/3"><h5>👥 고객 세그먼트</h5><ul><li>20~30대 직장인</li></ul></div>
+  <div class="bmc-cell" style="grid-column:1/4;grid-row:3"><h5>💰 비용 구조</h5><ul><li>개발자 인건비 · 서버 유지비 · 마케팅 비용</li></ul></div>
+  <div class="bmc-cell" style="grid-column:4/6;grid-row:3"><h5>💵 수익원</h5><ul><li>프리미엄 기능 구독료 · 제휴 상품 판매</li></ul></div>
+</div>
+<div class="note" style="margin-top:14px">가운데 <b>가치 제안(UVP)</b>이 중심입니다. 나머지 8칸은 "그 가치를 누구에게·어떻게·얼마에 전달할까"를 채워 넣습니다.</div>
+</div>`);
+
+S(1, `<div class="slidehead"><span class="cnum">CH1</span><h2>예시 2 — 내가 직접 기획한 린 캔버스 (건강 습관 60일)</h2></div>
+<div class="body">
+<div class="bmc animate">
+  <div class="bmc-cell" style="grid-column:1;grid-row:1/3"><h5>🤝 핵심 파트너</h5><ul><li>운동·헬스용품 판매 (광고 제휴)</li><li>운동 관련 동호회</li></ul></div>
+  <div class="bmc-cell" style="grid-column:2;grid-row:1"><h5>🛠️ 핵심 활동</h5><ul><li>동호회 카페 홍보</li><li>건강앱 분석하기</li></ul></div>
+  <div class="bmc-cell" style="grid-column:2;grid-row:2"><h5>📦 핵심 자원</h5><ul><li>클로드 코드</li><li>AI 도구</li></ul></div>
+  <div class="bmc-cell vp" style="grid-column:3;grid-row:1/3"><h5>💎 가치 제안 (UVP)</h5>
+    <div style="font-weight:800;color:#a6482a;font-size:13.5px;margin:1px 0 4px">건강 습관 들이기 60일 프로젝트</div>
+    <ul><li>하루 10분 운동</li><li>건강식 챙겨먹기</li><li>30분 걷기</li><li>자기 전 5분 명상</li></ul>
+    <div style="font-size:11.5px;color:#7a6a5b;margin-top:5px">한 가지라도 좋은 습관을 들여 건강한 삶을 유지</div>
+  </div>
+  <div class="bmc-cell" style="grid-column:4;grid-row:1"><h5>💬 고객 관계</h5><ul><li>60일 챌린지 인증 게시판(친구에게 자랑)</li><li>동호회 인증 게시판(유료회원용)</li></ul></div>
+  <div class="bmc-cell" style="grid-column:4;grid-row:2"><h5>📢 채널</h5><ul><li>구글 플레이</li><li>인스타·유튜브·메타·구글 광고</li></ul></div>
+  <div class="bmc-cell" style="grid-column:5;grid-row:1/3"><h5>👥 고객 세그먼트</h5><ul><li><b>주 타깃: 30·40대 직장인</b></li><li>하루 10분 투자 + 친구에게 자랑하고 싶은 사람</li><li>50·60·70대도 가능</li></ul></div>
+  <div class="bmc-cell" style="grid-column:1/4;grid-row:3"><h5>💰 비용 구조</h5><ul><li>서버 유지비 ≈ 0 (초기)</li><li>1,000 다운로드 이후부터 광고비·홍보비로 본격 마케팅</li></ul></div>
+  <div class="bmc-cell" style="grid-column:4/6;grid-row:3"><h5>💵 수익원</h5><ul><li>초기 무료 → 1,000 다운로드부터 광고·홍보</li><li>프로 결제: 무료(광고) / Pro 4,900원 / Max 9,900원</li><li>웹 사용자 분석 토대로 가격 추후 재산정</li></ul></div>
+</div>
+<div class="note" style="margin-top:12px">✍️ 이렇게 <b>내 아이디어를 9칸에 직접 채워보는 것</b>이 기획의 시작입니다. 채우다 보면 빈 칸(=아직 안 정해진 것)이 눈에 보입니다.</div>
+</div>`);
+
+S(1, `<div class="slidehead"><span class="cnum">CH1</span><h2>핵심은 '반복' — 만들고 · 측정하고 · 배운다</h2></div>
+<div class="body">
+<div class="loop animate" style="margin:26px 0 20px">
+  <div class="lp">① UVP 정의</div><div class="la">→</div>
+  <div class="lp">② 세부 타깃 확정</div><div class="la">→</div>
+  <div class="lp hot">③ 고객 문제 해결</div><div class="la">→</div>
+  <div class="lp">④ 피드백 수집</div><div class="la">↺</div>
+  <div class="lp">⑤ 다시 개선</div>
+</div>
+<div class="grid g3">
+  <div class="card"><h4><span class="ico">🔨</span>Build (만들기)</h4><p class="small">가설을 담은 최소 기능(${T('MVP','Minimum Viable Product. 핵심 기능만 담은 최소 제품. 빠르게 만들어 시장 반응을 검증.')})을 빠르게 만든다.</p></div>
+  <div class="card"><h4><span class="ico">📊</span>Measure (측정)</h4><p class="small">실제 사용자 반응과 지표를 관찰한다.</p></div>
+  <div class="card"><h4><span class="ico">🧠</span>Learn (학습)</h4><p class="small">배운 것으로 캔버스를 고치고 다시 만든다.</p></div>
+</div>
+<div class="note" style="margin-top:14px">🔁 한 번에 완성이 아니라 <b>이 루프를 계속 도는 것</b>. 개발의 큰 그림은 "완벽한 첫 설계"가 아니라 "빠른 반복 개선"입니다.</div>
+</div>`);
+
+S(1, `<div class="slidehead"><span class="cnum">CH1</span><h2>프론트엔드 vs 백엔드</h2></div>
+<div class="body">
+<div class="grid g2">
+  <div class="card">
+    <h4><span class="ico">📱</span>프론트엔드 <span class="pill tag-front">Client</span></h4>
+    <p>사용자가 <b>직접 보고 만지는</b> 부분. 안드로이드에서는 화면(UI), 버튼, 리스트, 애니메이션이 여기에 속합니다.</p>
+    <ul class="clean" style="margin-top:12px">
+      <li>${T('Kotlin','안드로이드 공식 언어. 자바보다 간결하고 널 안전(null-safety)을 지원. 구글 권장 1순위 언어.')}(Java) — 안드로이드 네이티브</li>
+      <li>${T('Dart','Flutter 프레임워크에서 쓰는 언어. Dart 코드 하나로 안드로이드·iOS 앱을 동시에 만듭니다(크로스플랫폼).')}(Flutter) — iOS·안드로이드 동시 개발</li>
+      <li>${T('XML','eXtensible Markup Language. 태그(&lt;Button&gt; 등)로 화면 레이아웃을 정의하는 전통 방식. res/layout 폴더의 .xml 파일에 버튼·텍스트 배치를 적어 화면을 그립니다.')} / ${T('Jetpack Compose','코드(Kotlin 함수)로 UI를 그리는 최신 선언형 방식. XML을 대체.')} — UI 작성 방식</li>
+      <li>화면 전환, 제스처, 상태 관리</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4><span class="ico">🗄️</span>백엔드 <span class="pill tag-back">Server</span></h4>
+    <p>사용자 눈에 <b>보이지 않는</b> 서버 영역. 데이터를 저장·처리하고 로그인·결제 같은 로직을 담당합니다.</p>
+    <ul class="clean" style="margin-top:12px">
+      <li>${T('서버','요청을 받아 처리 결과를 돌려주는 컴퓨터/프로그램. 24시간 켜져 있으며 여러 앱이 동시에 접속합니다.')} (Node.js, Spring, Django 등)</li>
+      <li>${T('데이터베이스','데이터를 구조적으로 저장·검색하는 시스템. MySQL, PostgreSQL, MongoDB 등.')} (DB)</li>
+      <li>${T('API','Application Programming Interface. 프론트와 백엔드가 정해진 규칙으로 데이터를 주고받는 창구.')} 제공</li>
+    </ul>
+  </div>
+</div>
+<div class="note">💡 핵심: 앱(프론트엔드)은 <b>화면을 그리는 일</b>, 서버(백엔드)는 <b>데이터를 다루는 일</b>. 둘은 API로 대화합니다.</div>
+</div>`);
+
+S(1, `<div class="slidehead"><span class="cnum">CH1</span><h2>클라이언트 ↔ 서버, 데이터는 이렇게 흐른다</h2></div>
+<div class="body">
+<div class="flow animate" style="margin:30px 0">
+  <div class="node"><div class="t">📱 앱 (Client)</div><div class="d">사용자 화면</div></div>
+  <div class="arrow">— 요청(Request) →</div>
+  <div class="node"><div class="t">🌐 ${T('API','앱과 서버가 약속된 형식으로 통신하는 통로. 보통 HTTP로 요청/응답합니다.')} 서버</div><div class="d">비즈니스 로직</div></div>
+  <div class="arrow">↔</div>
+  <div class="node"><div class="t">🗄️ ${T('DB','Database. 데이터를 영구 저장하는 곳. 서버가 읽고 씁니다.')}</div><div class="d">데이터 저장</div></div>
+</div>
+<div class="flow animate">
+  <div class="node"><div class="t">📱 앱</div><div class="d">화면에 표시</div></div>
+  <div class="arrow">← 응답(Response) —</div>
+  <div class="node"><div class="t">🌐 서버</div><div class="d">${T('JSON','데이터를 주고받는 표준 텍스트 형식. {"name":"홍길동"} 처럼 키-값 구조.')} 가공</div></div>
+</div>
+<div class="note">예: 로그인 버튼 클릭 → 앱이 아이디/비번을 서버로 <b>요청</b> → 서버가 DB 조회 → 성공/실패를 <b>응답</b> → 앱이 화면 전환</div>
+</div>`);
+
+S(1, `<div class="slidehead"><span class="cnum">CH1</span><h2>풀스택 엔지니어의 역량</h2></div>
+<div class="body">
+<p class="lead">프론트와 백엔드를 <b>동시에</b> 다루는 사람. 앱튜버로서 1인 개발을 하려면 반드시 필요한 시야입니다.</p>
+<div class="grid g3" style="margin-top:8px">
+  <div class="card"><h4><span class="ico">🧭</span>전체 흐름 이해</h4><p class="small">화면 클릭 한 번이 서버·DB까지 어떻게 이어지는지 그림을 그릴 수 있어야 합니다.</p></div>
+  <div class="card"><h4><span class="ico">🔗</span>API 설계·연동</h4><p class="small">양쪽을 만드니 ${T('엔드포인트','API의 주소 하나하나. 예: /login, /users/1. 각각이 특정 기능을 담당합니다.')} 를 직접 정의하고 맞춰볼 수 있습니다.</p></div>
+  <div class="card"><h4><span class="ico">🐞</span>문제 위치 파악</h4><p class="small">버그가 앱 문제인지 서버 문제인지 빠르게 좁혀냅니다.</p></div>
+  <div class="card"><h4><span class="ico">⚡</span>빠른 프로토타이핑</h4><p class="small">아이디어를 혼자서 끝까지 만들어 출시할 수 있습니다.</p></div>
+  <div class="card"><h4><span class="ico">💬</span>협업 커뮤니케이션</h4><p class="small">디자이너·서버 개발자와 같은 언어로 대화합니다.</p></div>
+  <div class="card"><h4><span class="ico">📈</span>확장 가능한 설계</h4><p class="small">지금은 작아도 나중에 커질 구조를 미리 고려합니다.</p></div>
+</div>
+<div class="note">🎯 심화 목표: "화면만 만드는 사람"에서 "제품 전체를 그리는 사람"으로. 오늘 배우는 각 주제가 그 퍼즐 조각입니다.</div>
+</div>`);
+
+/* =========================================================
+   CH2 기획
+   ========================================================= */
+S(2, `<div class="cover center">
+  <div class="kicker">CHAPTER 2</div>
+  <h1>앱 기획</h1>
+  <p class="lead">코드를 짜기 전에 무엇을·왜·누구를 위해 만드는지 정하는 단계.
+  그리고 안드로이드 화면(뷰)이 실제 스마트폰에서 어떻게 보이는지 이해합니다.</p>
+</div>`);
+
+S(2, `<div class="slidehead"><span class="cnum">CH2</span><h2>기획은 이런 순서로</h2></div>
+<div class="body">
+<div class="flow animate" style="margin:20px 0 10px">
+  <div class="node"><div class="t">💡 아이디어</div><div class="d">문제 정의</div></div>
+  <div class="arrow">→</div>
+  <div class="node"><div class="t">👥 타깃·요구사항</div><div class="d">누가, 무엇을</div></div>
+  <div class="arrow">→</div>
+  <div class="node"><div class="t">🧩 ${T('와이어프레임','화면의 뼈대만 그린 스케치. 색·디자인 없이 버튼·리스트 위치만 잡습니다.')}</div><div class="d">화면 뼈대</div></div>
+</div>
+<div class="flow animate">
+  <div class="node"><div class="t">🎨 ${T('프로토타입','실제로 눌러볼 수 있는 시제품. 개발 전에 흐름을 검증합니다.')}</div><div class="d">흐름 검증</div></div>
+  <div class="arrow">→</div>
+  <div class="node"><div class="t">⚙️ 개발</div><div class="d">구현</div></div>
+  <div class="arrow">→</div>
+  <div class="node"><div class="t">🚀 출시·개선</div><div class="d">피드백 반영</div></div>
+</div>
+<div class="grid g3" style="margin-top:18px">
+  <div class="card"><h4>❓ 핵심 질문</h4><p class="small">이 앱은 어떤 <b>불편</b>을 해결하나? 없으면 아무도 안 씁니다.</p></div>
+  <div class="card"><h4>🎯 ${T('MVP','Minimum Viable Product. 최소 기능 제품. 핵심 기능만 먼저 만들어 빠르게 검증합니다.')}</h4><p class="small">처음부터 전부 X. <b>핵심 하나</b>만 먼저.</p></div>
+  <div class="card"><h4>📐 기능 명세</h4><p class="small">화면·버튼별로 "무엇을 하는가"를 문장으로 적어둡니다.</p></div>
+</div>
+</div>`);
+
+S(2, `<div class="slidehead"><span class="cnum">CH2</span><h2>스마트폰 화면(뷰) 이해하기</h2></div>
+<div class="body">
+<div class="two">
+  <div>
+    <p>기기마다 화면 크기·해상도가 다릅니다. 그래서 안드로이드는 픽셀(px)이 아니라
+    <b>${T('dp','Density-independent Pixel. 화면 밀도와 무관하게 같은 물리적 크기로 보이도록 하는 단위. 레이아웃은 dp로!')}</b> 단위로 화면을 잡습니다.</p>
+    <ul class="clean" style="margin-top:14px">
+      <li><b>px</b> — 실제 화면의 점 하나 (기기마다 개수 다름)</li>
+      <li><b>dp</b> — 밀도 무관 단위, <b>레이아웃 기준</b></li>
+      <li><b>sp</b> — ${T('sp','Scale-independent Pixel. 글자 크기 단위. 사용자가 시스템 글자 크기를 키우면 함께 커져 접근성에 유리.')} (글자 크기)</li>
+      <li>${T('반응형','화면 크기가 달라도 깨지지 않게 유연하게 배치하는 설계. ConstraintLayout, Compose 등을 사용.')} 레이아웃으로 대응</li>
+    </ul>
+    <div class="note" style="margin-top:16px">1인치당 픽셀 수 = ${T('DPI','Dots Per Inch. 화면 밀도. mdpi(160)를 기준 1배로 보고 hdpi·xhdpi·xxhdpi로 갈수록 촘촘합니다.')}. 밀도가 높을수록 같은 dp도 더 많은 px로 그려집니다.</div>
+  </div>
+  <div class="chart" style="align-self:center">
+    <div style="font-weight:800;margin-bottom:6px">밀도별 화면 (1dp가 몇 px?)</div>
+    <div class="bar-row"><div class="bar-label">mdpi ×1</div><div class="bar-track"><div class="bar-fill" style="--w:25%"></div></div><div class="bar-val">1px</div></div>
+    <div class="bar-row"><div class="bar-label">hdpi ×1.5</div><div class="bar-track"><div class="bar-fill" style="--w:37%"></div></div><div class="bar-val">1.5px</div></div>
+    <div class="bar-row"><div class="bar-label">xhdpi ×2</div><div class="bar-track"><div class="bar-fill" style="--w:50%"></div></div><div class="bar-val">2px</div></div>
+    <div class="bar-row"><div class="bar-label">xxhdpi ×3</div><div class="bar-track"><div class="bar-fill" style="--w:75%"></div></div><div class="bar-val">3px</div></div>
+    <div class="bar-row"><div class="bar-label">xxxhdpi ×4</div><div class="bar-track"><div class="bar-fill" style="--w:100%"></div></div><div class="bar-val">4px</div></div>
+  </div>
+</div>
+</div>`);
+
+/* =========================================================
+   CH3 MVC
+   ========================================================= */
+S(3, `<div class="cover center">
+  <div class="kicker">CHAPTER 3</div>
+  <h1>아키텍처 설계 · MVC</h1>
+  <p class="lead">코드를 역할별로 나누는 방법론. 화면·데이터·로직이 뒤엉키지 않게 하면
+  유지보수와 협업이 쉬워집니다.</p>
+</div>`);
+
+S(3, `<div class="slidehead"><span class="cnum">CH3</span><h2>MVC — Model · View · Controller</h2></div>
+<div class="body">
+<div class="mvc animate">
+  <div class="card"><div class="big">🗃️</div><h4 style="justify-content:center">Model</h4>
+    <p class="small">${T('Model','데이터와 비즈니스 로직 담당. DB, 네트워크 응답, 계산 로직 등. 화면을 모릅니다.')} — 데이터·로직</p></div>
+  <div class="card"><div class="big">🖼️</div><h4 style="justify-content:center">View</h4>
+    <p class="small">${T('View','사용자에게 보이는 화면. 버튼·텍스트·이미지. 데이터를 어떻게 얻는지는 모릅니다.')} — 화면·표시</p></div>
+  <div class="card"><div class="big">🎮</div><h4 style="justify-content:center">Controller</h4>
+    <p class="small">${T('Controller','View의 입력을 받아 Model을 바꾸고, 결과를 다시 View에 반영하는 중재자.')} — 중재·제어</p></div>
+</div>
+<div class="flow animate" style="margin-top:22px">
+  <div class="node"><div class="t">사용자 입력</div></div>
+  <div class="arrow">→ Controller</div>
+  <div class="node"><div class="t">Model 갱신</div></div>
+  <div class="arrow">→</div>
+  <div class="node"><div class="t">View 갱신</div></div>
+</div>
+<div class="note" style="margin-top:18px">💡 왜 나눌까? 화면 디자인을 바꿔도 데이터 로직은 그대로, 데이터 구조를 바꿔도 화면은 최소 수정 — <b>변경에 강한 구조</b>가 됩니다.</div>
+</div>`);
+
+S(3, `<div class="slidehead"><span class="cnum">CH3</span><h2>안드로이드에서는? MVC → MVVM</h2></div>
+<div class="body">
+<p class="lead">구글이 권장하는 현대 안드로이드 아키텍처는 <b>${T('MVVM','Model-View-ViewModel. ViewModel이 화면 상태를 들고 있고, View는 그 상태를 관찰(observe)만 합니다. 화면 회전에도 데이터 유지.')}</b> 입니다. MVC의 발전형이라 생각하세요.</p>
+<table class="cmp" style="margin-top:8px">
+  <tr><th>레이어</th><th>MVC</th><th>MVVM (안드로이드 권장)</th></tr>
+  <tr><td>화면</td><td>View (Activity/XML)</td><td>View (Compose/Activity)</td></tr>
+  <tr><td>중재</td><td>Controller</td><td>${T('ViewModel','화면이 보여줄 데이터(상태)를 보관. 화면 회전 등 생명주기 변화에도 살아남아 데이터를 지킵니다.')}</td></tr>
+  <tr><td>데이터</td><td>Model</td><td>Model + ${T('Repository','여러 데이터 소스(서버·DB·캐시)를 하나로 묶어 관리하는 창구 역할의 클래스.')}</td></tr>
+</table>
+<div class="grid g3" style="margin-top:18px">
+  <div class="card"><h4>👀 관찰(Observe)</h4><p class="small">View는 ViewModel의 상태를 구독. 데이터가 바뀌면 화면이 자동 갱신됩니다.</p></div>
+  <div class="card"><h4>🔄 생명주기 안전</h4><p class="small">화면 회전으로 Activity가 재생성돼도 ViewModel의 데이터는 유지됩니다.</p></div>
+  <div class="card"><h4>🧪 테스트 용이</h4><p class="small">ViewModel은 화면과 분리돼 있어 단위 테스트가 쉽습니다.</p></div>
+</div>
+</div>`);
+
+/* =========================================================
+   CH4 UX/UI
+   ========================================================= */
+S(4, `<div class="cover center">
+  <div class="kicker">CHAPTER 4</div>
+  <h1>UX/UI 디자인</h1>
+  <p class="lead">사용자 편의를 위한 제스처와 내비게이션 패턴 — 스와이프, 드래그, 좌우 밀기,
+  햄버거 메뉴, 플로팅 액션 버튼, 그리고 Jetpack Compose. <b>직접 만져보세요.</b></p>
+</div>`);
+
+S(4, `<div class="slidehead"><span class="cnum">CH4</span><h2>제스처 — 스와이프 · 드래그 · 좌우 밀기</h2></div>
+<div class="body">
+<div class="two">
+  <div>
+    <ul class="clean">
+      <li><b>${T('스와이프 Swipe','화면을 손가락으로 빠르게 쓸어넘기는 동작. 목록 항목 삭제, 페이지 넘김 등에 사용.')}</b> — 리스트 항목을 밀어 삭제/보관</li>
+      <li><b>${T('드래그 Drag','손가락으로 요소를 잡고 원하는 위치로 끌어 이동. 목록 순서 변경 등.')}</b> — 항목을 잡고 위치 이동</li>
+      <li><b>좌우 밀기</b> — 탭/페이지 전환 (${T('ViewPager','좌우로 밀어 화면을 넘기는 컴포넌트. 온보딩, 이미지 갤러리 등에 사용.')})</li>
+      <li><b>${T('Pull to Refresh','목록 맨 위에서 아래로 당기면 새로고침되는 패턴.')}</b> — 당겨서 새로고침</li>
+    </ul>
+    <div class="note" style="margin-top:16px">👉 오른쪽 카드를 <b>마우스로 잡고 좌우로 드래그</b>해 보세요. 실제 앱의 스와이프-삭제 느낌을 재현했습니다.</div>
+  </div>
+  <div style="display:flex;justify-content:center">
+    <div class="phone">
+      <div class="status">📶  앱튜버  🔋</div>
+      <div class="screen">
+        <div style="color:#8fa6ff;font-size:13px;margin-bottom:10px">← 카드를 좌우로 밀어보세요</div>
+        <div class="demo-card" id="swipeCard" onpointerdown="startSwipe(event)">📩 알림 카드<br><span style="font-weight:400;font-size:13px">밀어서 삭제 / 보관</span></div>
+        <div id="swipeMsg" style="color:var(--accent);font-size:13px;margin-top:12px;height:18px"></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>`);
+
+S(4, `<div class="slidehead"><span class="cnum">CH4</span><h2>내비게이션 — 햄버거 메뉴 · FAB</h2></div>
+<div class="body">
+<div class="two">
+  <div>
+    <ul class="clean">
+      <li><b>${T('햄버거 메뉴','줄 3개(≡) 아이콘. 누르면 옆에서 서랍(Navigation Drawer)이 슬라이드로 열립니다.')}</b> (≡) — 옆에서 나오는 서랍 메뉴</li>
+      <li><b>${T('Navigation Drawer','화면 왼쪽에서 밀려 나오는 메뉴 패널. 앱의 주요 이동 경로를 담습니다.')}</b> — 주요 화면 이동</li>
+      <li><b>${T('FAB','Floating Action Button. 화면 위에 떠 있는 원형 버튼. 그 화면의 가장 중요한 동작 하나를 담습니다(예: 글쓰기 +).')}</b> — 핵심 액션 버튼</li>
+      <li><b>${T('Bottom Navigation','화면 하단의 탭 바. 3~5개 최상위 메뉴를 오갑니다.')}</b> — 하단 탭</li>
+    </ul>
+    <div class="note" style="margin-top:14px">👉 오른쪽에서 <b>≡ 아이콘</b>과 <b>＋ 플로팅 버튼</b>을 눌러보세요.</div>
+  </div>
+  <div style="display:flex;justify-content:center">
+    <div class="phone">
+      <div class="status"><span class="burger" onclick="toggleDrawer()">≡</span> 앱튜버 &nbsp;&nbsp;&nbsp;&nbsp;</div>
+      <div class="screen" style="padding:0">
+        <div style="padding:14px">
+          <div class="demo-card" style="background:#18265a;background:linear-gradient(135deg,#2a3a72,#1c2b5e)">본문 콘텐츠</div>
+          <div id="fabMsg" style="color:var(--accent);font-size:13px;margin-top:12px"></div>
+        </div>
+        <div class="drawer" id="drawer">
+          <div style="font-weight:800;color:var(--accent);margin-bottom:8px">메뉴</div>
+          <div class="di">🏠 홈</div><div class="di">👤 프로필</div>
+          <div class="di">⚙️ 설정</div><div class="di">↩️ 로그아웃</div>
+        </div>
+        <div class="fab" onclick="tapFab()">＋</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>`);
+
+S(4, `<div class="slidehead"><span class="cnum">CH4</span><h2>화면을 이루는 UI 컴포넌트 (위젯)</h2></div>
+<div class="body">
+<p class="lead">화면은 <b>${T('컴포넌트','UI를 이루는 부품(위젯). 버튼·체크박스·목록처럼 미리 만들어진 화면 조각을 조합해 화면을 만듭니다.')}</b>(위젯)의 조립입니다. 자주 쓰는 것들만 골라 정리했습니다.</p>
+<div class="two" style="align-items:start">
+  <div>
+    <div class="card" style="margin-bottom:10px"><h4>⌨️ 입력 · 선택</h4><p class="small">${T('EditText / TextField','글자를 입력하는 칸.')} 입력칸 · ${T('RadioButton','라디오 버튼. 여러 개 중 하나만 선택(택1).')} 라디오 · ${T('CheckBox','체크박스. 여러 개를 동시에 선택(다중).')} 체크박스 · ${T('Switch','스위치(토글). On/Off를 켜고 끔.')} 스위치 · ${T('Spinner / Dropdown','드롭다운. 눌러서 목록에서 하나 선택.')} 드롭다운 · ${T('Slider / SeekBar','슬라이더. 값을 밀어서 조절(음량·밝기 등).')} 슬라이더 · ${T('DatePicker','날짜 선택기. 달력에서 날짜를 고름. 시간은 TimePicker.')} 데이트피커</p></div>
+    <div class="card" style="margin-bottom:10px"><h4>🔘 버튼 · 액션</h4><p class="small">Button 버튼 · ${T('IconButton','아이콘만 있는 버튼(설정⚙·검색🔍 등).')} 아이콘 버튼 · FAB · ${T('Chip','칩. 태그·필터용 작은 버튼형 요소.')} 칩</p></div>
+    <div class="card"><h4>📑 목록 · 컨테이너 · 내비</h4><p class="small">${T('RecyclerView / LazyColumn','스크롤되는 긴 목록을 효율적으로 그리는 컴포넌트.')} 리스트 · Card 카드 · Dialog · ${T('BottomSheet','화면 아래에서 올라오는 시트형 패널.')} 바텀시트 · TopAppBar · ${T('Tab','상단 탭. 좌우로 화면 전환.')} 탭 · 메뉴</p></div>
+  </div>
+  <div class="card">
+    <h4>🖥️ 미리보기 — 직접 만져보세요</h4>
+    <div style="display:flex;flex-direction:column;gap:13px;margin-top:10px;font-size:14.5px;color:#4a3d31;accent-color:#C15F3C">
+      <label style="display:flex;align-items:center;gap:8px">라디오(택1)
+        <input type="radio" name="pv"> A <input type="radio" name="pv"> B <input type="radio" name="pv"> C</label>
+      <label style="display:flex;align-items:center;gap:8px">체크박스(다중)
+        <input type="checkbox" checked> 이메일 <input type="checkbox"> SMS</label>
+      <label style="display:flex;align-items:center;gap:8px">스위치
+        <input type="checkbox" role="switch" style="width:34px;height:18px"> 알림 켜기</label>
+      <label style="display:flex;align-items:center;gap:8px">드롭다운
+        <select style="padding:5px 8px;border-radius:8px;border:1px solid #dcc9ad;background:#fff"><option>서울</option><option>부산</option><option>대구</option></select></label>
+      <label style="display:flex;align-items:center;gap:8px">데이트피커
+        <input type="date" style="padding:5px 8px;border-radius:8px;border:1px solid #dcc9ad;background:#fff"></label>
+      <label style="display:flex;align-items:center;gap:8px;width:100%">슬라이더
+        <input type="range" style="flex:1"></label>
+    </div>
+  </div>
+</div>
+</div>`);
+
+S(4, `<div class="slidehead"><span class="cnum">CH4</span><h2>리스트(RecyclerView·LazyColumn)와 목업 데이터</h2></div>
+<div class="body">
+<div class="two" style="align-items:start">
+  <div>
+    <h3 style="margin-top:0">📜 긴 목록을 효율적으로 — 리스트</h3>
+    <ul class="clean">
+      <li><b>${T('RecyclerView','전통 방식의 리스트 컴포넌트. 화면에 보이는 항목만 그리고, 스크롤하면 화면 밖 뷰를 재활용(recycle)해 메모리를 아낍니다.')}</b>(전통) / <b>${T('LazyColumn','Compose의 리스트. 보이는 항목만 지연 생성(lazy)해서 그립니다. RecyclerView의 최신판.')}</b>(Compose)</li>
+      <li><b>뷰 재활용</b> — 데이터가 1만 개여도 <b>화면에 보이는 ~10개만</b> 실제로 그리고, 스크롤하면 그 틀을 재사용</li>
+      <li><b>${T('페이징 Paging','긴 데이터를 한 번에 다 불러오지 않고 페이지 단위로 조금씩 불러와 이어붙이는 방식. 무한 스크롤의 원리.')}</b> — 한 번에 다 X, <b>조금씩 불러와</b> 이어붙임(무한 스크롤)</li>
+      <li>불러온 페이지는 <b>캐시에 저장</b> → 다시 스크롤해도 빠름</li>
+    </ul>
+    <div class="note" style="margin-top:12px">💡 채팅·피드·상품 목록처럼 <b>끝이 없는 데이터</b>는 전부 이 방식. 한 번에 다 불러오면 앱이 멈춥니다(ANR).</div>
+  </div>
+  <div>
+    <h3 style="margin-top:0">🧪 목업 데이터(Mock Data)</h3>
+    <p class="small"><b>${T('목업 데이터','Mock Data. 진짜 데이터·서버가 준비되기 전에 쓰는 가짜 임시 데이터. UI를 먼저 만들어 보고 다양한 상태를 테스트하는 용도.')}</b> = 서버가 없어도 화면을 먼저 만들어보는 <b>가짜 임시 데이터</b>입니다.</p>
+    <ul class="clean" style="margin-top:8px">
+      <li>서버·API 없이 <b>UI를 먼저 개발</b></li>
+      <li>빈 목록·많은 목록 등 <b>여러 상태를 테스트</b></li>
+      <li>나중에 진짜 API로 <b>깔끔하게 갈아끼우기</b></li>
+    </ul>
+    <pre style="margin-top:10px;font-size:12.5px"><code class="c">// 목업 데이터로 리스트 먼저 채우기</code>
+<code class="k">val</code> mockList = listOf(
+  Todo(<code class="s">"우유 사기"</code>), Todo(<code class="s">"운동 30분"</code>),
+  Todo(<code class="s">"책 읽기"</code>)
+)
+LazyColumn { items(mockList) { Text(it.title) } }</pre>
+  </div>
+</div>
+</div>`);
+
+S(4, `<div class="slidehead"><span class="cnum">CH4</span><h2>Jetpack Compose — 코드로 그리는 UI</h2></div>
+<div class="body">
+<div class="two">
+  <div>
+    <p><b>${T('Jetpack Compose','안드로이드 최신 UI 툴킷. XML 없이 Kotlin 함수로 화면을 선언합니다. 구글이 신규 앱에 권장.')}</b> 는 화면을 <b>선언형(Declarative)</b>으로 만듭니다.
+    "어떻게 그릴지"가 아니라 "무엇을 보여줄지"만 적으면 됩니다.</p>
+    <ul class="clean" style="margin-top:14px">
+      <li>${T('선언형 UI','상태(state)를 주면 프레임워크가 화면을 알아서 그리고, 상태가 바뀌면 자동으로 다시 그리는 방식.')} — 상태가 바뀌면 화면 자동 갱신(${T('Recomposition','Compose에서 상태 변화에 따라 UI를 다시 그리는 과정.')})</li>
+      <li>XML 레이아웃 파일 불필요</li>
+      <li>미리보기(${T('@Preview','코드를 실행하지 않고 안드로이드 스튜디오에서 UI를 바로 확인하는 기능.')})로 즉시 확인</li>
+      <li>재사용 가능한 ${T('Composable','@Composable이 붙은 UI 함수. 레고 블록처럼 조합해 화면을 만듭니다.')} 함수로 조립</li>
+    </ul>
+  </div>
+  <pre><code class="c">// 버튼 하나를 그리는 Compose 코드</code>
+<code class="k">@Composable</code>
+fun Greeting() {
+  <code class="k">var</code> count <code class="k">by</code> remember { mutableStateOf(<code class="n">0</code>) }
+  Button(onClick = { count++ }) {
+    Text(<code class="s">"눌린 횟수: </code>$count<code class="s">"</code>)
+  }
+  <code class="c">// count가 바뀌면 화면이 자동으로 다시 그려짐</code>
+}</pre>
+</div>
+<div class="note">전통 방식(XML+findViewById)과 비교하면 코드가 짧고, 상태 관리가 명확합니다. 심화 단계에서 반드시 익혀둘 기술.</div>
+</div>`);
+
+S(4, `<div class="slidehead"><span class="cnum">CH4</span><h2>머티리얼 디자인 & Compose 디자인</h2></div>
+<div class="body">
+<p class="lead">둘은 <b>짝</b>입니다. <b>${T('머티리얼 디자인','Material Design. 구글의 공식 디자인 규칙(색·간격·그림자·모션·컴포넌트). 앱이 안드로이드답게 보이고 일관되게 동작하도록 돕는 가이드.')}</b>은 "어떻게 보일지 규칙", <b>Compose</b>는 "그 규칙을 코드로 그리는 도구"입니다.</p>
+<div class="grid g2" style="margin-top:6px">
+  <div class="card">
+    <h4><span class="ico">🎨</span>머티리얼 디자인 (규칙)</h4>
+    <ul class="clean">
+      <li>구글의 통일 디자인 언어 — 색·타이포·간격·그림자·모션</li>
+      <li>버전: Material 1 → 2 → <b>${T('Material 3','Material You라고도 부르는 최신 머티리얼. 사용자 벽지 색으로 앱 테마가 물드는 다이나믹 컬러가 특징.')}</b> (현재)</li>
+      <li>${T('다이나믹 컬러','Android 12+에서 사용자 배경화면 색을 뽑아 앱 테마 색으로 자동 적용하는 기능.')} — 사용자 취향 반영</li>
+      <li>Button·Card·Scaffold 등 표준 컴포넌트 규격</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4><span class="ico">🧩</span>Compose 디자인 (구현)</h4>
+    <ul class="clean">
+      <li>Material 3를 <b>기본 지원</b>하는 최신 UI 툴킷</li>
+      <li>${T('MaterialTheme','Compose에서 앱 전체의 색·글꼴·모양을 한곳에서 정의하는 테마. 다크모드도 여기서 분기.')}로 색·글꼴·모양을 한 번에 관리</li>
+      <li>미리 만든 컴포넌트를 함수로 조립 → 빠른 개발</li>
+      <li>다크모드·다이나믹 컬러가 테마에 내장</li>
+    </ul>
+  </div>
+</div>
+<pre style="margin-top:14px;font-size:13px"><code class="c">// Material 3 테마 + 표준 버튼 (Compose)</code>
+MaterialTheme(colorScheme = dynamicColorScheme(context)) {
+  Button(onClick = { }) { Text(<code class="s">"확인"</code>) }   <code class="c">// 머티리얼 규격 버튼</code>
+}</pre>
+</div>`);
+
+S(4, `<div class="slidehead"><span class="cnum">CH4</span><h2>사용자 알림 — Notification · Toast · Snackbar · Dialog</h2></div>
+<div class="body">
+<p class="lead">"사용자에게 무언가 알려주는" 방법은 여러 가지입니다. <b>어디에·얼마나 강하게</b> 알릴지에 따라 골라 씁니다.</p>
+<div class="grid g4" style="margin-top:8px">
+  <div class="card"><h4><span class="ico">🔔</span>${T('Notification','알림. 앱 밖(상단 상태바·알림창·잠금화면)에 뜨는 메시지. 앱이 꺼져 있어도 표시됩니다. 카톡 알림이 대표적.')}</h4>
+    <p class="small">앱 <b>밖</b> 상태바/잠금화면. 앱이 닫혀 있어도 뜸. 안드로이드 13+는 ${T('POST_NOTIFICATIONS','안드로이드 13(API33)부터 알림을 보내려면 사용자에게 받아야 하는 권한.')} 권한 필요.</p></div>
+  <div class="card"><h4><span class="ico">🍞</span>${T('Toast','토스트. 화면 하단에 잠깐 떴다 사라지는 작은 앱 팝업 메시지. 버튼 없음. "복사되었습니다" 같은 짧은 안내.')}</h4>
+    <p class="small">앱 <b>안</b>에 잠깐 뜨는 작은 팝업. 버튼 없이 <b>몇 초 후 자동으로</b> 사라짐. 간단 안내용.</p></div>
+  <div class="card"><h4><span class="ico">↩️</span>${T('Snackbar','스낵바. 토스트와 비슷하지만 [실행취소] 같은 액션 버튼을 넣을 수 있는 하단 알림. Material 컴포넌트.')}</h4>
+    <p class="small">토스트 + <b>액션 버튼</b>. "삭제됨 · [실행취소]" 처럼 되돌릴 여지를 줄 때.</p></div>
+  <div class="card"><h4><span class="ico">🪟</span>${T('Dialog','다이얼로그. 화면 가운데 뜨는 팝업창. 사용자의 확인/선택을 강제로 받을 때. "정말 삭제할까요?".')}</h4>
+    <p class="small">화면을 막고 <b>선택을 강제</b>. "정말 삭제하시겠어요? [예/아니오]".</p></div>
+</div>
+<div class="two" style="margin-top:18px">
+  <div>
+    <pre style="font-size:14px"><code class="c">// 토스트 — 가장 간단한 팝업 알림</code>
+Toast.makeText(context, <code class="s">"저장되었습니다"</code>, Toast.LENGTH_SHORT).show()
+
+<code class="c">// 스낵바 — 실행취소 버튼 포함</code>
+Snackbar.make(view, <code class="s">"삭제됨"</code>, Snackbar.LENGTH_LONG)
+    .setAction(<code class="s">"실행취소"</code>) { 되돌리기() }.show()</pre>
+  </div>
+  <div class="note">👉 선택 기준: <b>앱 밖에서도</b> 알려야 하면 Notification, <b>앱 안 짧은 안내</b>는 Toast, <b>되돌릴 액션</b>이 있으면 Snackbar, <b>꼭 답을 받아야</b> 하면 Dialog. 오른쪽 아래 폰 데모의 ＋ 버튼도 이런 피드백의 예입니다.</div>
+</div>
+</div>`);
+
+/* =========================================================
+   CH5 개발 환경
+   ========================================================= */
+S(5, `<div class="cover center">
+  <div class="kicker">CHAPTER 5</div>
+  <h1>개발 환경</h1>
+  <p class="lead">안드로이드 스튜디오와 에뮬레이터 — 코드를 쓰고, 빌드하고,
+  실제 폰 없이 테스트하는 작업실을 제대로 활용하는 법.</p>
+</div>`);
+
+S(5, `<div class="slidehead"><span class="cnum">CH5</span><h2>안드로이드 스튜디오 활용법</h2></div>
+<div class="body">
+<div class="grid g3">
+  <div class="card"><h4><span class="ico">📁</span>프로젝트 구조</h4><p class="small"><b>app/java</b>(코드), <b>res</b>(리소스), <b>${T('Gradle','안드로이드 빌드 도구. 라이브러리 추가·버전 설정을 build.gradle 파일에서 관리합니다.')}</b>(빌드 설정)로 나뉩니다.</p></div>
+  <div class="card"><h4><span class="ico">▶️</span>빌드 & 실행</h4><p class="small">Run 버튼(▶) 한 번으로 컴파일→설치→실행. ${T('APK','Android Package. 앱 설치 파일. 빌드하면 생성됩니다.')}/AAB로 패키징됩니다.</p></div>
+  <div class="card"><h4><span class="ico">🐞</span>디버깅</h4><p class="small">${T('Logcat','기기·에뮬레이터의 로그를 실시간으로 보는 창. Log.d()로 찍은 메시지·에러를 확인.')} 로 로그 확인, ${T('중단점 Breakpoint','코드 특정 줄에서 실행을 멈추고 변수 값을 들여다보는 디버깅 기능.')} 으로 한 줄씩 추적.</p></div>
+  <div class="card"><h4><span class="ico">🎨</span>레이아웃 미리보기</h4><p class="small">XML/Compose 화면을 실행 없이 바로 확인. 여러 기기 크기로 프리뷰.</p></div>
+  <div class="card"><h4><span class="ico">🔌</span>SDK 매니저</h4><p class="small">${T('SDK','Software Development Kit. 안드로이드 앱을 만드는 데 필요한 도구·라이브러리 모음.')} 버전, 빌드툴, 에뮬레이터 이미지를 설치·관리.</p></div>
+  <div class="card"><h4><span class="ico">🤖</span>코드 어시스트</h4><p class="small">자동완성, ${T('리팩터링','기능은 그대로 두고 코드 구조를 깔끔하게 정리하는 작업.')}, Gemini 기반 AI 제안까지.</p></div>
+</div>
+<div class="note">💡 단축키 팁: <b>Shift 두 번</b>(전체 검색), <b>Ctrl/⌘+Alt+L</b>(코드 정렬), <b>Alt+Enter</b>(빠른 수정 제안).</div>
+</div>`);
+
+S(5, `<div class="slidehead"><span class="cnum">CH5</span><h2>Gradle — 소스코드를 앱으로 만드는 빌드 시스템</h2></div>
+<div class="body">
+<p class="lead"><b>${T('Gradle','안드로이드 공식 빌드 자동화 도구. 소스코드·리소스·라이브러리를 모아 설치 파일(APK/AAB)로 만들고, 의존성과 버전을 관리합니다.')}</b> 는 우리가 쓴 코드를 실제 설치 파일로 <b>조립·포장</b>하는 공장입니다. Run(▶) 버튼을 누르면 뒤에서 Gradle이 돌아갑니다.</p>
+<div class="flow animate" style="margin:14px 0">
+  <div class="node"><div class="t">📝 소스·리소스</div></div><div class="arrow">→</div>
+  <div class="node"><div class="t">⚙️ 컴파일</div><div class="d">Kotlin/Java→바이트코드</div></div><div class="arrow">→</div>
+  <div class="node"><div class="t">📦 ${T('DEX','Dalvik EXecutable. 안드로이드가 실행하는 바이트코드 형식. 컴파일 결과를 DEX로 변환해 앱에 담습니다.')} 변환·패키징</div></div><div class="arrow">→</div>
+  <div class="node"><div class="t">🔏 서명 → ${T('APK','설치 파일. 기기에 바로 설치됩니다.')}/${T('AAB','Android App Bundle. 구글 플레이 업로드용 포맷. 기기별로 최적화된 APK를 플레이가 대신 생성.')}</div></div>
+</div>
+<div class="two">
+  <div class="card">
+    <h4>build.gradle 은 두 개</h4>
+    <ul class="clean">
+      <li><b>프로젝트 수준</b> — 전체 공통 설정</li>
+      <li><b>모듈(app) 수준</b> — SDK 버전, ${T('의존성','dependency. 앱이 가져다 쓰는 외부 라이브러리. dependencies 블록에 한 줄 추가하면 Gradle이 자동으로 내려받습니다.')}</li>
+    </ul>
+  </div>
+  <pre style="font-size:13px"><code class="c">// 모듈 build.gradle — 라이브러리 추가</code>
+dependencies {
+  implementation(<code class="s">"androidx.core:core-ktx:1.13.1"</code>)
+  implementation(<code class="s">"io.coil-kt:coil:2.6.0"</code>) <code class="c">// 이미지 로딩</code>
+}</pre>
+</div>
+<div class="note">📌 <b>Groovy vs Kotlin DSL</b> = 빌드 스크립트를 쓰는 <b>언어 선택</b>입니다. 전통적 <code class="mono small">build.gradle</code>(${T('Groovy','JVM에서 도는 스크립트 언어. Java와 문법이 비슷하지만 Java는 아닙니다. 전통적 Gradle 빌드 스크립트 언어.')}) vs 최신 <code class="mono small">build.gradle.kts</code>(${T('Kotlin DSL','코틀린 문법으로 빌드 설정을 작성하는 방식. 자동완성이 잘 돼 최근 권장.')}). <b>앱 코드 언어(Kotlin/Java)와는 별개!</b> 설정을 바꾸면 <b>Gradle Sync</b>로 동기화합니다.</div>
+</div>`);
+
+S(5, `<div class="slidehead"><span class="cnum">CH5</span><h2>에뮬레이터(AVD) 활용법</h2></div>
+<div class="body">
+<div class="two">
+  <div>
+    <p><b>${T('에뮬레이터','컴퓨터 안에서 가상의 안드로이드 폰을 돌리는 기능. 실물 기기 없이 테스트 가능.')}</b>(AVD) = 컴퓨터 속 가상 폰. 실물 기기가 없어도 다양한 기종·버전을 테스트할 수 있습니다.</p>
+    <ul class="clean" style="margin-top:14px">
+      <li>${T('AVD','Android Virtual Device. 에뮬레이터로 띄우는 가상 기기 설정(기종·API 레벨·해상도).')} 매니저에서 기종·API 선택</li>
+      <li>다양한 화면 크기·안드로이드 버전 검증</li>
+      <li>GPS·전화·배터리 등 가상 센서 조작 가능</li>
+      <li>느릴 땐 실물 기기 ${T('USB 디버깅','폰의 개발자 옵션을 켜고 USB로 연결해 앱을 바로 설치·디버깅하는 방법.')} 연결이 더 빠름</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4>🆚 에뮬레이터 vs 실물 기기</h4>
+    <table class="cmp">
+      <tr><th> </th><th>에뮬레이터</th><th>실물 기기</th></tr>
+      <tr><td>비용</td><td>무료·여러 기종</td><td>기기 필요</td></tr>
+      <tr><td>속도</td><td>다소 느림</td><td>빠름</td></tr>
+      <tr><td>센서</td><td>가상 값</td><td>실제 값</td></tr>
+      <tr><td>추천</td><td>다기종 UI 확인</td><td>성능·최종 검증</td></tr>
+    </table>
+  </div>
+</div>
+<div class="note">실무 팁: 개발 중엔 에뮬레이터로 빠르게, 출시 전 최종 점검은 반드시 <b>실물 기기</b>에서. 카메라·블루투스·성능은 실물이 정확합니다.</div>
+</div>`);
+
+S(5, `<div class="slidehead"><span class="cnum">CH5</span><h2>디버깅 필수 용어 정리</h2></div>
+<div class="body">
+<p class="lead">버그를 잡으려면 먼저 <b>말이 통해야</b> 합니다. 실무에서 매일 쓰는 디버깅 용어를 정리합니다.</p>
+<div class="grid g3" style="margin-top:6px">
+  <div class="card"><h4><span class="ico">🐞</span>${T('버그 / 디버깅','버그=프로그램 오류. 디버깅=그 오류의 원인을 찾아 고치는 과정.')}</h4><p class="small">오류를 찾아 고치는 전 과정.</p></div>
+  <div class="card"><h4><span class="ico">📋</span>${T('Logcat','안드로이드의 로그 창. 앱이 남긴 메시지와 에러가 실시간으로 흐릅니다. 디버깅의 출발점.')}</h4><p class="small">기기가 뿜는 로그를 실시간으로 보는 창.</p></div>
+  <div class="card"><h4><span class="ico">✍️</span>${T('Log.d / Log.e','코드에 직접 심는 로그 출력. Log.d(디버그)·Log.e(에러)·Log.i(정보)·Log.w(경고). 흐름과 값 확인용.')}</h4><p class="small">코드에 심어 값·흐름을 찍는 로그 함수.</p></div>
+  <div class="card"><h4><span class="ico">⛔</span>${T('중단점 Breakpoint','코드 특정 줄에 걸어 실행을 멈추는 표시. 그 순간의 변수 값을 들여다볼 수 있습니다.')}</h4><p class="small">실행을 멈추고 상태를 들여다보는 지점.</p></div>
+  <div class="card"><h4><span class="ico">👣</span>${T('Step Over / Into','디버거로 코드를 한 줄씩 실행. Over=함수를 통째로 넘김, Into=함수 안으로 들어감.')}</h4><p class="small">한 줄씩 실행하며 추적.</p></div>
+  <div class="card"><h4><span class="ico">📉</span>${T('Stack Trace','에러가 난 순간까지 함수가 호출된 경로 기록. 어디서·왜 터졌는지 알려주는 지도.')}</h4><p class="small">에러가 터지기까지의 호출 경로.</p></div>
+  <div class="card"><h4><span class="ico">💥</span>${T('Exception / Crash','Exception=실행 중 발생한 예외 상황. 처리 못 하면 앱이 강제 종료(Crash)됩니다.')}</h4><p class="small">예외 발생 → 처리 못 하면 앱 강제종료.</p></div>
+  <div class="card"><h4><span class="ico">🚫</span>${T('NullPointerException (NPE)','값이 없는(null) 것을 사용하려다 나는 대표적 오류. Kotlin의 널 안전 기능으로 예방.')}</h4><p class="small">가장 흔한 크래시 — "값이 없는데 썼다".</p></div>
+  <div class="card"><h4><span class="ico">📊</span>${T('Profiler','앱의 CPU·메모리·네트워크 사용량을 실시간 그래프로 보는 도구. 성능 문제·메모리 누수 추적.')}</h4><p class="small">성능·메모리·네트워크 실시간 측정.</p></div>
+  <div class="card"><h4><span class="ico">🧊</span>${T('ANR','Application Not Responding. 앱이 5초 이상 멈춰 "응답 없음" 뜨는 상태. 무거운 작업을 메인 스레드에서 하면 발생.')}</h4><p class="small">앱이 멈춰 "응답 없음" 뜨는 현상.</p></div>
+  <div class="card"><h4><span class="ico">🧵</span>${T('메인 스레드','화면(UI)을 그리는 주 실행 흐름. 여기서 무거운 작업(네트워크·DB)을 하면 앱이 버벅이거나 ANR 발생.')}</h4><p class="small">UI 담당 흐름 — 무거운 일은 여기서 X.</p></div>
+  <div class="card"><h4><span class="ico">🔁</span>${T('Clean & Rebuild','빌드 결과물을 지우고 처음부터 다시 빌드. 원인 모를 이상 동작 시 1순위 해결책.')}</h4><p class="small">원인 불명 오류 땐 지우고 다시 빌드.</p></div>
+</div>
+<div class="note">🎯 디버깅 공식: <b>재현 → Logcat/Stack Trace 확인 → 중단점으로 좁히기 → 수정 → 재검증</b>. "감으로 고치기" 대신 이 순서를 습관화하세요.</div>
+</div>`);
+
+/* =========================================================
+   CH6 데이터 저장 & 보안
+   ========================================================= */
+S(6, `<div class="cover center">
+  <div class="kicker">CHAPTER 6</div>
+  <h1>데이터 저장 · 개인정보 보호</h1>
+  <p class="lead">SharedPreferences와 DAO로 데이터를 저장하고, 저장이 잘 됐는지 확인하고,
+  <b>개인정보를 안전하게</b> 다루는 법 — 오늘 가장 중요한 이슈입니다.</p>
+</div>`);
+
+S(6, `<div class="slidehead"><span class="cnum">CH6</span><h2>어디에 저장할까? 저장 방식 비교</h2></div>
+<div class="body">
+<div class="chart" style="max-width:820px">
+  <div style="font-weight:800;margin-bottom:6px">저장 방식별 적합한 데이터 크기 (개념적)</div>
+  <div class="bar-row"><div class="bar-label">${T('SharedPreferences','키-값(key-value) 형태로 작은 설정값을 저장하는 안드로이드 기본 저장소. 로그인 여부, 다크모드 on/off 등.')}</div><div class="bar-track"><div class="bar-fill" style="--w:18%;background:linear-gradient(90deg,#6c8cff,#42e6c8)"></div></div><div class="bar-val">작음</div></div>
+  <div class="bar-row"><div class="bar-label">${T('DataStore','SharedPreferences의 최신 대체제. 코루틴 기반으로 더 안전하게 설정값을 저장.')}</div><div class="bar-track"><div class="bar-fill" style="--w:26%;background:linear-gradient(90deg,#6c8cff,#42e6c8)"></div></div><div class="bar-val">작음</div></div>
+  <div class="bar-row"><div class="bar-label">파일(File)</div><div class="bar-track"><div class="bar-fill" style="--w:55%;background:linear-gradient(90deg,#8a7bff,#ff7ad9)"></div></div><div class="bar-val">중간</div></div>
+  <div class="bar-row"><div class="bar-label">${T('SQLite / Room','앱 내부에 들어있는 관계형 데이터베이스. Room은 이를 쉽게 쓰게 해주는 구글 라이브러리.')} DB</div><div class="bar-track"><div class="bar-fill" style="--w:80%;background:linear-gradient(90deg,#ffcf5c,#ff7ad9)"></div></div><div class="bar-val">큼·구조적</div></div>
+  <div class="bar-row"><div class="bar-label">서버(Cloud)</div><div class="bar-track"><div class="bar-fill" style="--w:100%;background:linear-gradient(90deg,#5be59a,#42e6c8)"></div></div><div class="bar-val">무제한</div></div>
+</div>
+<div class="grid g2" style="margin-top:20px">
+  <div class="card"><h4>🔑 SharedPreferences</h4><p class="small">on/off 설정, 로그인 토큰, 마지막 화면 같은 <b>작은 값</b>. 키-값으로 간단히.</p></div>
+  <div class="card"><h4>🗃️ Room(SQLite)</h4><p class="small">할 일 목록, 채팅 기록처럼 <b>많고 구조적인</b> 데이터. 검색·정렬 필요할 때.</p></div>
+</div>
+</div>`);
+
+S(6, `<div class="slidehead"><span class="cnum">CH6</span><h2>SharedPreferences & DAO 저장 패턴</h2></div>
+<div class="body">
+<div class="two">
+  <div>
+    <h3 style="margin-top:0">SharedPreferences (키-값)</h3>
+    <pre><code class="c">// 저장</code>
+<code class="k">val</code> prefs = getSharedPreferences(<code class="s">"my"</code>, MODE_PRIVATE)
+prefs.edit().putString(<code class="s">"name"</code>, <code class="s">"홍길동"</code>).apply()
+
+<code class="c">// 읽기</code>
+<code class="k">val</code> name = prefs.getString(<code class="s">"name"</code>, <code class="s">""</code>)</pre>
+  </div>
+  <div>
+    <h3 style="margin-top:0">${T('DAO','Data Access Object. DB에 접근하는 함수(추가·조회·삭제)를 모아둔 인터페이스. Room에서 사용.')} (Room DB)</h3>
+    <pre><code class="k">@Dao</code>
+<code class="k">interface</code> UserDao {
+  <code class="k">@Insert</code>
+  <code class="k">suspend fun</code> insert(user: User)
+
+  <code class="k">@Query</code>(<code class="s">"SELECT * FROM User"</code>)
+  <code class="k">suspend fun</code> getAll(): List&lt;User&gt;
+}</pre>
+  </div>
+</div>
+<div class="note">💡 <b>DAO</b>는 "데이터에 접근하는 창구"입니다. 화면 코드는 SQL을 몰라도 <code class="mono">insert()</code>·<code class="mono">getAll()</code> 만 호출하면 됩니다 — MVC의 Model 분리 원칙과 같은 맥락.</div>
+</div>`);
+
+S(6, `<div class="slidehead"><span class="cnum">CH6</span><h2>데이터가 잘 저장됐는지 확인하기</h2></div>
+<div class="body">
+<div class="grid g3">
+  <div class="card"><h4><span class="ico">🔍</span>Device File Explorer</h4><p class="small">안드로이드 스튜디오에서 기기 내부 파일을 직접 탐색. <code class="mono small">data/data/패키지명/</code> 아래에 preferences·DB 파일이 있습니다.</p></div>
+  <div class="card"><h4><span class="ico">🗄️</span>App Inspection · Database</h4><p class="small">실행 중인 앱의 Room/SQLite DB 내용을 표로 실시간 조회. 값이 실제로 들어갔는지 눈으로 확인.</p></div>
+  <div class="card"><h4><span class="ico">📋</span>Logcat 출력</h4><p class="small">저장 직후 <code class="mono small">Log.d("SAVE", name)</code> 로 값을 찍어 흐름을 추적.</p></div>
+</div>
+<div class="two" style="margin-top:20px">
+  <div class="card">
+    <h4>저장 위치 요약</h4>
+    <div class="kv"><b>SharedPref</b><span>shared_prefs/*.xml</span></div>
+    <div class="kv"><b>Room DB</b><span>databases/*.db</span></div>
+    <div class="kv"><b>내부 파일</b><span>files/ (앱 전용, 삭제 시 사라짐)</span></div>
+    <div class="kv"><b>외부 저장</b><span>공유 저장소 (권한 필요)</span></div>
+  </div>
+  <div class="note">확인 습관: 저장 코드를 짰다면 <b>반드시 다시 읽어 화면·로그로 검증</b>하세요. "저장된 줄 알았는데 안 됨"이 초보 단계 최다 버그입니다.</div>
+</div>
+</div>`);
+
+S(6, `<div class="slidehead"><span class="cnum">CH6</span><h2>⚠️ 개인정보 보호 — 가장 중요한 이슈</h2></div>
+<div class="body">
+<div class="danger">개인정보는 <b>법적 책임</b>이 따르는 영역입니다. 이름·연락처·위치·사진 등을 다룬다면 반드시 아래 원칙을 지키세요.</div>
+<div class="grid g2" style="margin-top:16px">
+  <div class="card"><h4><span class="ico">🔐</span>최소 수집 원칙</h4><p class="small">꼭 필요한 정보만 받습니다. 안 쓰는 정보는 아예 수집하지 않기.</p></div>
+  <div class="card"><h4><span class="ico">🛡️</span>암호화 저장</h4><p class="small">비밀번호·토큰은 평문 금지. ${T('EncryptedSharedPreferences','값을 암호화해서 저장하는 안드로이드 보안 저장소. 민감 정보에 사용.')} / Keystore 사용.</p></div>
+  <div class="card"><h4><span class="ico">📜</span>권한 최소화 + 고지</h4><p class="small">${T('런타임 권한','카메라·위치 등 민감 권한은 앱 실행 중 사용자에게 팝업으로 물어보고 받아야 합니다.')} 을 필요한 순간에만 요청하고 이유를 설명.</p></div>
+  <div class="card"><h4><span class="ico">📄</span>개인정보처리방침</h4><p class="small">${T('개인정보처리방침','앱이 어떤 정보를 왜 수집·보관·이용하는지 밝힌 문서. 스토어 등록 시 필수.')} 필수. 스토어 심사·법규(GDPR·국내법) 준수.</p></div>
+  <div class="card"><h4><span class="ico">🌐</span>전송 구간 보호</h4><p class="small">서버 통신은 반드시 ${T('HTTPS','통신을 암호화하는 보안 프로토콜. http에 s(security)가 붙은 것. 도청·변조 방지.')}. 평문 http 금지.</p></div>
+  <div class="card"><h4><span class="ico">🗑️</span>파기·탈퇴 처리</h4><p class="small">사용자가 탈퇴하면 데이터를 실제로 삭제. 보관 기간을 정해 관리.</p></div>
+</div>
+</div>`);
+
+/* =========================================================
+   CH7 플랫폼 · 버전 · 테마
+   ========================================================= */
+S(7, `<div class="cover center">
+  <div class="kicker">CHAPTER 7</div>
+  <h1>플랫폼 · 버전 · 테마</h1>
+  <p class="lead">안드로이드 버전과 API 레벨, SDK 설정, Manifest의 역할,
+  그리고 다크/화이트 모드 테마 설계까지.</p>
+</div>`);
+
+S(7, `<div class="slidehead"><span class="cnum">CH7</span><h2>안드로이드 버전 & API 레벨</h2></div>
+<div class="body">
+<p class="lead">안드로이드 <b>버전</b>(마케팅 숫자)마다 <b>${T('API 레벨','안드로이드 버전을 숫자로 구분한 값. 개발자는 이 숫자로 어떤 기능을 쓸 수 있는지 판단합니다.')}</b>(개발자용 숫자)이 1:1로 붙습니다.</p>
+<div class="cycle animate" style="max-width:700px;margin-top:10px">
+  <div class="life"><span class="m">API 34</span><span class="x">안드로이드 <b>14</b> — 2023</span></div>
+  <div class="life"><span class="m">API 35</span><span class="x">안드로이드 <b>15</b> — 2024</span></div>
+  <div class="life"><span class="m">API 36</span><span class="x">안드로이드 <b>16</b> — 2025</span></div>
+  <div class="life"><span class="m">API 37</span><span class="x">안드로이드 <b>17</b> — 2026.6.16 출시 · <b style="color:var(--accent)">현재 최신 정식판</b></span></div>
+</div>
+<div class="note" style="margin-top:18px">🔔 <b>지금은 Android 17(API 37)이 최신 정식 버전</b>입니다 — 출시 완료, 프리뷰 아님. 요청서의 "34"는 안드로이드 14 기준이었습니다.<br>📖 버전↔API 표: <a class="link" href="https://developer.android.com/tools/releases/platforms" target="_blank" rel="noopener">developer.android.com/tools/releases/platforms</a></div>
+</div>`);
+
+S(7, `<div class="slidehead"><span class="cnum">CH7</span><h2>버전 히스토리 — 디저트 이름의 시대</h2></div>
+<div class="body">
+<p class="lead">예전엔 버전마다 <b>알파벳 순 디저트 이름</b>이 붙었습니다(9까지). Android 10부터는 <b>공식 명칭이 숫자</b>로 바뀌었죠.</p>
+<div class="grid g2" style="margin-top:4px">
+  <div class="card"><h4>🍰 디저트 이름 시대 (1.5 ~ 9)</h4>
+    <ul class="clean mini">
+      <li><b>1.5 Cupcake</b> · <b>1.6 Donut</b> — 위젯·다양한 화면 크기</li>
+      <li><b>2.2 Froyo</b> · <b>2.3 Gingerbread</b> — 속도·게임·테더링</li>
+      <li><b>4.0 Ice Cream Sandwich</b> — 폰·태블릿 UI 통합</li>
+      <li><b>4.1 Jelly Bean</b> — 부드러운 UI(Project Butter)</li>
+      <li><b>4.4 KitKat</b> — 저사양 기기 최적화</li>
+      <li><b>5 Lollipop</b> — ${T('머티리얼 디자인','Material Design. 구글의 통일 디자인 언어. 그림자·색·모션 규칙.')}, ART 런타임</li>
+      <li><b>6 Marshmallow</b> — 런타임 권한, 지문 인증</li>
+      <li><b>7 Nougat</b> — 멀티윈도우 · <b>8 Oreo</b> — 알림 채널</li>
+      <li><b>9 Pie</b> — 제스처 내비게이션, 디지털 웰빙</li>
+    </ul>
+  </div>
+  <div class="card"><h4>🔢 숫자 시대 (10 ~ 17)</h4>
+    <ul class="clean mini">
+      <li><b>10</b> — 시스템 다크 테마, 제스처 내비 완성</li>
+      <li><b>11</b> — 대화 알림, 원타임(1회) 권한</li>
+      <li><b>12</b> — ${T('머티리얼 유(Material You)','벽지 색으로 앱 테마가 자동으로 물드는 개인화 디자인. Android 12 도입.')} 다이나믹 컬러</li>
+      <li><b>13</b> — 앱별 언어 설정, 알림 권한</li>
+      <li><b>14</b> (API 34) — 예측형 뒤로가기, 대형 화면</li>
+      <li><b>15</b> (API 35) — 부분 화면 공유, 위성 연결</li>
+      <li><b>16</b> (API 36) — 라이브 업데이트, 적응형 강화</li>
+      <li><b>17</b> (API 37) — <b style="color:var(--accent)">최신</b> · Compose 우선·온디바이스 AI</li>
+    </ul>
+  </div>
+</div>
+<div class="note" style="margin-top:12px">💡 내부 코드네임은 지금도 디저트로 이어집니다(11=Red Velvet Cake, 13=Tiramisu 등). <b>공식 표기만 숫자</b>로 바뀐 것입니다.</div>
+</div>`);
+
+S(7, `<div class="slidehead"><span class="cnum">CH7</span><h2>Android 17 (API 37) — 2026.6.16 정식 출시</h2></div>
+<div class="body">
+<p class="lead">현재 최신 정식 버전. 핵심 방향은 <b>적응형(대형 화면) · Compose 우선 · 온디바이스 AI · 성능</b>입니다.</p>
+<div class="grid g3" style="margin-top:4px">
+  <div class="card"><h4><span class="ico">📐</span>대형 화면 적응 '의무'</h4><p class="small">API 37 타깃 앱은 <b>600dp 이상</b> 화면에서 방향 고정·리사이즈 거부 불가. 폴더블·태블릿 대응이 선택이 아닌 필수로.</p></div>
+  <div class="card"><h4><span class="ico">🫧</span>App Bubbles · Bubble Bar</h4><p class="small">앱을 <b>떠 있는 버블</b>로 전환하고, 태블릿·폴더블에서 Bubble Bar로 관리.</p></div>
+  <div class="card"><h4><span class="ico">🧩</span>Compose 우선(Compose-first)</h4><p class="small">"Android is Compose-first" 공식 선언. 기존 <b>View 기반은 유지보수 모드</b>로.</p></div>
+  <div class="card"><h4><span class="ico">🤖</span>온디바이스 AI</h4><p class="small">Gemini 등 <b>온디바이스 AI 에이전트</b>와 앱 기능 연동(제한적 프리뷰).</p></div>
+  <div class="card"><h4><span class="ico">⚡</span>성능</h4><p class="small">${T('락프리 MessageQueue','메인 스레드 메시지 처리에서 잠금을 제거해 프레임 드롭을 줄인 구조.')} · 세대별 GC로 프레임 드롭 감소.</p></div>
+  <div class="card"><h4><span class="ico">🔐</span>개인정보·보안</h4><p class="small">임시 연락처 선택기, ${T('EyeDropper API','스크린 캡처 권한 없이 화면 색을 추출하는 안전한 색 선택 API.')}, SMS OTP 3시간 지연, cleartext 차단 강화.</p></div>
+</div>
+<div class="note" style="margin-top:14px">📖 공식 출처: <a class="link" href="https://android-developers.googleblog.com/2026/06/Android-17.html" target="_blank" rel="noopener">Android 17 출시 블로그</a> · <a class="link" href="https://developer.android.com/about/versions/17" target="_blank" rel="noopener">developer.android.com/about/versions/17</a></div>
+</div>`);
+
+S(7, `<div class="slidehead"><span class="cnum">CH7</span><h2>새 OS 버전 정보, 어디서 얻나</h2></div>
+<div class="body">
+<p class="lead">공식 출처는 모두 <b>안드로이드 개발자 사이트(developer.android.com)</b>와 <b>안드로이드 스튜디오</b> 안에 있습니다.</p>
+<div class="grid g2" style="margin-top:4px">
+  <div class="card"><h4><span class="ico">📰</span>Android Developers Blog</h4><p class="small">새 버전·베타·기능을 <b>가장 먼저</b> 공지하는 공식 블로그.</p><p style="margin-top:8px"><a class="link" href="https://android-developers.googleblog.com" target="_blank" rel="noopener">android-developers.googleblog.com</a></p></div>
+  <div class="card"><h4><span class="ico">📋</span>버전별 페이지 · 릴리스 노트</h4><p class="small">각 버전의 새 기능과 <b>동작 변경(behavior changes)</b> 상세.</p><p style="margin-top:8px"><a class="link" href="https://developer.android.com/about/versions" target="_blank" rel="noopener">developer.android.com/about/versions</a></p></div>
+  <div class="card"><h4><span class="ico">🔢</span>플랫폼 · API 레벨 표</h4><p class="small">버전↔API 대응, 각 API의 하이라이트.</p><p style="margin-top:8px"><a class="link" href="https://developer.android.com/tools/releases/platforms" target="_blank" rel="noopener">developer.android.com/tools/releases/platforms</a></p></div>
+  <div class="card"><h4><span class="ico">🛠️</span>안드로이드 스튜디오 · SDK Manager</h4><p class="small">최신 SDK 플랫폼·시스템 이미지를 <b>직접 설치</b>. (Settings → Languages &amp; Frameworks → Android SDK)</p></div>
+</div>
+<div class="note" style="margin-top:14px">🧭 실무 루틴: <b>Blog로 소식 파악 → 버전 페이지에서 동작 변경 확인 → SDK Manager로 설치 → 에뮬레이터로 테스트</b>. 매년 새 버전이 나오니 이 흐름을 습관으로.</div>
+</div>`);
+
+S(7, `<div class="slidehead"><span class="cnum">CH7</span><h2>minSdk · targetSdk · compileSdk</h2></div>
+<div class="body">
+<div class="grid g3">
+  <div class="card"><h4>📉 minSdk</h4><p class="small">앱이 <b>돌아가는 최소</b> 버전. 낮출수록 많은 기기 지원(예: 24=안드로이드 7). 너무 낮으면 코드가 복잡.</p></div>
+  <div class="card"><h4>🎯 targetSdk</h4><p class="small">앱이 <b>겨냥한 최신</b> 버전. 이 버전 기준으로 동작·정책이 적용됩니다.</p></div>
+  <div class="card"><h4>🧱 compileSdk</h4><p class="small">앱을 <b>컴파일</b>할 때 쓰는 SDK. 보통 최신으로 맞춥니다.</p></div>
+</div>
+<div class="danger" style="margin-top:18px">📢 <b>2026년 Google Play 최소 요건</b>은 <b>targetSdk 36(안드로이드 16) 이상</b>입니다(2026-08-31 마감). 다만 최신 플랫폼은 <b>Android 17(API 37)</b>이니, compileSdk·targetSdk는 가능하면 <b>37</b>로 올리는 것을 권장합니다.</div>
+<pre style="margin-top:16px"><code class="c">// build.gradle (모듈) — 예시</code>
+android {
+  compileSdk = <code class="n">37</code>            <code class="c">// 최신 SDK로 컴파일(권장)</code>
+  defaultConfig {
+    minSdk = <code class="n">24</code>      <code class="c">// 안드로이드 7.0까지 지원</code>
+    targetSdk = <code class="n">37</code>   <code class="c">// Play 최소 요건은 36, 37 권장</code>
+  }
+}</code></pre>
+</div>`);
+
+S(7, `<div class="slidehead"><span class="cnum">CH7</span><h2>핸드폰별 API 점유율 — 왜 minSdk가 중요한가</h2></div>
+<div class="body">
+<div class="chart" style="max-width:840px">
+  <div style="font-weight:800;margin-bottom:6px">전 세계 사용 중 안드로이드 버전 분포 (개념 예시 · 애니메이션)</div>
+  <div class="bar-row"><div class="bar-label">14~16 (34~36)</div><div class="bar-track"><div class="bar-fill" style="--w:46%"></div></div><div class="bar-val">46%</div></div>
+  <div class="bar-row"><div class="bar-label">12~13 (31~33)</div><div class="bar-track"><div class="bar-fill" style="--w:30%"></div></div><div class="bar-val">30%</div></div>
+  <div class="bar-row"><div class="bar-label">10~11 (29~30)</div><div class="bar-track"><div class="bar-fill" style="--w:15%"></div></div><div class="bar-val">15%</div></div>
+  <div class="bar-row"><div class="bar-label">8~9 (26~28)</div><div class="bar-track"><div class="bar-fill" style="--w:7%"></div></div><div class="bar-val">7%</div></div>
+  <div class="bar-row"><div class="bar-label">7 이하 (~24)</div><div class="bar-track"><div class="bar-fill" style="--w:2%"></div></div><div class="bar-val">2%</div></div>
+</div>
+<div class="note" style="margin-top:20px">📌 minSdk를 <b>24(안드로이드 7)</b> 쯤으로 잡으면 거의 모든 사용자를 커버하면서 코드도 크게 복잡해지지 않습니다.
+수치는 설명용 예시이며, 실제 값은 안드로이드 스튜디오의 <b>API 배포 대시보드</b>에서 확인하세요.</div>
+</div>`);
+
+S(7, `<div class="slidehead"><span class="cnum">CH7</span><h2>AndroidManifest.xml의 역할</h2></div>
+<div class="body">
+<p class="lead"><b>${T('AndroidManifest.xml','앱의 신분증·설계도. 앱 이름, 아이콘, 화면(Activity) 목록, 권한, 최소 버전 등 핵심 정보를 시스템에 알립니다.')}</b> 는 앱의 신분증입니다. 안드로이드 OS는 이 파일을 먼저 읽고 앱을 이해합니다.</p>
+<div class="grid g2" style="margin-top:8px">
+  <div class="card">
+    <h4>여기에 선언하는 것들</h4>
+    <ul class="clean">
+      <li>앱 이름·아이콘·테마</li>
+      <li>${T('Activity','하나의 화면 단위. 앱의 각 화면이 Activity로 등록됩니다.')} 등 컴포넌트 목록</li>
+      <li>${T('권한 Permission','카메라·위치·인터넷 등 앱이 사용할 기능 사용 허가 선언.')} (카메라·위치·인터넷 등)</li>
+      <li>앱 시작 화면(런처 Activity)</li>
+      <li>지원 버전·기능 요구사항</li>
+    </ul>
+  </div>
+  <pre><code class="k">&lt;manifest&gt;</code>
+  <code class="k">&lt;uses-permission</code> android:name=<code class="s">"...INTERNET"</code><code class="k">/&gt;</code>
+  <code class="k">&lt;application</code> android:theme=<code class="s">"@style/App"</code><code class="k">&gt;</code>
+    <code class="k">&lt;activity</code> android:name=<code class="s">".MainActivity"</code><code class="k">&gt;</code>
+      <code class="c">&lt;!-- 앱을 여는 시작 화면 --&gt;</code>
+      <code class="k">&lt;intent-filter&gt;</code> ... <code class="k">&lt;/intent-filter&gt;</code>
+    <code class="k">&lt;/activity&gt;</code>
+  <code class="k">&lt;/application&gt;</code>
+<code class="k">&lt;/manifest&gt;</code></pre>
+</div>
+<div class="note">🔑 권한을 Manifest에 안 적으면 그 기능(인터넷·카메라 등)을 아예 못 씁니다. 앱이 "왜 안 되지?" 할 때 자주 여기서 원인을 찾습니다.</div>
+</div>`);
+
+S(7, `<div class="slidehead"><span class="cnum">CH7</span><h2>테마 설계 — 다크모드 / 화이트모드</h2></div>
+<div class="body">
+<div class="two">
+  <div>
+    <p>색을 코드 여기저기 하드코딩하지 말고, <b>${T('테마 Theme','앱 전체의 색·글꼴·모양을 한곳에서 정의한 규칙 모음. 바꾸면 앱 전체가 한 번에 바뀝니다.')}</b> 로 한곳에서 관리하세요. 그러면 다크/라이트 전환이 자동으로 됩니다.</p>
+    <ul class="clean" style="margin-top:14px">
+      <li>색을 ${T('디자인 토큰','primary, background 같은 의미 이름으로 색을 정의한 것. 실제 색값은 모드별로 다르게 매핑.')} 이름으로 정의</li>
+      <li>${T('values / values-night','일반 색은 values 폴더, 다크모드 색은 values-night 폴더에 두면 시스템이 자동 선택.')} 폴더로 라이트/다크 분리</li>
+      <li>시스템 설정을 따라 자동 전환(${T('DayNight','시스템의 다크모드 on/off를 앱이 따라가게 하는 테마 방식.')})</li>
+      <li>Compose에서는 ${T('MaterialTheme','Compose의 색·글꼴·모양 테마 시스템. isSystemInDarkTheme()으로 분기.')} 로 관리</li>
+    </ul>
+  </div>
+  <div>
+    <div class="two" style="gap:14px">
+      <div style="background:#f4f6ff;color:#1a2140;border-radius:16px;padding:18px;border:1px solid #d3d9f0">
+        <div style="font-weight:800">☀️ Light</div>
+        <div style="height:10px;background:#6c8cff;border-radius:6px;margin:10px 0"></div>
+        <div style="height:10px;background:#c9d2f5;border-radius:6px;margin:10px 0"></div>
+        <div style="font-size:13px;color:#5a6390">배경 흰색 · 글자 진하게</div>
+      </div>
+      <div style="background:#10152b;border-radius:16px;padding:18px;border:1px solid #2a3a72">
+        <div style="font-weight:800">🌙 Dark</div>
+        <div style="height:10px;background:#42e6c8;border-radius:6px;margin:10px 0"></div>
+        <div style="height:10px;background:#2a3a72;border-radius:6px;margin:10px 0"></div>
+        <div style="font-size:13px;color:var(--muted)">배경 어둡게 · 눈 피로↓·배터리↓</div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="note">💡 같은 화면 코드, 색 정의만 두 벌. 다크모드는 <b>디자인이 아니라 설계</b>로 접근해야 나중에 편합니다.</div>
+</div>`);
+
+/* =========================================================
+   CH8 통신
+   ========================================================= */
+S(8, `<div class="cover center">
+  <div class="kicker">CHAPTER 8</div>
+  <h1>통신 · 네트워크</h1>
+  <p class="lead">기기 간 블루투스 통신, 서버와 대화하는 API와 포트,
+  HTTP의 GET/POST, 그리고 URL 주소가 어떻게 표시되는지.</p>
+</div>`);
+
+S(8, `<div class="slidehead"><span class="cnum">CH8</span><h2>앱과 다른 기기의 통신 — 블루투스</h2></div>
+<div class="body">
+<div class="two">
+  <div>
+    <p><b>${T('블루투스 Bluetooth','가까운 기기끼리 케이블 없이 데이터를 주고받는 근거리 무선 통신. 이어폰·워치·IoT 기기 연결.')}</b> 는 근거리 무선 통신입니다. 이어폰, 스마트워치, IoT 기기와 앱을 연결할 때 씁니다.</p>
+    <ul class="clean" style="margin-top:12px">
+      <li><b>클래식 블루투스</b> — 오디오 등 연속 데이터</li>
+      <li><b>${T('BLE','Bluetooth Low Energy. 저전력 블루투스. 센서·비콘·헬스기기 등 적은 데이터를 오래 주고받을 때.')}</b> — 저전력, 센서·비콘</li>
+      <li>과정: ${T('페어링','두 기기가 서로를 신뢰하도록 등록하는 연결 과정.')} → 연결 → 데이터 송수신</li>
+      <li>안드로이드 12+ 는 ${T('BLUETOOTH_CONNECT','블루투스 사용을 위한 런타임 권한. 안드로이드 12부터 필요.')} 권한 필요</li>
+    </ul>
+  </div>
+  <div class="flow animate" style="flex-direction:column;gap:10px">
+    <div class="node"><div class="t">📱 내 앱</div></div>
+    <div class="arrow">↓ 페어링</div>
+    <div class="node"><div class="t">📶 블루투스</div><div class="d">근거리 무선</div></div>
+    <div class="arrow">↓ 연결</div>
+    <div class="node"><div class="t">⌚ 워치 · 🎧 이어폰 · 🔦 IoT</div></div>
+  </div>
+</div>
+<div class="note">권한 주의: 블루투스·위치 권한이 필요하며, 사용자에게 <b>이유를 설명하고 런타임에 요청</b>해야 합니다(개인정보 챕터와 연결).</div>
+</div>`);
+
+S(8, `<div class="slidehead"><span class="cnum">CH8</span><h2>API와 웹 포트</h2></div>
+<div class="body">
+<div class="two">
+  <div>
+    <p>앱이 서버와 대화하려면 <b>주소</b>와 <b>${T('포트 Port','한 서버 컴퓨터 안에서 프로그램을 구분하는 번호. 같은 IP라도 포트로 다른 서비스에 연결.')}</b> 가 필요합니다. 주소가 건물이면, 포트는 그 건물의 <b>호실 번호</b>입니다.</p>
+    <ul class="clean" style="margin-top:12px">
+      <li><b>${T('IP / 도메인','IP는 서버의 숫자 주소(예: 142.250...), 도메인은 사람이 읽는 이름(예: api.example.com).')}</b> — 어느 서버인가</li>
+      <li><b>포트</b> — 그 서버의 어느 서비스인가</li>
+      <li>웹(HTTP)=<b>80</b>, 보안 웹(HTTPS)=<b>443</b></li>
+      <li>${T('REST API','HTTP 규칙으로 데이터를 주고받는 대표적인 API 설계 방식. 주소(자원)+메서드(행동)로 표현.')} 로 기능별 주소 설계</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4>주소 한 줄 뜯어보기</h4>
+    <pre style="font-size:13.5px"><code class="s">https</code>://<code class="n">api.example.com</code>:<code class="k">443</code>/<code class="s">users</code>/<code class="n">1</code>
+  │        │              │      │
+프로토콜   도메인          포트   경로(엔드포인트)</pre>
+    <div class="kv"><b>프로토콜</b><span>https (보안 통신)</span></div>
+    <div class="kv"><b>도메인</b><span>서버 이름</span></div>
+    <div class="kv"><b>포트</b><span>서비스 번호(443)</span></div>
+    <div class="kv"><b>경로</b><span>원하는 기능/자원</span></div>
+  </div>
+</div>
+</div>`);
+
+S(8, `<div class="slidehead"><span class="cnum">CH8</span><h2>HTTP 방식 — GET vs POST</h2></div>
+<div class="body">
+<div class="chart" style="max-width:820px;margin-bottom:8px">
+  <div style="font-weight:800;margin-bottom:6px">언제 무엇을 쓰나 (사용 빈도 개념)</div>
+  <div class="bar-row"><div class="bar-label">GET (조회)</div><div class="bar-track"><div class="bar-fill" style="--w:70%;background:linear-gradient(90deg,#6c8cff,#42e6c8)"></div></div><div class="bar-val">조회</div></div>
+  <div class="bar-row"><div class="bar-label">POST (전송)</div><div class="bar-track"><div class="bar-fill" style="--w:55%;background:linear-gradient(90deg,#ff7ad9,#ffcf5c)"></div></div><div class="bar-val">생성</div></div>
+</div>
+<table class="cmp">
+  <tr><th>구분</th><th>${T('GET','서버에서 데이터를 가져올 때 쓰는 HTTP 방식. 파라미터가 URL에 보입니다.')} </th><th>${T('POST','서버로 데이터를 보내 저장/처리할 때 쓰는 HTTP 방식. 데이터가 본문(body)에 담겨 URL에 안 보임.')} </th></tr>
+  <tr><td>용도</td><td>데이터 <b>조회</b> (목록·검색)</td><td>데이터 <b>전송·생성</b> (로그인·글쓰기)</td></tr>
+  <tr><td>데이터 위치</td><td>URL 뒤 (<code class="mono small">?q=값</code>) — <b>보임</b></td><td>본문(body) — <b>안 보임</b></td></tr>
+  <tr><td>보안·용량</td><td>노출·길이 제한 있음</td><td>덜 노출·용량 큼</td></tr>
+  <tr><td>예</td><td><code class="mono small">GET /users?page=1</code></td><td><code class="mono small">POST /login</code> (아이디·비번)</td></tr>
+</table>
+<div class="note">🔑 비밀번호·개인정보는 <b>절대 GET으로 URL에 담지 마세요</b>. 반드시 POST + HTTPS. (그 외 PUT=수정, DELETE=삭제도 있습니다.)</div>
+</div>`);
+
+S(8, `<div class="slidehead"><span class="cnum">CH8</span><h2>코루틴(Coroutine) — 멈춤 없이 백그라운드 처리</h2></div>
+<div class="body">
+<div class="two">
+  <div>
+    <p><b>${T('코루틴','Coroutine. 코틀린의 비동기 처리 방식. 네트워크·DB 같은 오래 걸리는 작업을 메인 스레드를 막지 않고 백그라운드에서 실행해 화면이 멈추지 않게 합니다.')}</b> 은 API 호출·DB 조회처럼 <b>오래 걸리는 작업</b>을 화면을 멈추지 않고 처리하는 코틀린의 방법입니다.</p>
+    <ul class="clean" style="margin-top:12px">
+      <li>메인 스레드에서 네트워크 → 앱 멈춤·${T('ANR','Application Not Responding. 5초 이상 멈추면 "응답 없음". 무거운 작업을 메인 스레드에서 하면 발생.')}</li>
+      <li>코루틴으로 옮기면 화면은 <b>부드럽게</b> 유지</li>
+      <li>${T('suspend','일시 중단 함수. 잠시 멈췄다가 결과가 오면 그 자리에서 재개. 코루틴 안에서만 호출됩니다.')} 함수로 "기다렸다 이어가기"</li>
+      <li>${T('viewModelScope','ViewModel에 묶인 코루틴 실행 범위. 화면이 사라지면 자동으로 취소돼 메모리 누수를 막습니다.')} — 화면 종료 시 자동 취소</li>
+    </ul>
+    <div class="note" style="margin-top:12px">${T('Dispatchers','코루틴을 어느 스레드에서 돌릴지 지정. Main=화면 갱신, IO=네트워크·DB, Default=무거운 계산.')}: <b>IO</b>(네트워크·DB) / <b>Main</b>(화면 갱신)으로 역할을 나눕니다.</div>
+  </div>
+  <pre style="font-size:13px"><code class="c">// ViewModel에서 API 호출 (코루틴)</code>
+<code class="k">fun</code> load() {
+  viewModelScope.launch {        <code class="c">// 화면 사라지면 자동 취소</code>
+    <code class="k">val</code> data = withContext(Dispatchers.IO) {
+      api.getUser()              <code class="c">// 백그라운드에서 네트워크</code>
+    }
+    _user.value = data           <code class="c">// 메인 스레드에서 화면 갱신</code>
+  }
+}</pre>
+</div>
+<div class="note">🔗 앞의 GET/POST·결제 같은 네트워크 작업은 <b>거의 항상 코루틴</b> 위에서 돌아갑니다. 3장 MVVM의 ViewModel과 짝으로 쓰는 것이 정석입니다.</div>
+</div>`);
+
+S(8, `<div class="slidehead"><span class="cnum">CH8</span><h2>URL 주소창 — 전부 보이기 / 가려 보이기</h2></div>
+<div class="body">
+<div class="two">
+  <div>
+    <p>앱 안에서 웹을 띄우거나(${T('WebView','앱 안에 웹페이지를 그대로 띄우는 컴포넌트. 하이브리드 앱에서 자주 사용.')}) ${T('커스텀 탭','앱을 벗어나지 않고 브라우저 화면을 여는 방식. 주소·보안 표시를 유지.')} 을 열 때, 주소창을 어떻게 보여줄지 선택할 수 있습니다.</p>
+    <ul class="clean" style="margin-top:12px">
+      <li><b>전부 보이기</b> — 사용자가 도메인을 확인 → <b>신뢰·보안</b>에 유리(피싱 방지)</li>
+      <li><b>가려 보이기</b> — 앱처럼 몰입감↑, 그러나 <b>주소 확인 불가</b></li>
+      <li>WebView는 주소창이 없어 개발자가 신뢰 표시를 직접 신경 써야</li>
+    </ul>
+    <div class="danger" style="margin-top:14px">⚠️ 주소를 가리면 사용자가 진짜 사이트인지 확인 못 합니다. <b>결제·로그인 화면은 도메인을 보여주는</b> 것이 안전합니다.</div>
+  </div>
+  <div>
+    <div class="card" style="margin-bottom:14px">
+      <div style="background:#0d1533;border:1px solid #2a3a72;border-radius:10px;padding:10px 12px;font-family:monospace;font-size:13px">
+      🔒 https://<b style="color:var(--accent)">bank.example.com</b>/login</div>
+      <p class="small" style="margin-top:8px">✅ 전부 표시 — 자물쇠·도메인 확인 가능</p>
+    </div>
+    <div class="card">
+      <div style="background:#0d1533;border:1px solid #2a3a72;border-radius:10px;padding:10px 12px;font-family:monospace;font-size:13px;color:#6f7fb5">
+      🔒 ●●●●●●●●●●●●●●●●</div>
+      <p class="small" style="margin-top:8px">⚠️ 가림 — 몰입감은 좋으나 출처 확인 불가</p>
+    </div>
+  </div>
+</div>
+</div>`);
+
+S(8, `<div class="slidehead"><span class="cnum">CH8</span><h2>WebView — 앱 속의 미니 브라우저 (제일 중요!)</h2></div>
+<div class="body">
+<p class="lead"><b>${T('WebView','앱 안에 내장된 웹 브라우저 화면. 크롬 엔진으로 HTML·CSS·JS 웹페이지를 앱 화면처럼 그대로 띄웁니다.')}</b> 는 앱 안에 들어있는 <b>작은 크롬</b>입니다. 웹페이지를 앱 화면 안에 그대로 띄워, 결제·로그인·약관·이벤트 페이지를 앱을 벗어나지 않고 보여줍니다.</p>
+<div class="grid g2" style="margin-top:6px">
+  <div class="card">
+    <h4><span class="ico">🧩</span>어디에 쓰나</h4>
+    <ul class="clean">
+      <li><b>결제창</b>(PG사 결제 페이지) — 다음 슬라이드</li>
+      <li>소셜 로그인·${T('OAuth','구글·카카오 등 외부 계정으로 로그인하는 표준. 로그인 페이지를 WebView로 띄우는 경우가 많음.')} 인증 페이지</li>
+      <li>약관·공지·이벤트 등 자주 바뀌는 페이지</li>
+      <li><b>${T('하이브리드 앱','네이티브 껍데기 안에 웹(WebView)을 담은 앱. 화면 대부분을 웹으로 만들어 iOS·안드로이드에 재사용.')}</b> 전체를 웹으로</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4><span class="ico">⚖️</span>장점 vs 단점</h4>
+    <ul class="clean">
+      <li>✅ <b>빠른 수정</b> — 서버의 웹만 바꾸면 앱 업데이트 없이 반영</li>
+      <li>✅ <b>재사용</b> — 웹 한 번 만들어 두 OS에 공용</li>
+      <li>⚠️ 네이티브보다 <b>느리고</b> 제스처가 이질적</li>
+      <li>⚠️ <b>보안</b> — 신뢰 안 되는 페이지 로드는 위험</li>
+    </ul>
+  </div>
+</div>
+<div class="two" style="margin-top:16px;align-items:start">
+  <pre style="font-size:12.5px"><code class="c">// WebView 기본 세팅</code>
+webView.settings.javaScriptEnabled = <code class="k">true</code>   <code class="c">// JS 실행 허용</code>
+webView.settings.domStorageEnabled = <code class="k">true</code>  <code class="c">// 웹 저장소 허용</code>
+webView.webViewClient = WebViewClient()   <code class="c">// 페이지 이동 제어</code>
+webView.loadUrl(<code class="s">"https://example.com"</code>)</pre>
+  <div class="note" style="margin:0">🔑 두 조력자: <b>${T('WebViewClient','페이지 이동·URL 로딩을 제어하는 객체. 링크를 앱에서 열지, 외부 앱을 호출할지 결정(shouldOverrideUrlLoading).')}</b>(페이지 이동 담당) + <b>${T('WebChromeClient','자바스크립트 alert, 파일 업로드, 진행률, 콘솔 로그 등 브라우저 부가 기능을 담당하는 객체.')}</b>(alert·파일첨부 담당). 웹↔네이티브 연결은 <b>${T('JavaScript Bridge','addJavascriptInterface로 웹의 JS가 앱의 네이티브 함수를 호출하게 연결하는 통로. 카메라·결제 호출 등에 사용하나, 신뢰된 페이지에만 열어야 안전.')}</b> 로 합니다(신뢰된 페이지만!).</div>
+</div>
+</div>`);
+
+S(8, `<div class="slidehead"><span class="cnum">CH8</span><h2>실무 이슈 — 카드 결제와 WebView (PG 결제창)</h2></div>
+<div class="body">
+<div class="two">
+  <div>
+    <p>카드 결제는 대부분 <b>${T('PG사','Payment Gateway(결제대행사). 앱과 카드사 사이에서 결제·정산을 대신 처리. 토스페이먼츠·페이플·KG이니시스·NHN KCP·나이스페이먼츠 등.')}</b>가 제공하는 <b>결제창</b>을 앱 안 <b>${T('WebView','앱 안에 웹페이지를 띄우는 화면 컴포넌트. PG사 결제창(웹)을 앱 내부에서 그대로 보여줄 때 사용.')}</b>로 띄워 진행합니다. 앱이 카드번호를 직접 받지 않는 것이 핵심입니다.</p>
+    <div class="flow animate" style="flex-direction:column;gap:8px;margin-top:12px">
+      <div class="node"><div class="t">📱 우리 앱 (WebView)</div></div>
+      <div class="arrow">↓ 결제창 로드</div>
+      <div class="node"><div class="t">🌐 PG사 결제창</div><div class="d">토스페이먼츠 · 페이플 등</div></div>
+      <div class="arrow">↓ ${T('앱카드','카드사 간편결제 앱(삼성페이·ISP/페이북·신한/현대 앱카드 등). 결제창이 이 앱을 호출해 본인인증합니다.')} 호출</div>
+      <div class="node"><div class="t">💳 카드사 앱 → 인증 → 결과 콜백</div></div>
+    </div>
+  </div>
+  <div>
+    <div class="danger">⚠️ 핵심 함정: WebView는 <b>http(s)만</b> 이해합니다. 결제창이 카드사 앱을 부르는 <code class="mono small">intent://</code>·<code class="mono small">ISP://</code> 스킴을 만나면 <b>net::ERR_UNKNOWN_URL_SCHEME</b> 에러로 결제가 멈춥니다.</div>
+    <pre style="margin-top:12px;font-size:12.5px"><code class="c">// 외부 앱 스킴을 가로채 카드사 앱 실행</code>
+webView.webViewClient = <code class="k">object</code> : WebViewClient() {
+  <code class="k">override fun</code> shouldOverrideUrlLoading(v, req): Boolean {
+    <code class="k">val</code> url = req.url.toString()
+    <code class="k">if</code> (!url.startsWith(<code class="s">"http"</code>)) {
+      <code class="c">// intent://, ISP://, market:// 등</code>
+      startActivity(Intent.parseUri(url, 0))
+      <code class="k">return true</code>
+    }
+    <code class="k">return false</code>
+  }
+}
+webView.settings.javaScriptEnabled = <code class="k">true</code>
+webView.settings.domStorageEnabled = <code class="k">true</code></pre>
+  </div>
+</div>
+<div class="note">필수 체크: ① <b>shouldOverrideUrlLoading</b>에서 앱 스킴 처리 ② 카드사 앱 <b>미설치 시 마켓으로</b> 유도 ③ AndroidManifest에 카드사 패키지 <code class="mono small">&lt;queries&gt;</code> 등록(안 하면 설치돼 있어도 스토어로 튐) ④ <b>${T('HTTPS','통신 암호화 프로토콜. 결제는 반드시 https. 카드정보 보호의 최소 조건.')} 필수</b> · 카드정보는 ${T('PCI-DSS','카드 데이터 보안 국제 표준. 카드번호는 앱이 저장·처리하지 않고 PG·카드사가 담당하도록 설계.')} 준수</div>
+</div>`);
+
+/* =========================================================
+   CH9 화면 & 라이프사이클
+   ========================================================= */
+S(9, `<div class="cover center">
+  <div class="kicker">CHAPTER 9</div>
+  <h1>화면 · 라이프사이클</h1>
+  <p class="lead">안드로이드 화면(뷰)이 어떻게 구성되고, 앱이 켜지고 꺼질 때
+  거치는 생명주기(Lifecycle)를 이해합니다 — 실무 버그의 핵심.</p>
+</div>`);
+
+S(9, `<div class="slidehead"><span class="cnum">CH9</span><h2>안드로이드 뷰 화면 구성</h2></div>
+<div class="body">
+<div class="flow animate" style="margin:10px 0 18px">
+  <div class="node"><div class="t">${T('Activity','하나의 화면. 앱의 각 페이지가 Activity 또는 Fragment로 만들어집니다.')}</div><div class="d">화면 한 장</div></div>
+  <div class="arrow">⊃</div>
+  <div class="node"><div class="t">${T('Fragment','Activity 안에서 재사용 가능한 화면 조각. 탭 화면 등에 사용.')}</div><div class="d">화면 조각</div></div>
+  <div class="arrow">⊃</div>
+  <div class="node"><div class="t">${T('View / Composable','버튼·텍스트·이미지 같은 화면 최소 단위. 전통 방식은 View, 최신은 Composable.')}</div><div class="d">버튼·텍스트</div></div>
+</div>
+<div class="grid g3">
+  <div class="card"><h4>🗂️ 화면 계층</h4><p class="small">Activity 안에 여러 View가 트리 구조로 쌓입니다. 부모-자식 관계로 배치.</p></div>
+  <div class="card"><h4>📐 레이아웃</h4><p class="small">${T('ConstraintLayout','뷰끼리의 관계(제약)로 위치를 잡는 유연한 레이아웃. 반응형에 강함.')} · LinearLayout 등으로 배치 규칙 정의.</p></div>
+  <div class="card"><h4>🧩 Compose</h4><p class="small">최신 방식은 계층을 함수 호출로 표현. Column·Row·Box로 배치.</p></div>
+</div>
+<div class="note">전통(XML View)과 최신(Compose)이 공존합니다. 신규 프로젝트는 Compose, 기존 유지보수는 View를 만나게 됩니다.</div>
+</div>`);
+
+S(9, `<div class="slidehead"><span class="cnum">CH9</span><h2>액티비티 생명주기(Lifecycle)</h2></div>
+<div class="body">
+<div class="two">
+  <div class="cycle animate">
+    <div class="life"><span class="m">onCreate()</span><span class="x">화면 생성 — 초기화, 화면 붙이기</span></div>
+    <div class="life"><span class="m">onStart()</span><span class="x">화면이 보이기 시작</span></div>
+    <div class="life"><span class="m">onResume()</span><span class="x">사용자와 상호작용 시작 (활성)</span></div>
+    <div class="life"><span class="m">onPause()</span><span class="x">다른 화면에 가려짐 — 저장 시작</span></div>
+    <div class="life"><span class="m">onStop()</span><span class="x">화면이 안 보임 (백그라운드)</span></div>
+    <div class="life"><span class="m">onDestroy()</span><span class="x">화면 종료 — 자원 해제</span></div>
+  </div>
+  <div>
+    <p>앱은 켜지고·가려지고·꺼질 때마다 <b>${T('생명주기 Lifecycle','Activity가 생성→활성→정지→소멸로 거치는 단계. 각 단계에서 정해진 함수가 호출됩니다.')}</b> 함수가 순서대로 호출됩니다. 여기서 "무엇을 언제 할지"를 정합니다.</p>
+    <ul class="clean" style="margin-top:12px">
+      <li><b>onCreate</b> — 딱 한 번, 초기 세팅</li>
+      <li><b>onResume/onPause</b> — 오갈 때마다 반복</li>
+      <li>전화가 오면? onPause → onResume</li>
+      <li>홈 버튼? onStop → (복귀 시) onStart</li>
+    </ul>
+    <p class="small" style="margin-top:14px">📖 안드로이드 공식 생명주기 문서(클릭 시 바로 이동):<br>
+    <a class="link" href="https://developer.android.com/guide/components/activities/activity-lifecycle" target="_blank" rel="noopener">developer.android.com/guide/components/activities/activity-lifecycle</a></p>
+  </div>
+</div>
+</div>`);
+
+S(9, `<div class="slidehead"><span class="cnum">CH9</span><h2>라이프사이클 실무 — 흔한 버그와 대응</h2></div>
+<div class="body">
+<div class="grid g2">
+  <div class="card"><h4><span class="ico">🔄</span>화면 회전 시 데이터 소실</h4><p class="small">회전하면 Activity가 <b>재생성</b>(onDestroy→onCreate)됩니다. 입력값이 사라지죠. → <b>${T('ViewModel','화면 재생성에도 살아남아 데이터를 유지하는 저장소. 회전 대응의 정석.')}</b> 나 저장 콜백으로 상태 보관.</p></div>
+  <div class="card"><h4><span class="ico">💾</span>저장은 onPause에서</h4><p class="small">사용자가 화면을 떠날 때 데이터가 날아가지 않게, <b>onPause/onStop</b>에서 저장 처리.</p></div>
+  <div class="card"><h4><span class="ico">🔋</span>자원 해제</h4><p class="small">위치·카메라·타이머는 <b>onStop/onDestroy</b>에서 반드시 해제 — 안 하면 배터리·메모리 누수.</p></div>
+  <div class="card"><h4><span class="ico">⏯️</span>재개 시 갱신</h4><p class="small">백그라운드 후 돌아왔을 때 최신 데이터가 필요하면 <b>onResume</b>에서 새로고침.</p></div>
+</div>
+<div class="note" style="margin-top:16px">🎯 정리: "이 코드를 <b>어느 생명주기 함수에 넣을까</b>?"를 늘 생각하는 것 — 이게 초보와 실무의 차이입니다.</div>
+</div>`);
+
+/* ---------- 마무리 ---------- */
+S(10, `<div class="slidehead"><span class="cnum">WRAP-UP</span><h2>오늘 정리 & 다음 단계</h2></div>
+<div class="body">
+<div class="grid g3">
+  <div class="card"><h4>🗺️ 큰 그림</h4><p class="small">프론트·백엔드 구분과 풀스택 시야</p></div>
+  <div class="card"><h4>📝 기획·설계</h4><p class="small">기획 프로세스, 스마트폰 뷰, MVC/MVVM</p></div>
+  <div class="card"><h4>🎨 UX/UI</h4><p class="small">제스처·햄버거·FAB·Compose</p></div>
+  <div class="card"><h4>🛠️ 환경·데이터</h4><p class="small">스튜디오·에뮬레이터, 저장·개인정보</p></div>
+  <div class="card"><h4>🤖 플랫폼</h4><p class="small">API 36, Manifest, 다크/화이트 테마</p></div>
+  <div class="card"><h4>🔌 통신·수명</h4><p class="small">블루투스·API·GET/POST, 라이프사이클</p></div>
+</div>
+<div class="note" style="margin-top:20px">🚀 <b>다음 실습 제안</b>: 오늘 배운 MVVM + SharedPreferences + 다크모드 테마를 넣은 "메모 앱"을 targetSdk 36으로 만들어보기.
+질문은 언제든 환영합니다 — <b>Q &amp; A</b></div>
+<div style="text-align:center;margin-top:26px;font-size:22px;font-weight:800;color:var(--accent)">감사합니다 · 앱튜버 심화 과정1 🎬</div>
+</div>`);
+
+S(10, `<div class="slidehead"><span class="cnum">REFERENCES</span><h2>참고 자료 — 공식 문서 & GitHub</h2></div>
+<div class="body">
+<p class="lead">오늘 내용을 <b>직접 확인·심화</b>할 신뢰도 높은 출처입니다. 슬라이드 대신 <b>여기서 사실을 확인</b>하세요.</p>
+<div class="grid g2" style="margin-top:4px">
+  <div class="card"><h4><span class="ico">📘</span>공식 · 앱 아키텍처 가이드</h4><p class="small">구글이 정리한 설계 원칙(레이어·상태·데이터 흐름). 기획·설계의 정석.</p><p style="margin-top:6px"><a class="link" href="https://developer.android.com/topic/architecture" target="_blank" rel="noopener">developer.android.com/topic/architecture</a></p></div>
+  <div class="card"><h4><span class="ico">🧩</span>공식 샘플 · Now in Android</h4><p class="small">Kotlin + Compose로 만든 <b>실제 앱 전체 코드</b>. 구조를 통째로 참고.</p><p style="margin-top:6px"><a class="link" href="https://github.com/android/nowinandroid" target="_blank" rel="noopener">github.com/android/nowinandroid</a></p></div>
+  <div class="card"><h4><span class="ico">🏛️</span>공식 · Architecture Samples</h4><p class="small">MVVM 등 설계 패턴을 비교한 예제 모음.</p><p style="margin-top:6px"><a class="link" href="https://github.com/android/architecture-samples" target="_blank" rel="noopener">github.com/android/architecture-samples</a></p></div>
+  <div class="card"><h4><span class="ico">🗺️</span>로드맵 · 학습 자료 (GitHub)</h4><p class="small">무엇을 어떤 순서로 배울지 한눈에.</p><p style="margin-top:6px"><a class="link" href="https://github.com/skydoves/android-developer-roadmap" target="_blank" rel="noopener">skydoves/android-developer-roadmap</a><br><a class="link" href="https://github.com/androiddevnotes/awesome-android-learning-resources" target="_blank" rel="noopener">androiddevnotes/awesome-android-learning-resources</a></p></div>
+</div>
+<div class="note" style="margin-top:12px">🧭 슬라이드의 수치(버전 점유율 등)는 <b>이해를 돕는 예시</b>입니다. 실제 값은 위 공식 문서와 안드로이드 스튜디오 대시보드에서 확인하세요.</div>
+</div>`);
+
+S(10, `<div class="slidehead"><span class="cnum">HANDS-ON</span><h2>실습 링크 — 안드로이드 스튜디오 첫 화면 만들기</h2></div>
+<div class="body">
+<p class="lead">이론을 봤으니, 공식 튜토리얼로 <b>화면 하나</b>를 직접 만들어 봅니다. 모두 구글 공식 자료 · 무료입니다.</p>
+<div class="grid g2" style="margin-top:6px">
+  <div class="card"><h4><span class="ico">🚀</span>첫 앱 만들기 (코드랩)</h4>
+    <p class="small">"Create your first Android app" — 버튼·텍스트가 있는 <b>한 화면</b>을 처음부터 끝까지 따라 만듭니다.</p>
+    <p style="margin-top:10px"><a class="link" href="https://developer.android.com/codelabs/basic-android-kotlin-compose-first-app" target="_blank" rel="noopener">developer.android.com/codelabs/basic-android-kotlin-compose-first-app</a></p></div>
+  <div class="card"><h4><span class="ico">📚</span>기초 코스 전체</h4>
+    <p class="small">"Android Basics with Compose" — 안드로이드 스튜디오 설치부터 앱 게시까지 단계별 무료 입문 코스.</p>
+    <p style="margin-top:10px"><a class="link" href="https://developer.android.com/courses/android-basics-compose/course" target="_blank" rel="noopener">developer.android.com/courses/android-basics-compose/course</a></p></div>
+</div>
+<div class="note" style="margin-top:18px">🎬 튜토리얼 영상을 한 번 빠르게 따라 해 보세요. 큰 도움까지는 아니어도, 앱을 <b>어떻게 짜야 할지 '생각의 감'을 잡는 데</b>는 분명 도움이 됩니다.<br>⏭️ <b>다음 과정</b>은 오늘 배운 내용을 <b>1시간 안에</b> 압축해서 끝낼 예정입니다.</div>
+</div>`);
+
+S(10, `<div class="slidehead"><span class="cnum">NEXT · 실습 예고</span><h2>"이렇게 만들면 어렵습니다" — 실패한 앱 뜯어고치기</h2></div>
+<div class="body">
+<p class="lead">다음 시간엔 제가 <b>실제로 실패한 앱</b>을 그대로 가져옵니다. "이렇게 만들면 왜 어려운지" 함께 뜯어보고, <b>새로 고쳐 만드는 것</b>까지 직접 실습합니다.</p>
+<div class="flow animate" style="margin:18px 0">
+  <div class="node"><div class="t">😵 실패한 앱 소개</div><div class="d">내가 만든 나쁜 예</div></div>
+  <div class="arrow">→</div>
+  <div class="node"><div class="t">🔍 문제 진단</div><div class="d">어디가 왜 어려운가</div></div>
+  <div class="arrow">→</div>
+  <div class="node"><div class="t">🔧 뜯어고치기</div><div class="d">구조 리팩터링</div></div>
+  <div class="arrow">→</div>
+  <div class="node"><div class="t">✨ 새로 만들기</div><div class="d">직접 실습</div></div>
+</div>
+<div class="grid g3">
+  <div class="card"><h4><span class="ico">🚫</span>흔한 실패 패턴</h4><p class="small">한 화면에 모든 코드 몰아넣기, 색·문구 하드코딩, 저장 안 되는 데이터, 화면 돌리면 사라지는 값…</p></div>
+  <div class="card"><h4><span class="ico">🧭</span>오늘 배운 걸로 고친다</h4><p class="small">MVVM으로 분리 · 테마로 색 관리 · DAO로 저장 · 코루틴으로 네트워크.</p></div>
+  <div class="card"><h4><span class="ico">🙌</span>직접 해보기</h4><p class="small">나쁜 코드를 함께 고치며 "좋은 구조"의 감을 몸으로 익힙니다.</p></div>
+</div>
+<div style="text-align:center;margin-top:22px;font-size:20px;font-weight:800;color:var(--accent3)">함께 만들어 봅시다 · 앱튜버 스튜디오 ✨</div>
+</div>`);
+
+S(10, `<div class="slidehead"><span class="cnum">CONTEXT · 실전</span><h2>컨텍스트 실전 — "핸드폰 연결해서 듀오링고 분석해줘"</h2></div>
+<div class="body">
+<div class="flow animate" style="margin:2px 0 10px">
+  <div class="node" style="min-width:280px"><div class="t">💬 내 컨텍스트(요청)</div><div class="d">"핸드폰 연결했어. 듀오링고 앱을 네가 직접 플레이해서 분석·보고해줘"</div></div>
+  <div class="arrow">→</div>
+  <div class="node"><div class="t">⚙️ 자동 제어</div><div class="d">실제 기기에서 레슨 1회 완주·전 과정 캡처</div></div>
+  <div class="arrow">→</div>
+  <div class="node" style="background:linear-gradient(135deg,#C15F3C,#D98A5E)!important;border-color:transparent"><div class="t" style="color:#fff">✅ 보고 요약 도착</div><div class="d" style="color:#ffe9dc">분석 문서 생성 완료</div></div>
+</div>
+<div class="card" style="border-color:#e0b79c">
+  <h4><span class="ico">📄</span>보고 요약 — 듀오링고 앱 분석</h4>
+  <p class="small" style="margin:2px 0 8px">실제 기기에서 레슨 1회를 완주하며 전 과정을 캡처·분석한 문서입니다. 핵심 목차:</p>
+  <div style="column-count:2;column-gap:30px">
+    <div style="break-inside:avoid;margin-bottom:9px;font-size:12.7px;color:#5a4c3f;line-height:1.5"><b style="color:#2b211a">1. 왜 1등인가</b> — "부담 없이 시작 → 벌 없이 틀림 → 매번 다른 칭찬 → 즉각 보상 → 한 판 더" (학습을 평가가 아닌 놀이 리듬으로)</div>
+    <div style="break-inside:avoid;margin-bottom:9px;font-size:12.7px;color:#5a4c3f;line-height:1.5"><b style="color:#2b211a">2. 네비게이션 구조</b> — 하단 6탭 · 코스 시스템(듀오링고엔 '수학' 코스도 있음) · 학습 경로(유닛&gt;레슨 노드, "다음 한 걸음"만 강조)</div>
+    <div style="break-inside:avoid;margin-bottom:9px;font-size:12.7px;color:#5a4c3f;line-height:1.5"><b style="color:#2b211a">3. 화면 인벤토리</b> — 역할별 8개 화면 표</div>
+    <div style="break-inside:avoid;margin-bottom:9px;font-size:12.7px;color:#5a4c3f;line-height:1.5"><b style="color:#2b211a">4. 레슨 실행 흐름</b> — 문제 7유형(번역/선택/말하기/듣기/대화/매칭…)인데 조작은 전부 "탭"으로 통일</div>
+    <div style="break-inside:avoid;margin-bottom:9px;font-size:12.7px;color:#5a4c3f;line-height:1.5"><b style="color:#2b211a">5. 피드백 설계</b> — 정답 초록·칭찬 로테이션 / 오답 분홍+정답 공개, 흔들림·위협 없음 (examath 몬스터 돌진과 정반대)</div>
+    <div style="break-inside:avoid;margin-bottom:9px;font-size:12.7px;color:#5a4c3f;line-height:1.5"><b style="color:#2b211a">6. 게이미피케이션</b> — 진행바·에너지·콤보·XP·스트릭·완료통계(93%도 "훌륭해요"로 긍정 프레이밍)</div>
+    <div style="break-inside:avoid;margin-bottom:9px;font-size:12.7px;color:#5a4c3f;line-height:1.5"><b style="color:#2b211a">7. examath 개선판 적용 7가지</b> — 미니게임9개·가챠 제거, 무벌칙 오답, 재출제 복습, 캐릭터가 문제 제시 등</div>
+  </div>
+</div>
+<div class="note" style="margin-top:12px">💡 핵심: <b>좋은 컨텍스트 한 줄</b>("듀오링고 플레이해서 분석해줘")이 <b>자동 실행 → 구조화된 보고서</b>로 이어집니다. 오늘 배운 것이 바로 이 <b>요청을 정확히 쓰는 힘</b>입니다.</div>
+</div>`);
+
+/* ============================================================
+   렌더링 & 내비게이션 로직
+   ============================================================ */
+const stage = document.getElementById('stage');
+let cur = 0;
+
+// 모든 페이지에 들어가는 스파크버스트 아이콘 (업로드 이미지)
+const SPARK = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <style>
+    @keyframes burst-spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+    @keyframes dot-spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+    @keyframes burst-wave{0%,100%{transform:scale(.78)}50%{transform:scale(1.1)}}
+    @keyframes show-lines{0%,66%{opacity:1}74%,92%{opacity:0}100%{opacity:1}}
+    @keyframes show-dots{0%,66%{opacity:0}74%,92%{opacity:1}100%{opacity:0}}
+    .burst-rot{transform-origin:100px 100px;animation:burst-spin 8s linear infinite}
+    .lines{animation:show-lines 6s ease-in-out infinite}
+    .dots{transform-origin:100px 100px;animation:show-dots 6s ease-in-out infinite,dot-spin 1.1s linear infinite}
+    .sp{transform-origin:100px 100px;animation:burst-wave 2.4s ease-in-out infinite}
+  </style>
+  <g class="burst-rot">
+    <g class="lines" stroke="#C15F3C" stroke-linecap="round">
+      <circle cx="100" cy="100" r="11" fill="#C15F3C" stroke="none"/>
+      <g class="sp" style="animation-delay:0s"><line x1="100" y1="100" x2="164" y2="100" stroke-width="6"/></g>
+      <g class="sp" style="animation-delay:.1s"><line x1="100" y1="100" x2="148.3" y2="112.9" stroke-width="3"/></g>
+      <g class="sp" style="animation-delay:.2s"><line x1="100" y1="100" x2="152" y2="130" stroke-width="7"/></g>
+      <g class="sp" style="animation-delay:.3s"><line x1="100" y1="100" x2="133.9" y2="133.9" stroke-width="4"/></g>
+      <g class="sp" style="animation-delay:.4s"><line x1="100" y1="100" x2="133" y2="157.2" stroke-width="5"/></g>
+      <g class="sp" style="animation-delay:.5s"><line x1="100" y1="100" x2="113.5" y2="150.2" stroke-width="3"/></g>
+      <g class="sp" style="animation-delay:.6s"><line x1="100" y1="100" x2="100" y2="158" stroke-width="6"/></g>
+      <g class="sp" style="animation-delay:.7s"><line x1="100" y1="100" x2="87.1" y2="148.3" stroke-width="4"/></g>
+      <g class="sp" style="animation-delay:.8s"><line x1="100" y1="100" x2="68" y2="155.4" stroke-width="7"/></g>
+      <g class="sp" style="animation-delay:.9s"><line x1="100" y1="100" x2="67.5" y2="132.5" stroke-width="3"/></g>
+      <g class="sp" style="animation-delay:1s"><line x1="100" y1="100" x2="46.3" y2="131" stroke-width="5"/></g>
+      <g class="sp" style="animation-delay:1.1s"><line x1="100" y1="100" x2="47.8" y2="114" stroke-width="4"/></g>
+      <g class="sp" style="animation-delay:1.2s"><line x1="100" y1="100" x2="40" y2="100" stroke-width="6"/></g>
+      <g class="sp" style="animation-delay:1.3s"><line x1="100" y1="100" x2="53.6" y2="87.6" stroke-width="3"/></g>
+      <g class="sp" style="animation-delay:1.4s"><line x1="100" y1="100" x2="42.8" y2="67" stroke-width="7"/></g>
+      <g class="sp" style="animation-delay:1.5s"><line x1="100" y1="100" x2="64.6" y2="64.6" stroke-width="4"/></g>
+      <g class="sp" style="animation-delay:1.6s"><line x1="100" y1="100" x2="71" y2="49.8" stroke-width="5"/></g>
+      <g class="sp" style="animation-delay:1.7s"><line x1="100" y1="100" x2="86.5" y2="49.8" stroke-width="3"/></g>
+      <g class="sp" style="animation-delay:1.8s"><line x1="100" y1="100" x2="100" y2="36" stroke-width="6"/></g>
+      <g class="sp" style="animation-delay:1.9s"><line x1="100" y1="100" x2="111.9" y2="55.6" stroke-width="4"/></g>
+      <g class="sp" style="animation-delay:2s"><line x1="100" y1="100" x2="130" y2="48" stroke-width="7"/></g>
+      <g class="sp" style="animation-delay:2.1s"><line x1="100" y1="100" x2="138.2" y2="61.8" stroke-width="3"/></g>
+      <g class="sp" style="animation-delay:2.2s"><line x1="100" y1="100" x2="153.7" y2="69" stroke-width="5"/></g>
+      <g class="sp" style="animation-delay:2.3s"><line x1="100" y1="100" x2="148.3" y2="87.1" stroke-width="4"/></g>
+    </g>
+    <g class="dots" fill="#C15F3C">
+      <circle cx="152" cy="100" r="5.5" opacity="1"/><circle cx="143.7" cy="128.1" r="5.1" opacity=".92"/>
+      <circle cx="121.6" cy="147.3" r="4.7" opacity=".84"/><circle cx="92.6" cy="151.5" r="4.3" opacity=".75"/>
+      <circle cx="65.9" cy="139.3" r="3.9" opacity=".67"/><circle cx="50.1" cy="114.7" r="3.5" opacity=".59"/>
+      <circle cx="50.1" cy="85.3" r="3.1" opacity=".51"/><circle cx="65.9" cy="60.7" r="2.7" opacity=".43"/>
+      <circle cx="92.6" cy="48.5" r="2.3" opacity=".34"/><circle cx="121.6" cy="52.7" r="1.9" opacity=".26"/>
+      <circle cx="143.7" cy="71.9" r="1.5" opacity=".18"/>
+    </g>
+  </g>
+</svg>`;
+const BRAND = `<div class="brandbar"><span class="spark">${SPARK}</span><span class="wm">APPTUBER STUDIO</span></div>`;
+
+// 각 챕터 표지에 들어갈 '컨텍스트 한 줄 팁' — 명세/기획을 어떻게 쓸지의 핵심
+const CTX = {
+  1: `'누가 · 어떤 불편을 · 어떻게 해결' 을 한 문장으로 못 쓰면, 아직 만들 준비가 안 된 것.`,
+  2: `화면·기능을 "무엇을 하면 → 무엇이 된다" 문장으로 적으면 그대로 기능 명세가 된다.`,
+  3: `요청할 때 화면(View) · 데이터(Model) · 중간 로직을 나눠서 말하면 의도가 정확해진다.`,
+  4: `"버튼" 대신 "FAB · 햄버거 메뉴 · 바텀시트"처럼 컴포넌트 이름으로 지시하라.`,
+  5: `에러는 느낌이 아니라 'Logcat 메시지 · 스택트레이스'를 그대로 붙여 전달하라.`,
+  6: `"어디에(SharedPreferences/Room) · 무엇을 · 얼마나" 저장할지 명시하고, 개인정보는 반드시 표시.`,
+  7: `"minSdk 24 / targetSdk 37" 처럼 지원 버전을 숫자로 못박아 말하라.`,
+  8: `API는 "GET /users → 응답 JSON에 id·name 필드" 형태로 요청·응답을 구체적으로 적어라.`,
+  9: `"화면 회전 · 뒤로가기 · 백그라운드 복귀 시 어떻게" 라는 상태 변화를 반드시 명시하라.`
+};
+
+// 슬라이드 DOM 생성
+slides.forEach((s,i)=>{
+  const el = document.createElement('section');
+  el.className = 'slide' + (i===0?' active':'');
+  if(s.html.includes('class="cover')) el.classList.add('cover');
+  el.dataset.idx = i;
+  el.innerHTML = s.html;
+  // 모든 페이지 좌상단 브랜드 아이콘
+  el.insertAdjacentHTML('afterbegin', BRAND);
+  // 챕터 표지에는 대형 번호
+  const kick = el.querySelector('.kicker');
+  if(kick){
+    const m = kick.textContent.match(/CHAPTER\s+(\d+)/i);
+    if(m){ const num=document.createElement('div'); num.className='chapnum';
+      num.textContent = m[1].padStart(2,'0'); kick.insertAdjacentElement('afterend', num);
+      const ct = CTX[+m[1]];
+      if(ct){ const cover = el.querySelector('.cover') || el;
+        cover.insertAdjacentHTML('beforeend',
+          `<div class="ctxtip"><span class="ctxlabel">💬 컨텍스트 한 줄 팁</span>${ct}</div>`); }
+    }
+  }
+  // 우하단 푸터 메타
+  el.insertAdjacentHTML('beforeend',
+    `<div class="slidefoot">${String(i+1).padStart(2,'0')} · ${CH[s.ch]}</div>`);
+  stage.appendChild(el);
+});
+const slideEls = [...document.querySelectorAll('.slide')];
+
+// 목차 생성
+const tocList = document.getElementById('tocList');
+let lastCh = -1;
+slides.forEach((s,i)=>{
+  if(s.ch !== lastCh){
+    const h = document.createElement('div');
+    h.className='ch'; h.textContent = CH[s.ch];
+    tocList.appendChild(h); lastCh = s.ch;
+  }
+  const a = document.createElement('a');
+  // 슬라이드 첫 제목 추출
+  const tmp=document.createElement('div'); tmp.innerHTML=s.html;
+  const title = (tmp.querySelector('h1,h2')?.textContent || ('슬라이드 '+(i+1))).trim();
+  a.textContent = (i+1)+'. '+title;
+  a.onclick=()=>{ jump(i); closeToc(); };
+  a.dataset.idx=i;
+  tocList.appendChild(a);
+});
+
+function triggerAnims(el){
+  // 애니메이션 요소에 .in 부여 (약간의 스태거)
+  const fills = el.querySelectorAll('.bar-fill');
+  fills.forEach((f,k)=> setTimeout(()=>f.classList.add('in'), 120 + k*130));
+  const nodes = el.querySelectorAll('.animate .node, .animate .arrow');
+  nodes.forEach((n,k)=> setTimeout(()=>n.classList.add('in'), 100 + k*160));
+  const cards = el.querySelectorAll('.mvc .card');
+  cards.forEach((n,k)=> setTimeout(()=>n.classList.add('in'), 150 + k*220));
+  const lives = el.querySelectorAll('.cycle .life');
+  lives.forEach((n,k)=> setTimeout(()=>n.classList.add('in'), 120 + k*160));
+  const bmc = el.querySelectorAll('.bmc-cell');
+  bmc.forEach((n,k)=> setTimeout(()=>n.classList.add('in'), 100 + k*120));
+  const loop = el.querySelectorAll('.loop .lp, .loop .la');
+  loop.forEach((n,k)=> setTimeout(()=>n.classList.add('in'), 120 + k*150));
+}
+function clearAnims(el){
+  el.querySelectorAll('.in').forEach(n=>n.classList.remove('in'));
+}
+
+function show(i){
+  i = Math.max(0, Math.min(slides.length-1, i));
+  slideEls[cur].classList.remove('active');
+  clearAnims(slideEls[cur]);
+  cur = i;
+  const el = slideEls[cur];
+  el.classList.add('active');
+  el.scrollTop = 0;
+  triggerAnims(el);
+  document.getElementById('counter').textContent = (i+1)+' / '+slides.length;
+  document.getElementById('progress').style.width = ((i+1)/slides.length*100)+'%';
+  // 목차 현재 표시
+  document.querySelectorAll('#toc a').forEach(a=>a.classList.toggle('cur', +a.dataset.idx===i));
+}
+function go(d){ show(cur+d); }
+function jump(i){ show(i); }
+function replay(){ clearAnims(slideEls[cur]); void slideEls[cur].offsetWidth; triggerAnims(slideEls[cur]); }
+
+function setSpeed(v){
+  document.documentElement.style.setProperty('--anim-mult', v);
+  document.getElementById('spdv').textContent = parseFloat(v).toFixed(1)+'x';
+}
+
+// 목차 토글
+function toggleToc(){ const t=document.getElementById('toc'); const s=document.getElementById('scrim');
+  t.classList.toggle('open'); s.classList.toggle('on'); }
+function closeToc(){ document.getElementById('toc').classList.remove('open'); document.getElementById('scrim').classList.remove('on'); }
+
+// 키보드
+document.addEventListener('keydown', e=>{
+  if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' ') { go(1); e.preventDefault(); }
+  else if(e.key==='ArrowLeft'||e.key==='PageUp') { go(-1); e.preventDefault(); }
+  else if(e.key==='Home') show(0);
+  else if(e.key==='End') show(slides.length-1);
+  else if(e.key.toLowerCase()==='f'){ if(!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
+  else if(e.key==='r'||e.key==='R') replay();
+  else if(/^[0-9]$/.test(e.key)){
+    // 숫자키 → 해당 챕터 첫 슬라이드
+    const chIdx = e.key==='0'?10:+e.key;
+    const t = slides.findIndex(s=>s.ch===chIdx);
+    if(t>=0) show(t);
+  }
+});
+
+/* ===== 인터랙티브 데모: 스와이프 카드 ===== */
+let sw={active:false,x0:0,dx:0,el:null};
+function startSwipe(e){
+  const c=document.getElementById('swipeCard');
+  sw={active:true,x0:e.clientX,dx:0,el:c};
+  c.setPointerCapture(e.pointerId);
+  c.style.transition='none';
+  c.onpointermove=moveSwipe; c.onpointerup=endSwipe; c.onpointercancel=endSwipe;
+}
+function moveSwipe(e){ if(!sw.active)return; sw.dx=e.clientX-sw.x0;
+  sw.el.style.transform=`translateX(${sw.dx}px) rotate(${sw.dx/20}deg)`;
+  sw.el.style.opacity = 1 - Math.min(Math.abs(sw.dx)/200,0.75);
+}
+function endSwipe(e){
+  if(!sw.active)return; sw.active=false;
+  const msg=document.getElementById('swipeMsg'); const c=sw.el;
+  c.style.transition='transform .3s ease, opacity .3s';
+  if(Math.abs(sw.dx)>90){
+    const dir=sw.dx>0?1:-1;
+    c.style.transform=`translateX(${dir*400}px) rotate(${dir*20}deg)`; c.style.opacity=0;
+    msg.textContent = dir>0? '✅ 오른쪽으로 밀어 [보관]됨':'🗑️ 왼쪽으로 밀어 [삭제]됨';
+    setTimeout(()=>{ c.style.transition='transform .35s cubic-bezier(.22,1,.36,1),opacity .3s';
+      c.style.transform='none'; c.style.opacity=1; }, 700);
+  } else {
+    c.style.transform='none'; c.style.opacity=1; msg.textContent='↔ 조금 더 세게 밀어보세요';
+  }
+  c.onpointermove=null;c.onpointerup=null;
+}
+
+/* ===== 데모: 햄버거 드로어 / FAB ===== */
+function toggleDrawer(){ document.getElementById('drawer').classList.toggle('open'); }
+let fabN=0;
+function tapFab(){ fabN++; document.getElementById('fabMsg').textContent='＋ 액션 버튼 실행 ('+fabN+'회) — 예: 새 글 작성'; }
+
+// 초기화
+show(0);
+setSpeed(1);
+</script>
+</body>
+</html>
