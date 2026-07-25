@@ -10,6 +10,7 @@ import { ok, err, ROLE_LEVEL } from "../types";
 import { requireRole, type AuthedUser } from "../middleware";
 import { readSession } from "../auth/session";
 import apptuberAdvanced1Html from "../resources/apptuber-advanced-1.html?raw";
+import appPlanning4Html from "../resources/app-planning-4books.html?raw";
 
 type Vars = { Variables: { user: AuthedUser } };
 export const eduRoutes = new Hono<{ Bindings: Env } & Vars>();
@@ -373,6 +374,45 @@ eduRoutes.post("/edu/seed-apptuber1", async (c) => {
     url: null,
     name: "앱튜버 심화 과정1 (열어보기)",
     size: apptuberAdvanced1Html.length,
+    sort: 0,
+  });
+  return c.json(ok({ seeded: true, id: inserted[0].id }));
+});
+
+// 일회성 시드: 앱 기획 4권 통합 요약본 (앱기획자료). 멱등 — 같은 제목 글 있으면 무시. 반영 확인 후 다음 배포에서 제거 가능.
+eduRoutes.post("/edu/seed-app-planning", async (c) => {
+  const db = drizzle(c.env.DB);
+  await ensureTables(db);
+  const title = "앱 기획 4권 통합 요약본 · 실무 요약본";
+  const dup = await db.select({ id: eduPosts.id }).from(eduPosts).where(eq(eduPosts.title, title)).limit(1);
+  if (dup.length > 0) return c.json(ok({ already: true, id: dup[0].id }));
+
+  const admin = await db.select({ id: users.id }).from(users).where(eq(users.role, "admin")).limit(1);
+  if (admin.length === 0) return c.json(err("no_admin"), 500);
+
+  const key = `edu/html/${crypto.randomUUID()}.html`;
+  await c.env.MEDIA.put(key, appPlanning4Html, {
+    httpMetadata: { contentType: "text/html; charset=utf-8" },
+  });
+
+  const now = new Date();
+  const inserted = await db
+    .insert(eduPosts)
+    .values({
+      userId: admin[0].id,
+      title,
+      body: "앱 기획 관련 4권의 핵심 내용을 통합한 실무 요약본입니다. 앱 기획의 본질부터 문제 정의·타깃·MVP·UX 흐름·정보구조·기능 명세·데이터 측정·마케팅까지 15개 주제로 정리했습니다.\n\n아래 첨부를 열어 목차와 함께 학습하세요.",
+      createdAt: now,
+      updatedAt: now,
+    })
+    .returning({ id: eduPosts.id });
+  await db.insert(eduAttachments).values({
+    postId: inserted[0].id,
+    kind: "html",
+    fileKey: key,
+    url: null,
+    name: "앱 기획 4권 통합 요약본 (열어보기)",
+    size: appPlanning4Html.length,
     sort: 0,
   });
   return c.json(ok({ seeded: true, id: inserted[0].id }));
