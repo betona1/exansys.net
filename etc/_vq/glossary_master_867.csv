@@ -1,0 +1,868 @@
+﻿id,termKo,termEn,def,collection,category,difficulty,vibeCore,slug,source,quizEnabled,reviewStatus
+base-0001,AI 에이전트,agent,스스로 여러 단계를 실행하는 AI. 파일을 읽고 코드를 고치고 실행까지 이어서 합니다.,ai,AI·클로드코드,2,False,agent,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0002,Claude Code,클로드 코드,명령을 내리면 코드를 읽고·쓰고·고쳐주는 AI 개발 도구. 터미널에서 대화하듯 씁니다.,ai,AI·클로드코드,2,False,클로드-코드,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0003,MCP,Model Context Protocol,AI를 외부 도구·데이터와 연결하는 규약. 예: AI가 파일·DB에 접근.,ai,AI·클로드코드,2,False,model-context-protocol,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0004,리팩터링,refactoring,기능은 그대로 두고 코드를 더 깔끔하게 정리하는 것.,ai,AI·클로드코드,2,False,refactoring,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0005,반복 개선,iteration,한 번에 완성하지 않고 조금씩 고쳐가며 나아가는 방식. AI 협업의 기본 리듬.,ai,AI·클로드코드,2,False,iteration,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0006,컨텍스트,context,AI가 참고하는 대화·파일의 맥락. 관련 파일을 알려줄수록 정확해집니다.,ai,AI·클로드코드,2,False,context,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0007,코드 리뷰,code review,작성된 코드를 살펴보며 문제·개선점을 찾는 것.,ai,AI·클로드코드,2,False,code-review,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0008,코드 생성,code generation,AI가 요구사항을 코드로 자동 작성하는 것.,ai,AI·클로드코드,2,False,code-generation,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0009,토큰,token,AI가 글을 처리하는 최소 단위(대략 단어 조각). 대화가 길면 토큰을 많이 씁니다.,ai,AI·클로드코드,2,False,token,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0010,프롬프트,prompt,AI에게 주는 지시·질문. 명확하고 구체적일수록 결과가 좋습니다.,ai,AI·클로드코드,2,False,prompt,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0011,환각,hallucination,AI가 그럴듯하지만 틀린 내용을 지어내는 현상. 결과는 항상 확인해야 합니다.,ai,AI·클로드코드,2,False,hallucination,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0012,관계,relationship,"테이블 간 연결 방식. 1:1, 1:다(1:N), 다:다(N:M).",ai,DB 구조,2,False,relationship,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0013,기본키,Primary Key,각 레코드를 유일하게 구분하는 값(예: 회원 ID). 중복 불가.,ai,DB 구조,2,False,primary-key,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0014,레코드 / 행,record/row,테이블의 한 줄. 데이터 하나(예: 회원 1명)를 나타냄.,ai,DB 구조,2,False,record-row,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0015,외래키,Foreign Key,다른 테이블의 기본키를 참조해 두 테이블을 연결하는 값.,ai,DB 구조,2,False,foreign-key,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0016,인덱스,index,검색을 빠르게 해주는 색인. 책 뒤 '찾아보기'와 같은 역할.,ai,DB 구조,2,False,index,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0017,테이블,table,관계형 DB에서 데이터를 담는 표. 엑셀 시트를 떠올리면 쉬움.,ai,DB 구조,2,False,table,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0018,필드 / 열,field/column,테이블의 한 칸 종류(예: 이름·이메일·나이).,ai,DB 구조,2,False,field-column,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0019,복원,restore,백업해 둔 데이터나 시스템을 다시 사용할 수 있는 상태로 되돌리는 작업.,ai,DB 운영,2,False,backup-2,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0020,복제,replication,DB를 여러 대에 복사해두는 것. 장애 대비·부하 분산.,ai,DB 운영,2,False,replication,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0021,샤딩,sharding,데이터를 여러 DB로 쪼개 저장해 대용량을 감당하는 기법(심화).,ai,DB 운영,2,False,sharding,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0022,정규화,normalization,데이터 중복을 줄이도록 테이블을 잘 나누는 설계 원칙.,ai,DB 운영,2,False,normalization,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0023,Firebase Firestore,파이어스토어,구글의 앱용 클라우드 NoSQL DB. 실시간 동기화·서버 불필요.,ai,DB 종류,2,False,파이어스토어,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0024,MongoDB,몽고DB,문서(JSON 유사) 형태로 저장하는 대표 NoSQL. 구조 변경이 자유로움.,ai,DB 종류,2,False,몽고db,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0025,PostgreSQL,PostgreSQL,기능이 풍부하고 표준 준수도가 높은 오픈소스 관계형 데이터베이스.,ai,DB 종류,2,False,서버-rdb,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0026,NoSQL,비관계형,표가 아닌 유연한 구조(문서·키값 등)로 저장. 대량·비정형 데이터에 강함.,ai,DB 종류,2,False,비관계형,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0027,Redis,레디스,메모리에 저장해 매우 빠른 인메모리 DB. 주로 캐시·세션에 사용.,ai,DB 종류,2,False,레디스,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0028,SQLite,에스큐라이트,파일 하나로 동작하는 가벼운 관계형 DB. 모바일 앱의 기본 로컬 저장소.,ai,DB 종류,2,False,에스큐라이트,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0029,Supabase,수파베이스,Firebase 대안. PostgreSQL(SQL) 기반 오픈소스 백엔드.,ai,DB 종류,2,False,수파베이스,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0030,관계형 DB,RDB / SQL,데이터를 표(테이블) 형태로 저장하고 SQL로 다루는 방식. 가장 전통적이고 안정적.,ai,DB 종류,2,False,rdb-sql,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0031,ADB,안드로이드 디버그 브리지,PC와 안드로이드 기기를 명령어로 연결해 설치·로그 확인 등을 하는 도구.,ai,개발 도구,2,False,안드로이드-디버그-브리지,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0032,Android Studio,안드로이드 스튜디오,안드로이드 앱 개발 공식 IDE(구글 제공). 코드·디자인·에뮬레이터가 한 곳에.,ai,개발 도구,2,False,안드로이드-스튜디오,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0033,Gradle,그레이들,안드로이드 프로젝트의 빌드·의존성 관리 도구. 앱을 조립하는 공장 라인.,ai,개발 도구,2,False,그레이들,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0034,SDK,소프트웨어 개발 키트,특정 플랫폼용 앱을 만드는 데 필요한 도구·라이브러리 묶음.,ai,개발 도구,2,False,소프트웨어-개발-키트,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0035,Xcode,엑스코드,애플(iOS·맥) 앱 개발 공식 IDE. macOS에서만 동작합니다.,ai,개발 도구,2,False,엑스코드,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0036,실기기 테스트,real device,실제 폰에 앱을 설치해 확인하는 것. 에뮬레이터로 못 잡는 문제를 잡음.,ai,개발 도구,2,False,real-device,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0037,에뮬레이터,emulator,다른 기기의 하드웨어와 운영체제 동작을 소프트웨어로 흉내 내는 테스트 환경.,ai,개발 도구,2,False,emulator,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0038,Dart,다트,Flutter 앱을 만드는 언어. 구글이 만들었고 배우기 쉬운 편.,ai,개발 언어,2,False,다트,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0039,Java,자바,안드로이드의 전통 언어. 오래된 코드·자료가 많아 여전히 널리 쓰입니다.,ai,개발 언어,2,False,자바,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0040,Kotlin,코틀린,안드로이드 공식 권장 언어. 간결하고 안전해 요즘 네이티브 안드로이드 개발의 표준.,ai,개발 언어,2,False,코틀린,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0041,Objective-C,오브젝티브C,Swift 이전의 애플 전통 언어. 옛 iOS 프로젝트에서 만납니다.,ai,개발 언어,2,False,오브젝티브c,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0042,Python,파이썬,배우기 쉬운 범용 언어. 백엔드·AI·자동화에 강함(모바일 UI엔 잘 안 씀).,ai,개발 언어,2,False,파이썬,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0043,SQL,에스큐엘,데이터베이스에 데이터를 넣고 꺼내는 질의 언어.,ai,개발 언어,2,False,에스큐엘,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0044,Swift,스위프트,애플(iOS·맥) 공식 언어. 현대적이고 안전한 문법.,ai,개발 언어,2,False,스위프트,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0045,TypeScript,타입스크립트,자바스크립트에 타입(자료형)을 더한 언어. 오류를 미리 잡아줘 큰 앱에 유리.,ai,개발 언어,2,False,타입스크립트,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0046,DevOps 엔지니어,DevOps,배포·서버 운영·자동화를 담당하는 개발자. 앱이 안정적으로 돌게 관리.,ai,개발 직무,2,False,devops,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0047,QA 엔지니어,QA/Test,출시 전 앱을 테스트해 버그를 찾는 품질 담당자.,ai,개발 직무,2,False,qa-test,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0048,제품 관리자,Product Manager,사용자 문제와 사업 목표를 정리하고 무엇을 어떤 순서로 만들지 결정하는 역할.,ai,개발 직무,2,False,pm-designer,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0049,데이터 엔지니어,Data,데이터를 모으고 가공·저장하는 파이프라인을 만드는 개발자.,ai,개발 직무,2,False,data,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0050,모바일 엔지니어,Mobile/App,안드로이드·iOS 앱을 전문으로 만드는 개발자.,ai,개발 직무,2,False,mobile-app,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0051,백엔드 엔지니어,Backend,화면 뒤에서 데이터·로직·서버를 다루는 개발자. DB·API·인증 담당.,ai,개발 직무,2,False,backend-2,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0052,풀스택 엔지니어,Full-stack,프론트·백엔드를 모두 다루는 개발자. 혼자 앱 전체를 만들 수 있음.,ai,개발 직무,2,False,full-stack,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0053,프론트엔드 엔지니어,Frontend,사용자가 보고 만지는 화면(UI)을 만드는 개발자. 버튼·레이아웃·상호작용 담당.,ai,개발 직무,2,False,frontend-2,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0054,.gitignore,깃이그노어,버전 관리에서 제외할 파일 목록. 비밀 키·임시 파일 등을 뺍니다.,ai,깃·버전관리,2,False,깃이그노어,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0055,Git,깃,코드의 변경 이력을 저장·관리하는 도구. 개발의 '무한 되돌리기(Ctrl+Z)'.,ai,깃·버전관리,2,False,깃,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0056,GitHub,깃허브,Git 저장소를 온라인에 두고 협업·백업하는 서비스.,ai,깃·버전관리,2,False,깃허브,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0057,머지,merge,브랜치의 변경 내용을 합치는 것.,ai,깃·버전관리,2,False,merge,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0058,브랜치,branch,본 코드를 건드리지 않고 실험하는 갈래. 망쳐도 본체는 안전합니다.,ai,깃·버전관리,2,False,branch,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0059,저장소,repository/repo,프로젝트 파일과 그 이력을 담는 공간.,ai,깃·버전관리,2,False,repository-repo,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0060,커밋,commit,현재 상태를 하나의 기록점으로 저장하는 것. '여기까지 저장!' 스냅샷.,ai,깃·버전관리,2,False,commit,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0061,클론,clone,원격 저장소를 내 컴퓨터로 통째로 복제하는 것.,ai,깃·버전관리,2,False,clone,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0062,푸시,push,로컬 저장소의 커밋을 원격 저장소로 올리는 Git 작업.,ai,깃·버전관리,2,False,push-pull,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0063,풀 리퀘스트,PR,내 변경을 본 코드에 반영해달라고 요청하는 것. 리뷰의 출발점.,ai,깃·버전관리,2,False,pr,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0064,CRUD,크루드,데이터의 기본 4동작: 생성(Create)·조회(Read)·수정(Update)·삭제(Delete).,ai,데이터 기본,2,False,크루드,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0065,JSON,제이슨,데이터를 이름-값으로 표현하는 가벼운 형식. 앱과 서버가 데이터를 주고받는 공용어.,ai,데이터 기본,2,False,제이슨,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0066,데이터베이스,DB,데이터를 체계적으로 저장·관리하는 창고.,ai,데이터 기본,2,False,db,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0067,로컬 저장,local storage,서버 없이 기기 안에 데이터를 저장하는 방식. 첫 앱에 적합.,ai,데이터 기본,2,False,local-storage,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0068,마이그레이션,migration,데이터 구조를 바꾸거나 옮기는 작업.,ai,데이터 기본,2,False,migration,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0069,백업,backup,데이터 손실에 대비해 복사본을 따로 저장해두는 것.,ai,데이터 기본,2,False,backup,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0070,스키마,schema,데이터가 어떤 구조로 저장되는지 정의한 설계도.,ai,데이터 기본,2,False,schema,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0071,캐시,cache,자주 쓰는 데이터를 임시로 저장해 빠르게 재사용하는 것.,ai,데이터 기본,2,False,cache,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0072,쿼리,query,데이터베이스에 원하는 데이터를 요청하는 명령.,ai,데이터 기본,2,False,query,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0073,키-값,key-value,'이름표(키) → 값'으로 저장하는 단순한 데이터 방식.,ai,데이터 기본,2,False,key-value,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0074,JOIN,조인,여러 테이블을 연결해 함께 조회하는 것. 관계형 DB의 핵심 기능.,ai,배포·운영·SQL,2,False,조인,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0075,SELECT,SELECT,SQL에서 조건에 맞는 데이터를 조회하는 명령.,ai,배포·운영·SQL,2,False,sql-명령,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0076,WHERE,WHERE,SQL 조회·수정·삭제 대상에 조건을 적용하는 구문.,ai,배포·운영·SQL,2,False,조건-정렬,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0077,구글플레이 콘솔,Play Console,안드로이드 앱을 등록·관리·배포하는 구글의 개발자 대시보드.,ai,배포·운영·SQL,2,False,play-console,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0078,롤백,rollback,문제가 생겼을 때 이전의 정상 버전으로 되돌리는 것.,ai,배포·운영·SQL,2,False,rollback,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0079,배포,deploy,만든 앱·서비스를 사용자가 쓸 수 있게 세상에 내보내는 것.,ai,배포·운영·SQL,2,False,deploy,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0080,버그,bug,의도와 다르게 동작하는 오류. 모든 앱에 있습니다.,ai,배포·운영·SQL,2,False,bug,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0081,버전 관리,versioning,"앱의 단계(1.0, 1.1…)를 매겨 변경을 추적하는 것.",ai,배포·운영·SQL,2,False,versioning,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0082,앱스토어 등록,store submission,심사를 거쳐 스토어에 앱을 올리는 과정. 정책 준수가 필요.,ai,배포·운영·SQL,2,False,store-submission,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0083,DB 커밋,database commit,트랜잭션에서 수행한 변경을 데이터베이스에 최종 확정하는 작업.,ai,배포·운영·SQL,2,False,commit-rollback,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0084,소프트웨어 테스트,software testing,예상한 동작과 실제 동작을 비교해 결함을 찾고 품질을 확인하는 과정.,ai,배포·운영·SQL,2,False,testing,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0085,트랜잭션,transaction,여러 작업을 하나로 묶어 '전부 성공 또는 전부 취소'로 처리하는 단위.,ai,배포·운영·SQL,2,False,transaction,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0086,호스팅,hosting,앱·웹을 인터넷에 올려 항상 접속 가능하게 하는 서비스.,ai,배포·운영·SQL,2,False,hosting,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0087,ASO,앱스토어 최적화,스토어에서 앱이 잘 검색·노출되게 이름·아이콘·설명을 다듬는 것.,ai,수익화,2,False,앱스토어-최적화,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0088,구독,subscription,월·연 단위로 반복 결제받는 방식. 유지율(리텐션)이 생명.,ai,수익화,2,False,subscription,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0089,리텐션,retention,처음 사용한 사람이 일정 시간이 지난 뒤 다시 돌아오는 비율.,ai,수익화,2,False,retention,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0090,인앱결제,IAP,앱 안에서 아이템·기능을 판매해 버는 방식. 고ARPU 시장에 유리.,ai,수익화,2,False,iap,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0091,인앱광고,IAA,앱에 광고를 붙여 버는 방식. 초보·대규모 볼륨 앱의 주 수익원.,ai,수익화,2,False,iaa,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0092,AAB,안드로이드 앱 번들,현재 구글플레이 표준 제출 형식. APK를 대체하며 기기별 최적 설치를 지원.,ai,스토어 출시,2,False,안드로이드-앱-번들,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0093,개발자 계정,developer account,앱을 스토어에 등록·배포하려고 만드는 개발자용 계정. 비용과 확인 요건은 스토어 정책을 확인해야 합니다.,ai,스토어 출시,2,False,developer-account,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0094,데이터 안전 섹션,Data safety section,앱이 수집·공유·보호하는 사용자 데이터를 스토어에 공개하는 항목.,ai,스토어 출시,2,False,data-safety,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0095,앱 서명,app signing,배포 파일의 제작자와 무결성을 증명하는 디지털 서명 절차.,ai,스토어 출시,2,False,signing-keystore,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0096,클로즈드 테스트,closed testing,초대한 테스터만 참여하는 비공개 배포 단계. 일부 신규 Google Play 개인 계정에는 12명·14일 요건이 적용됩니다.,ai,스토어 출시,2,False,closed-testing,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0097,타겟 API 레벨,target API,앱이 대상으로 선언한 안드로이드 API 수준. Google Play 제출 기준은 매년 바뀌므로 공식 요구사항을 확인해야 합니다.,ai,스토어 출시,2,False,target-api,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0098,ACID,에이시드,믿을 수 있는 트랜잭션의 4원칙(원자성·일관성·고립성·지속성).,ai,앱 아키텍처,2,False,에이시드,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0099,N+1 문제,N+1 problem,쿼리를 비효율적으로 여러 번 날려 느려지는 흔한 실수(심화).,ai,앱 아키텍처,2,False,n-1-problem,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0100,ORM,객체-관계 매핑,코드의 객체와 DB 테이블을 자동으로 연결해주는 도구. SQL을 덜 쓰게 해줌.,ai,앱 아키텍처,2,False,객체-관계-매핑,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0101,UI,사용자 인터페이스,사용자가 마주하는 화면·버튼 등 시각 요소.,ai,앱 아키텍처,2,False,사용자-인터페이스,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0102,UX,사용자 경험,앱을 쓰며 느끼는 전반적 경험. 쉽고 편한지가 핵심.,ai,앱 아키텍처,2,False,사용자-경험,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0103,라우팅,routing,화면(페이지) 간 이동을 관리하는 것.,ai,앱 아키텍처,2,False,routing,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0104,라이브러리 vs 프레임워크,라이브러리 vs 프레임워크,"라이브러리는 '내가 필요할 때 부르는 도구', 프레임워크는 '나를 부르는 큰 틀'.",ai,앱 아키텍처,2,False,라이브러리-vs-프레임워크,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0105,렌더링,rendering,코드·데이터를 실제 화면으로 그려내는 과정.,ai,앱 아키텍처,2,False,rendering,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0106,문서,document,문서형 데이터베이스에서 한 개의 객체 데이터를 저장하는 단위.,ai,앱 아키텍처,2,False,document-collection,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0107,반응형,responsive,화면 크기(폰·태블릿·PC)에 맞춰 레이아웃이 자동 조정되는 것.,ai,앱 아키텍처,2,False,responsive,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0108,백엔드,backend,화면 뒤에서 데이터·로직을 처리하는 부분. 보이지 않는 엔진.,ai,앱 아키텍처,2,False,backend,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0109,상태,state,"앱이 지금 기억하는 값. 예: 로그인 여부, 입력 중인 글자.",ai,앱 아키텍처,2,False,state,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0110,서버,server,요청을 받아 데이터·응답을 주는 쪽. 항상 켜져 있는 컴퓨터.,ai,앱 아키텍처,2,False,server,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0111,이벤트,event,사용자 행동(클릭·입력 등)이나 시스템 신호. 이에 반응해 코드가 실행됩니다.,ai,앱 아키텍처,2,False,event,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0112,커넥션 풀,connection pool,데이터베이스 연결을 미리 만들고 재사용해 연결 비용을 줄이는 구조.,ai,앱 아키텍처,2,False,connection,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0113,컴포넌트,component,재사용 가능한 화면 조각. 버튼·카드 하나하나가 컴포넌트.,ai,앱 아키텍처,2,False,component,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0114,클라이언트,client,서비스를 요청하는 쪽. 보통 사용자의 앱·브라우저.,ai,앱 아키텍처,2,False,client,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0115,프레임워크,framework,앱의 뼈대를 잡아주는 큰 틀. 정해진 규칙 위에서 개발합니다.,ai,앱 아키텍처,2,False,framework,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0116,프론트엔드,frontend,사용자가 보고 만지는 화면 부분. 버튼·색·글자 등.,ai,앱 아키텍처,2,False,frontend,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0117,Capacitor,Capacitor,웹 기술로 만든 앱이 카메라 같은 네이티브 기능을 사용하도록 연결하는 런타임.,ai,앱 프레임워크,2,False,카파시터,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0118,Ionic,아이오닉,웹 기술(HTML·CSS·JS)로 하이브리드 앱을 만드는 프레임워크.,ai,앱 프레임워크,2,False,아이오닉,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0119,Jetpack Compose,컴포즈,Kotlin으로 안드로이드 화면(UI)을 선언형으로 만드는 최신 방식.,ai,앱 프레임워크,2,False,컴포즈,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0120,PWA,프로그레시브 웹앱,웹앱인데 설치·오프라인·알림까지 되는 방식. 스토어 없이 앱처럼 쓸 수 있음.,ai,앱 프레임워크,2,False,프로그레시브-웹앱,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0121,React Native,리액트 네이티브,자바스크립트/React로 네이티브 앱을 만드는 메타의 크로스플랫폼 프레임워크.,ai,앱 프레임워크,2,False,리액트-네이티브,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0122,SwiftUI,스위프트UI,Swift로 애플 앱 화면을 선언형으로 만드는 최신 방식.,ai,앱 프레임워크,2,False,스위프트ui,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0123,웹앱,web app,브라우저에서 도는 앱. 설치 없이 URL로 접속. 배포가 가장 쉬움.,ai,앱 프레임워크,2,False,web-app,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0124,하이브리드 앱,hybrid,웹 기술로 만들어 앱 껍데기에 담은 것. 한 코드로 양 OS 커버.,ai,앱 프레임워크,2,False,hybrid,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0125,API,에이피아이,프로그램끼리 데이터를 주고받는 창구. 예: 날씨 API로 날씨 데이터 받기.,ai,웹·언어·API,2,False,에이피아이,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0126,CSS,씨에스에스,화면의 겉모습(색·크기·배치)을 꾸미는 언어.,ai,웹·언어·API,2,False,씨에스에스,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0127,Flutter,플러터,한 코드로 iOS·안드로이드 앱을 만드는 구글의 크로스플랫폼 도구.,ai,웹·언어·API,2,False,플러터,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0128,HTML,에이치티엠엘,웹 페이지의 뼈대(구조)를 만드는 언어. 제목·문단·버튼 배치.,ai,웹·언어·API,2,False,에이치티엠엘,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0129,HTTP 요청·응답,request/response,클라이언트가 요청하면 서버가 응답하는 웹 통신의 기본 흐름.,ai,웹·언어·API,2,False,request-response,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0130,JavaScript,자바스크립트,웹에 동작·상호작용을 넣는 언어. 클릭 반응 등.,ai,웹·언어·API,2,False,자바스크립트,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0131,REST,REST,자원을 URL로 표현하고 HTTP 메서드로 다루는 API 설계 방식.,ai,웹·언어·API,2,False,restful,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0132,React,React,컴포넌트와 상태를 이용해 웹 사용자 인터페이스를 만드는 라이브러리.,ai,웹·언어·API,2,False,리액트,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0133,WebView,웹뷰,앱 안에 웹 페이지를 띄우는 창. 웹앱을 앱처럼 포장할 때 씀.,ai,웹·언어·API,2,False,웹뷰,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0134,네이티브 앱,native,"iOS·안드로이드 각각의 언어로 만든 앱. 성능 최상, 개발 비용 큼.",ai,웹·언어·API,2,False,native,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0135,APK,Android Package Kit,안드로이드 기기에 직접 설치할 수 있는 앱 패키지 파일 형식.,ai,웹·언어·API,2,False,build,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0136,크로스플랫폼,cross-platform,한 번 짜서 iOS·안드로이드 둘 다 내는 방식. Flutter·React Native 등.,ai,웹·언어·API,2,False,cross-platform,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0137,BaaS,백엔드 서비스형,백엔드(서버·DB)를 직접 만들지 않고 빌려 쓰는 방식. Firebase가 대표적.,ai,파이어베이스·구글,2,False,백엔드-서비스형,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0138,Cloud Messaging (FCM),푸시 알림,사용자에게 푸시 알림을 보내는 Firebase 기능.,ai,파이어베이스·구글,2,False,푸시-알림,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0139,Firebase,파이어베이스,구글의 앱 개발 올인원 백엔드 플랫폼. 서버를 직접 안 짜도 로그인·DB·알림 등을 붙일 수 있음.,ai,파이어베이스·구글,2,False,파이어베이스,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0140,Firebase Analytics,분석,사용자 행동·이벤트를 무료로 측정하는 분석 도구. 리텐션·전환 파악에 필수.,ai,파이어베이스·구글,2,False,분석,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0141,Firebase Authentication,인증,이메일·구글·카카오 등 로그인 기능을 쉽게 붙여주는 Firebase 기능.,ai,파이어베이스·구글,2,False,인증,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0142,Firebase Hosting,호스팅,웹앱·정적 사이트를 빠르게 배포·호스팅하는 Firebase 기능.,ai,파이어베이스·구글,2,False,호스팅,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0143,Cloud Firestore,Cloud Firestore,문서와 컬렉션 구조를 사용하며 실시간 동기화를 지원하는 Firebase 데이터베이스.,ai,파이어베이스·구글,2,False,firestore,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0144,Google Cloud,구글 클라우드(GCP),구글의 대규모 클라우드 서비스. Firebase가 성장하면 그 위에서 확장.,ai,파이어베이스·구글,2,False,구글-클라우드-gcp,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0145,Google Play Console,플레이 콘솔,안드로이드 앱을 등록·배포·관리하는 구글 개발자 대시보드. (매뉴얼 A 참고),ai,파이어베이스·구글,2,False,플레이-콘솔,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0146,구글 API,Maps·로그인 등,지도·로그인·번역 등 구글 기능을 앱에 끌어다 쓰는 창구.,ai,파이어베이스·구글,2,False,maps-로그인-등,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0147,구글 개발자 센터,Android Developers,안드로이드 개발 공식 문서·가이드·도구 허브(developer.android.com).,ai,파이어베이스·구글,2,False,android-developers,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0148,객체,object,"이름-값 쌍으로 정보를 묶은 것. 예: {이름:'준용', 나이:30}.",ai,프로그래밍 기초,2,False,object,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0149,구문 오류,syntax error,문법이 틀려 실행이 안 되는 오류. 오타·괄호 누락 등.,ai,프로그래밍 기초,2,False,syntax-error,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0150,들여쓰기,indentation,코드의 계층을 나타내는 띄어쓰기. Python 등은 문법적으로 중요.,ai,프로그래밍 기초,2,False,indentation,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0151,디버깅,debugging,버그(오류)를 찾아 고치는 과정. 개발 시간의 상당 부분을 차지합니다.,ai,프로그래밍 기초,2,False,debugging,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0152,매개변수 / 인자,parameter/argument,함수에 넘기는 입력값.,ai,프로그래밍 기초,2,False,parameter-argument,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0153,문자열,string,글자로 된 값. 따옴표로 감쌉니다. 예: \\\\,ai,프로그래밍 기초,2,False,string,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0154,반복문,loop / for,같은 일을 여러 번 반복 실행하는 문법.,ai,프로그래밍 기초,2,False,loop-for,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0155,반환값,return,함수가 일을 끝내고 돌려주는 결과.,ai,프로그래밍 기초,2,False,return,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0156,배열 / 리스트,array/list,"여러 값을 순서대로 담는 묶음. 예: [사과, 배, 감].",ai,프로그래밍 기초,2,False,array-list,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0157,변수,variable,값을 담아두는 이름표 붙은 상자. 예: name = '준용'.,ai,프로그래밍 기초,2,False,variable,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0158,불리언,boolean,참(true)/거짓(false) 두 값만 갖는 자료형. 조건 판단의 기본.,ai,프로그래밍 기초,2,False,boolean,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0159,숫자,number/int/float,수치 값. 정수(3)와 실수(3.14).,ai,프로그래밍 기초,2,False,number-int-float,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0160,연산자,operator,"계산·비교 기호. + - * /, ==(같다) 등.",ai,프로그래밍 기초,2,False,operator,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0161,자료형,data type,값의 종류. 문자·숫자·참거짓 등.,ai,프로그래밍 기초,2,False,data-type,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0162,조건문,if / else,'만약 ~라면' 상황에 따라 다르게 실행하는 문법.,ai,프로그래밍 기초,2,False,if-else,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0163,주석,comment,실행되지 않는 설명 메모. 코드 이해를 돕습니다.,ai,프로그래밍 기초,2,False,comment,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0164,콘솔 로그,console.log,값을 화면에 찍어보며 확인하는 방법. 초보의 필수 디버깅 도구.,ai,프로그래밍 기초,2,False,console-log,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0165,함수,function,특정 일을 하는 코드 묶음. 입력을 받아 결과를 돌려줍니다. 재사용의 핵심.,ai,프로그래밍 기초,2,False,function,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0166,CLI,명령줄 인터페이스,버튼 대신 명령어를 입력해 프로그램을 다루는 방식.,ai,환경·터미널,2,False,명령줄-인터페이스,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0167,IDE,통합개발환경,코드 작성·실행·디버깅을 한 곳에서 하는 프로그램. 개발자의 작업실이라고 보면 됩니다.,ai,환경·터미널,2,False,통합개발환경,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0168,Node.js,노드,자바스크립트를 컴퓨터에서 실행하게 해주는 환경. 많은 개발 도구의 기반입니다.,ai,환경·터미널,2,False,노드,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0169,npm,패키지 매니저,필요한 코드 묶음(패키지)을 설치·관리하는 도구. 앱스토어의 개발자 버전 느낌.,ai,환경·터미널,2,False,패키지-매니저,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0170,경로,path/directory,파일이 컴퓨터 어디에 있는지 나타내는 주소. 폴더의 계층 구조.,ai,환경·터미널,2,False,path-directory,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0171,명령어,command,"터미널에 입력하는 지시문. 예: 폴더 이동(cd), 목록 보기(ls).",ai,환경·터미널,2,False,command,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0172,셸,shell,사용자의 명령을 해석해 운영체제 기능을 실행하는 명령 환경.,ai,환경·터미널,2,False,shell-bash,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0173,코드 에디터,VS Code 등,코드를 쓰고 편집하는 도구. VS Code가 초보에게 가장 널리 쓰입니다.,ai,환경·터미널,2,False,vs-code-등,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0174,터미널,terminal/console,글자 명령으로 컴퓨터에 지시하는 검은 창. 마우스 대신 키보드로 조작합니다.,ai,환경·터미널,2,False,terminal-console,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0175,패키지 매니저,package manager,라이브러리 설치·업데이트·버전 고정을 관리하는 도구.,ai,환경·터미널,2,False,package-library,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0176,확장 프로그램,extension,에디터에 기능을 더하는 플러그인. 자동완성·색상 등.,ai,환경·터미널,2,False,extension,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0177,환경 변수,environment variable,프로그램 밖에 따로 저장하는 설정값. 비밀 키(API 키 등)를 코드에 직접 안 쓰려고 씁니다.,ai,환경·터미널,2,False,environment-variable,exansys 홈페이지 · AI/앱 용어집,True,reviewed-2026-07
+base-0178,드롭다운,Dropdown,눌러서 목록에서 고르는 것,app,UI 컴포넌트,2,False,dropdown,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0179,라디오 버튼,Radio Button,여러 개 중 하나만 고르는 동그란 선택지,app,UI 컴포넌트,2,False,radio-button,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0180,리스트 아이템,List Item / Cell,목록의 한 줄,app,UI 컴포넌트,2,False,list-item-cell,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0181,뱃지,Badge,숫자·점으로 알림 개수 표시 (예: 안 읽은 메시지 3),app,UI 컴포넌트,2,False,badge,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0182,버튼,Button,누르는 요소,app,UI 컴포넌트,2,False,button,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0183,스위치,switch,두 상태 가운데 하나를 즉시 켜거나 끄는 설정용 UI 컨트롤.,app,UI 컴포넌트,2,False,switch-toggle,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0184,스켈레톤,Skeleton,로딩 중 회색 뼈대만 먼저 보여주는 것,app,UI 컴포넌트,2,False,skeleton,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0185,스피너,Spinner / Loading Indicator,로딩 중 도는 원형 표시,app,UI 컴포넌트,2,False,spinner-loading-indicator,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0186,슬라이더,Slider,좌우로 밀어 값 조절,app,UI 컴포넌트,2,False,slider,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0187,아바타,Avatar,프로필 동그란 사진,app,UI 컴포넌트,2,False,avatar,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0188,아이콘,Icon,작은 그림 기호,app,UI 컴포넌트,2,False,icon,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0189,이미지,Image,사진·그림,app,UI 컴포넌트,2,False,image,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0190,입력창,TextField / Input,글자를 입력하는 칸,app,UI 컴포넌트,2,False,textfield-input,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0191,체크박스,Checkbox,켜고 끄는 네모 체크,app,UI 컴포넌트,2,False,checkbox,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0192,칩,Chip,태그처럼 생긴 작은 알약 모양 버튼,app,UI 컴포넌트,2,False,chip,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0193,카드,Card,정보를 담은 네모 상자 형태 UI,app,UI 컴포넌트,2,False,card,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0194,텍스트,Text / Label,글자,app,UI 컴포넌트,2,False,text-label,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0195,프로그레스 바,Progress Bar,진행률 막대,app,UI 컴포넌트,2,False,progress-bar,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0196,플로팅 버튼,"FAB, Floating Action Button",화면에 떠 있는 동그란 주요 액션 버튼,app,UI 컴포넌트,2,False,fab-floating-action-button,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0197,REST API,REST API,가장 널리 쓰는 API 방식(주소로 요청),app,개발 일반,2,False,rest-api,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0198,라이브러리,Library,남이 만든 기능을 가져다 쓰는 코드 묶음,app,개발 일반,2,False,library,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0199,엔드포인트,Endpoint,API에서 실제로 요청하는 주소 하나,app,개발 일반,2,False,endpoint,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0200,HTTP 응답,HTTP response,서버가 요청 처리 결과와 상태 코드·데이터를 클라이언트에 돌려주는 메시지.,app,개발 일반,2,False,request-response-2,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0201,의존성,Dependency,내 프로젝트가 필요로 하는 외부 코드,app,개발 일반,2,False,dependency,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0202,인가,Authorization,"""이거 해도 돼?"" 권한 확인",app,개발 일반,2,False,authorization,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0203,인증,Authentication,"""너 누구야?"" 신원 확인(로그인)",app,개발 일반,2,False,authentication,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0204,패키지,Package,설치해서 쓰는 코드 묶음 (예: pub.dev의 패키지),app,개발 일반,2,False,package,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0205,풀스택,Full-stack,프론트+백엔드 둘 다 하는 것,app,개발 일반,2,False,full-stack-2,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0206,내비게이션,Navigation,화면 간 이동,app,내비게이션,2,False,navigation,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0207,드로어,Drawer,옆에서 밀려나오는 메뉴(햄버거 메뉴),app,내비게이션,2,False,drawer,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0208,딥링크,Deep Link,앱의 특정 화면으로 바로 여는 링크,app,내비게이션,2,False,deep-link,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0209,라우트,route,특정 URL이나 화면 이름을 실제 화면 또는 처리 함수에 연결한 규칙.,app,내비게이션,2,False,route-routing,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0210,바텀 내비게이션,Bottom Navigation,화면 아래 홈·검색·설정 아이콘 메뉴,app,내비게이션,2,False,bottom-navigation,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0211,스크롤,Scroll,화면을 위아래로 밀어 보는 동작,app,내비게이션,2,False,scroll,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0212,스택,Stack / Navigation Stack,화면이 카드처럼 쌓이는 구조(뒤로가기로 한 장씩 벗김),app,내비게이션,2,False,stack-navigation-stack,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0213,앱바,app bar,화면 상단에서 제목·탐색·주요 작업을 제공하는 UI 영역.,app,내비게이션,2,False,app-bar-toolbar,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0214,인피니트 스크롤,Infinite Scroll,끝까지 내리면 자동으로 더 불러오는 것,app,내비게이션,2,False,infinite-scroll,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0215,탭바,Tab Bar,화면 상단/하단의 탭 전환 메뉴,app,내비게이션,2,False,tab-bar,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0216,풀 투 리프레시,Pull to Refresh,위로 당겨서 새로고침,app,내비게이션,2,False,pull-to-refresh,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0217,햄버거 메뉴,☰,줄 3개 모양의 메뉴 버튼,app,내비게이션,2,False,term,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0218,Figma,피그마,대표적인 UI 디자인 협업 도구,app,디자인·스타일,2,False,피그마,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0219,그라데이션,Gradient,색이 서서히 변하는 효과,app,디자인·스타일,2,False,gradient,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0220,그림자,Shadow / Elevation,입체감을 주는 그림자 효과,app,디자인·스타일,2,False,shadow-elevation,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0221,다크모드,Dark Mode,어두운 배경 테마,app,디자인·스타일,2,False,dark-mode,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0222,디자인 시스템,Design System,색·버튼·간격 등을 규칙으로 묶은 세트,app,디자인·스타일,2,False,design-system,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0223,마진,Margin,"요소 ""바깥쪽"" 여백",app,디자인·스타일,2,False,margin,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0224,모서리 둥글기,Border Radius,네모 모서리를 둥글게,app,디자인·스타일,2,False,border-radius,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0225,목업,Mockup,실제처럼 꾸민 디자인 시안,app,디자인·스타일,2,False,mockup,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0226,색상 팔레트,Color Palette,앱에서 쓰는 색 모음,app,디자인·스타일,2,False,color-palette,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0227,아이콘셋,Icon Set,아이콘 묶음,app,디자인·스타일,2,False,icon-set,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0228,에셋,Asset,앱에 넣는 이미지·폰트·파일 자원,app,디자인·스타일,2,False,asset,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0229,와이어프레임,Wireframe,색 없이 배치만 그린 초안 스케치,app,디자인·스타일,2,False,wireframe,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0230,정렬,Alignment,왼쪽/가운데/오른쪽 맞춤,app,디자인·스타일,2,False,alignment,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0231,타이포그래피,Typography,글꼴·글자 크기 규칙,app,디자인·스타일,2,False,typography,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0232,테마,Theme,앱 전체의 색·글꼴 통일 규칙,app,디자인·스타일,2,False,theme,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0233,패딩,Padding,"요소 ""안쪽"" 여백",app,디자인·스타일,2,False,padding,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0234,폰트,Font,글꼴,app,디자인·스타일,2,False,font,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0235,프로토타입,Prototype,눌러볼 수 있게 만든 시제품 화면,app,디자인·스타일,2,False,prototype,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0236,Android App Bundle,AAB,Google Play가 기기별 최적 APK를 생성하도록 제출하는 안드로이드 배포 형식.,app,배포·스토어,2,False,apk-aab,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0237,CI/CD,CI/CD,코드 올리면 자동으로 빌드·테스트·배포하는 자동화,app,배포·스토어,2,False,ci-cd,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0238,IPA,IPA,iOS 앱 파일 형식,app,배포·스토어,2,False,ipa,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0239,베타,Beta,정식 전 시험판,app,배포·스토어,2,False,beta,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0240,빌드 번호,build number,스토어가 각 배포본을 구분할 때 사용하는 증가형 내부 버전 값.,app,배포·스토어,2,False,build-number-version,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0241,심사,Review,스토어가 앱을 검토하는 과정,app,배포·스토어,2,False,review,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0242,Apple App Store,App Store,애플 기기용 앱을 심사·배포·판매하는 공식 앱 마켓.,app,배포·스토어,2,False,앱스토어-플레이스토어,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0243,키스토어,keystore,앱 서명에 사용하는 개인 키와 인증서를 안전하게 보관하는 파일 또는 저장소.,app,배포·스토어,2,False,signing,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0244,테스트 트랙,Test Track,정식 출시 전 일부에게 배포 (내부/비공개/공개 테스트),app,배포·스토어,2,False,test-track,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0245,푸시 알림,Push Notification,앱이 꺼져 있어도 오는 알림,app,배포·스토어,2,False,push-notification,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0246,핫픽스,Hotfix,급한 버그를 빠르게 고쳐 배포,app,배포·스토어,2,False,hotfix,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0247,리빌드,Rebuild,상태가 바뀌어 화면을 다시 그리는 것,app,상태·생명주기,2,False,rebuild,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0248,백그라운드,Background,앱이 뒤에서 돌아가는 상태,app,상태·생명주기,2,False,background,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0249,상태 관리,State Management,상태를 체계적으로 다루는 방법 (Flutter의 Provider/Riverpod/Bloc 등),app,상태·생명주기,2,False,state-management,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0250,생명주기,Lifecycle,화면이 생성→보임→사라짐 하는 단계들,app,상태·생명주기,2,False,lifecycle,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0251,포그라운드,Foreground,앱이 화면에 떠 있는 상태,app,상태·생명주기,2,False,foreground,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0252,드래그 앤 드롭,Drag & Drop,끌어다 놓기,app,애니메이션·인터랙션,2,False,drag-drop,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0253,로티,Lottie,JSON 파일로 넣는 가벼운 벡터 애니메이션,app,애니메이션·인터랙션,2,False,lottie,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0254,롱프레스,Long Press,길게 누르기,app,애니메이션·인터랙션,2,False,long-press,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0255,스와이프,Swipe,밀기,app,애니메이션·인터랙션,2,False,swipe,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0256,애니메이션,Animation,움직이는 효과,app,애니메이션·인터랙션,2,False,animation,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0257,제스처,Gesture,탭·스와이프·핀치 같은 손동작,app,애니메이션·인터랙션,2,False,gesture,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0258,탭,Tap,한 번 누르기,app,애니메이션·인터랙션,2,False,tap,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0259,트랜지션,Transition,화면·상태가 바뀔 때의 전환 효과,app,애니메이션·인터랙션,2,False,transition,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0260,핀치 줌,Pinch Zoom,두 손가락으로 확대/축소,app,애니메이션·인터랙션,2,False,pinch-zoom,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0261,햅틱,Haptic,누를 때 진동 피드백,app,애니메이션·인터랙션,2,False,haptic,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0262,PR,Pull Request,내 코드를 합쳐달라고 요청 + 리뷰,app,코드·협업,2,False,pull-request,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0263,런타임,Runtime,앱이 실제로 실행되는 동안,app,코드·협업,2,False,runtime,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0264,리포지토리,Repository / Repo,코드를 저장·관리하는 저장소,app,코드·협업,2,False,repository-repo-2,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0265,린트,Lint,코드 스타일·실수를 자동 점검,app,코드·협업,2,False,lint,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0266,빌드,Build,앱을 실행/설치 가능한 파일로 만드는 과정,app,코드·협업,2,False,build-2,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0267,이슈,Issue,할 일·버그를 적어 관리하는 항목,app,코드·협업,2,False,issue,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0268,컴파일,Compile,사람이 쓴 코드를 기계가 실행할 형태로 변환,app,코드·협업,2,False,compile,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0269,QA,Quality Assurance,출시 전 품질 점검,app,테스트·품질,2,False,quality-assurance,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0270,로그,Log,앱이 남기는 실행 기록,app,테스트·품질,2,False,log,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0271,예외,exception,프로그램 실행 중 예상 가능한 비정상 상황을 코드로 전달하는 객체나 신호.,app,테스트·품질,2,False,error-exception,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0272,유닛 테스트,Unit Test,작은 기능 하나를 따로 검사,app,테스트·품질,2,False,unit-test,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0273,콘솔,Console,로그·메시지를 보는 창,app,테스트·품질,2,False,console,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0274,크래시,Crash,앱이 갑자기 꺼지는 것,app,테스트·품질,2,False,crash,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0275,테스트,Test,코드가 잘 동작하는지 확인,app,테스트·품질,2,False,test,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0276,통합 테스트,Integration Test,여러 기능이 함께 잘 도는지 검사,app,테스트·품질,2,False,integration-test,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0277,모달 vs 다이얼로그,모달 vs 다이얼로그,모달=덮는 창 전반 / 다이얼로그=확인용 작은 팝업,app,헷갈리는 짝 개념,2,False,모달-vs-다이얼로그,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0278,반응형 vs 적응형,반응형 vs 적응형,반응형=크기 따라 / 적응형=플랫폼 따라,app,헷갈리는 짝 개념,2,False,반응형-vs-적응형,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0279,인증 vs 인가,인증 vs 인가,인증=누구인지 확인 / 인가=권한이 있는지 확인,app,헷갈리는 짝 개념,2,False,인증-vs-인가,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0280,컴파일 vs 빌드,컴파일 vs 빌드,컴파일=코드 변환 / 빌드=실행 파일 완성(컴파일 포함),app,헷갈리는 짝 개념,2,False,컴파일-vs-빌드,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0281,패딩 vs 마진,패딩 vs 마진,패딩=안쪽 여백 / 마진=바깥쪽 여백,app,헷갈리는 짝 개념,2,False,패딩-vs-마진,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0282,프론트 vs 백엔드,프론트 vs 백엔드,프론트=보이는 화면 / 백엔드=안 보이는 서버,app,헷갈리는 짝 개념,2,False,프론트-vs-백엔드,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0283,레이아웃,Layout,화면 안에서 요소들을 어떻게 배치할지 정한 구조(가로/세로/격자 등),app,화면 기본,2,False,layout,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0284,뷰,View,"화면에 그려지는 요소 하나하나(버튼, 글자, 이미지 등)의 통칭",app,화면 기본,2,False,view,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0285,위젯,Widget,Flutter/안드로이드에서 화면 구성 요소를 부르는 이름. 버튼·텍스트·이미지 모두 위젯,app,화면 기본,2,False,widget,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0286,적응형,Adaptive,플랫폼(iOS/안드로이드)에 맞게 디자인을 다르게 보여주는 것,app,화면 기본,2,False,adaptive,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0287,화면,Screen,"앱에서 사용자가 보는 한 페이지. ""로그인 화면"", ""홈 화면""처럼 씀",app,화면 기본,2,False,screen,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0288,다이얼로그,Dialog,"""삭제할까요?"" 같은 확인용 작은 팝업 창",app,화면 종류,2,False,dialog,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0289,회원가입,sign up,새 사용자 계정과 필요한 기본 정보를 생성하는 절차.,app,화면 종류,2,False,sign-in-sign-up,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0290,모달,Modal,기존 화면 위에 덮여서 뜨는 작은 창,app,화면 종류,2,False,modal,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0291,목록 화면,List,항목들이 나열된 화면,app,화면 종류,2,False,list,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0292,바텀시트,Bottom Sheet,화면 아래에서 위로 올라오는 시트 형태 창,app,화면 종류,2,False,bottom-sheet,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0293,상세 화면,Detail,목록에서 항목 하나를 눌렀을 때 나오는 자세한 화면,app,화면 종류,2,False,detail,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0294,설정,Settings,앱 옵션을 바꾸는 화면,app,화면 종류,2,False,settings,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0295,스낵바,Snackbar,화면 하단에 잠깐 뜨는 알림(취소 버튼 등 포함 가능),app,화면 종류,2,False,snackbar,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0296,스플래시,Splash Screen,앱 켤 때 잠깐 뜨는 로고 화면,app,화면 종류,2,False,splash-screen,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0297,에러 화면,Error / Empty State,데이터가 없거나 오류일 때 보여주는 화면,app,화면 종류,2,False,error-empty-state,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0298,온보딩,Onboarding,처음 쓰는 사용자에게 사용법을 안내하는 초기 화면들,app,화면 종류,2,False,onboarding,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0299,토스트,Toast,잠깐 떴다 사라지는 짧은 알림 메시지,app,화면 종류,2,False,toast,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0300,프로필,Profile,사용자 정보 화면,app,화면 종류,2,False,profile,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0301,피드,Feed,게시물이 세로로 쭉 나열되는 화면 (SNS 스타일),app,화면 종류,2,False,feed,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0302,홈,Home,앱의 메인 화면,app,화면 종류,2,False,home,exansys 홈페이지 · 앱 개발 용어집(초보자용),True,reviewed-2026-07
+base-0303,AX(에이전트 경험),AX,환경이 에이전트가 잘 일하도록 갖춰진 정도 — 점검·아키텍처·여유 컨텍스트.,vibe,개발/에이전트 경험,3,False,ax,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0304,DX(개발자 경험),DX,코드베이스와 도구가 사람이 잘 일하게 해주는 정도 — 문서·피드백 속도·오류 메시지.,vibe,개발/에이전트 경험,2,False,dx,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0305,권한 모드,Permission mode,에이전트 모드 중 권한 부분 — 어떤 도구 호출이 승인 요청을 띄우고 어떤 건 자동 실행되는지.,vibe,권한·안전,2,False,permission-mode,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0306,권한 요청,Permission request,사전 승인되지 않은 도구 호출 전에 하네스가 사용자에게 보이는 확인. 사람을 개입시키는 장치.,vibe,권한·안전,2,False,permission-request,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0307,샌드박스,Sandbox,에이전트가 갇혀 도는 격리 환경(컨테이너·VM·제한 셸). 행동의 피해 범위를 제한한다.,vibe,권한·안전,2,True,sandbox,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0308,에이전트 모드,Agent mode,권한 모드와 시스템 프롬프트에 넣는 행동 지침을 묶은 프리셋. 세션 중 전환할 수 있다.,vibe,권한·안전,2,True,agent-mode,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0309,입력 토큰,Input tokens,매 요청에서 하네스가 보내는 토큰. 출력 토큰보다 싸게 과금된다.,vibe,비용·토큰경제,2,True,input-tokens,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0310,추론량(노력),Effort,답하기 전 모델이 얼마나 생각할지 조절하는 다이얼. 더 쓰면 출력 토큰을 더 써서 어려운 문제에 유리.,vibe,비용·토큰경제,2,True,effort,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0311,출력 토큰,Output tokens,모델이 생성해 돌려주는 토큰. 연산이 더 들어 입력보다 비싸게 과금된다.,vibe,비용·토큰경제,2,True,output-tokens,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0312,캐시 토큰,Cache tokens,이전 요청에서 제공자가 캐시해둔 입력 토큰. 훨씬 낮은 요율로 과금된다.,vibe,비용·토큰경제,3,False,cache-tokens,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0313,프리픽스 캐시,Prefix cache,공유하는 앞부분을 다시 처리하지 않게 해주는 제공자 측 저장소. 그 토큰을 싸게 과금한다.,vibe,비용·토큰경제,3,False,prefix-cache,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0314,무상태,Stateless,"정보를 이어가지 않음. 모델은 요청 간 무상태, 에이전트는 기본적으로 세션 간 무상태.",vibe,세션·핸드오프,2,False,stateless,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0315,상태 유지,Stateful,정보를 앞으로 이어감. 세션은 턴 사이에 상태를 유지한다.,vibe,세션·핸드오프,2,False,stateful,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0316,세션,Session,에이전트와의 한 번의 작업 구간. 비어서 시작해 쌓이다가 초기화·종료·압축으로 끝난다.,vibe,세션·핸드오프,1,True,session,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0317,스펙,Spec,여러 세션짜리 작업을 설명한 핸드오프 문서. '무엇을' 만드는지를 담고 티켓들로 구성된다.,vibe,세션·핸드오프,3,False,spec,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0318,턴,Turn,사용자 메시지 하나와 그에 대한 에이전트 응답 전부. 안에 여러 번의 요청이 있을 수 있다.,vibe,세션·핸드오프,2,False,turn,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0319,티켓,Ticket,한 세션 분량의 작업을 정한 핸드오프 문서. 스펙에 붙거나 홀로 서며 서로 막을 수 있다.,vibe,세션·핸드오프,3,False,ticket,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0320,핸드오프,Handoff,한 세션의 컨텍스트를 다른 세션으로 넘기는 것. 돌아올 길은 없다.,vibe,세션·핸드오프,3,False,handoff,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0321,핸드오프 문서,Handoff artifact,"한 세션이 써서 다른 세션이 읽게 하는, 인수인계용 문서.",vibe,세션·핸드오프,3,False,handoff-artifact,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0322,AFK(자리 비움),AFK,세션을 시작해두고 자리를 떠 에이전트를 무인으로 돌리는 방식. 여러 개를 병렬로 돌리는 처리량의 비결.,vibe,작업 방식,2,True,afk,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0323,그릴링(캐묻기),Grilling,디자인 컨셉을 잡는 기법. 에이전트가 한 번에 하나씩 소크라테스식으로 사용자를 인터뷰한다.,vibe,작업 방식,3,False,grilling,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0324,디자인 컨셉,Design concept,"무엇을 만들지에 대한, 사용자와 에이전트가 공유하는 이해. 산출물과는 별개다.",vibe,작업 방식,3,False,design-concept,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0325,바이브코딩,Vibe coding,에이전트의 코드를 사람 검토 없이 받아들이는 방식. diff를 불투명하게 취급한다.,vibe,작업 방식,1,True,vibe-coding,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0326,사람 개입(HITL),Human-in-the-loop,세션 중 사람이 실시간으로 검토·수정·협업하며 에이전트와 짝을 이루는 방식.,vibe,작업 방식,2,False,human-in-the-loop,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0327,사람 검토,Human review,"에이전트가 만든 코드를 사람이 직접 읽고 판단하는 것. diff를 읽어야 인정, 요약만 읽으면 아니다.",vibe,작업 방식,2,True,human-review,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0328,자동 리뷰,Automated review,다른 모델·프롬프트의 에이전트가 에이전트 결과를 검토하는 것. 판단이 들어가 비결정적이다.,vibe,작업 방식,3,False,automated-review,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0329,자동 점검,Automated check,환경에서 돌아가는 결정론적 검증 — 테스트·타입체크·린트·빌드. 합불만 있고 판단은 없다.,vibe,작업 방식,2,False,automated-check,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0330,프로토타이핑,Prototyping,"말로는 부족할 때 에이전트에게 거칠고 빠른 버전을 만들게 해, 이야기할 실물을 얻는 것.",vibe,작업 방식,2,False,prototyping,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0331,1차 자료,Primary source,코드·원본 데이터 그 자체. 완전하고 권위 있지만 컨텍스트에 넣기엔 비싸다.,vibe,컨텍스트·메모리,3,False,primary-source,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0332,2차 자료,Secondary source,1차 자료를 요약·설명한 것. 싸게 넣지만 구조상 손실이 있다.,vibe,컨텍스트·메모리,3,False,secondary-source,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0333,맥락 지식,Contextual knowledge,지금 컨텍스트에서 바로 읽을 수 있는 사실. 파라미터 지식의 반대편.,vibe,컨텍스트·메모리,3,False,contextual-knowledge,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0334,메모리 시스템,Memory system,세션이 끝나도 정보를 환경에 저장·재로딩해 에이전트를 이어지게 하려는 장치.,vibe,컨텍스트·메모리,3,False,memory-system,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0335,컨텍스트 포화,context saturation,대화와 자료가 지나치게 누적되어 중요한 지시를 놓치거나 응답 품질이 흔들리는 상태.,vibe,컨텍스트·메모리,3,False,smart-zone,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0336,자동 컴팩션,Autocompact,컨텍스트가 거의 찼을 때 하네스가 자동으로 실행하는 압축.,vibe,컨텍스트·메모리,3,False,autocompact,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0337,점진적 공개,Progressive disclosure,"지금 필요한 컨텍스트만 넣고 나머지는 포인터로 남겨, 필요할 때 불러오는 방식.",vibe,컨텍스트·메모리,4,False,progressive-disclosure,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0338,주의 관계,Attention relationship,두 토큰 사이의 짝. 관련 있는 짝이 서로 더 강하게 영향을 준다. N개 토큰이면 약 N²개.,vibe,컨텍스트·메모리,4,False,attention-relationship,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0339,주의력 예산,Attention budget,토큰 하나가 나머지에 미칠 수 있는 영향력의 총량. 토큰당 정해져 있어 컨텍스트가 커져도 늘지 않는다.,vibe,컨텍스트·메모리,3,False,attention-budget,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0340,주의력 저하,Attention degradation,세션이 길어질수록 각 토큰의 주의력이 더 많은 경쟁자에 분산돼 의미 있는 연결의 신호가 약해진다.,vibe,컨텍스트·메모리,3,False,attention-degradation,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0341,지식 컷오프,Knowledge cutoff,그 이후의 지식은 모델이 학습하지 못한 기준 날짜. 이후의 라이브러리·API는 지어낼 위험이 있다.,vibe,컨텍스트·메모리,2,False,knowledge-cutoff,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0342,컨텍스트 윈도우,Context window,"모델이 한 요청에서 보는 전부. 유한하고 모델마다 다르며, 모델이 세상을 인식하는 유일한 창.",vibe,컨텍스트·메모리,2,True,context-window,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0343,컨텍스트 포인터,Context pointer,한 문서가 다른 문서를 가리키는 언급. 필요할 때만 그 내용을 컨텍스트로 불러오게 한다.,vibe,컨텍스트·메모리,3,False,context-pointer,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0344,컴팩션(압축),Compaction,이전 대화를 요약해 새 세션의 출발점으로 삼는 것. 여유는 늘지만 세부는 손실된다.,vibe,컨텍스트·메모리,3,True,compaction,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0345,클리어링(초기화),Clearing,현재 세션을 끝내고 빈 컨텍스트로 새로 시작하는 것.,vibe,컨텍스트·메모리,2,False,clearing,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0346,파라미터 지식,Parametric knowledge,학습으로 파라미터에 저장된 지식. 학습 시점에 고정된다. 맥락 지식의 반대편.,vibe,컨텍스트·메모리,3,False,parametric-knowledge,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0347,아첨(굽신),Sycophancy,자신 있게 동조하는 출력. 사람이 좋아한 답(동의 포함)을 선호하도록 학습된 탓이다.,vibe,품질·리스크,2,False,sycophancy,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0348,AGENTS.md,AGENTS.md,세션 시작 때 하네스가 컨텍스트에 넣는 프로젝트 상시 안내 파일.,vibe,하네스·도구,2,False,agents-md,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0349,도구,Tool,에이전트가 호출하도록 하네스가 노출한 기능(읽기·쓰기·실행·검색). 환경을 인식·조작하는 수단.,vibe,하네스·도구,1,True,tool,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0350,도구 결과,Tool result,도구 실행 후 하네스가 돌려주는 것(파일 내용·출력·오류). 에이전트가 환경을 보는 유일한 창.,vibe,하네스·도구,2,False,tool-result,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0351,도구 호출,Tool call,"모델이 도구 이름과 인자를 출력한 것. 사실은 구조화된 텍스트일 뿐, 하네스가 읽어 실행한다.",vibe,하네스·도구,2,False,tool-call,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0352,모델 요청,Model provider request,하네스와 제공자 간 한 번의 왕복. 컨텍스트를 보내면 응답 하나가 온다.,vibe,하네스·도구,2,False,model-provider-request,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0353,모델 제공자,Model provider,"추론용 모델을 서빙하는 곳. 보통 원격(Anthropic·OpenAI·Google), 로컬(Ollama)도 가능.",vibe,하네스·도구,2,False,model-provider,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0354,서브에이전트,Subagent,"다른 에이전트가 도구 호출로 띄운 에이전트. 자기 세션에서 돌고 결과 하나만 보고하며, 더 하위는 못 띄운다.",vibe,하네스·도구,3,False,subagent,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0355,스킬,Skill,하나의 단위로 묶은 가르칠 수 있는 능력. 포인터로 불러오기 전엔 컨텍스트 밖에 둔다.,vibe,하네스·도구,3,True,skill,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0356,시스템 프롬프트,System prompt,하네스가 매 요청 앞에 붙이는 지시문. 에이전트의 상시 지침이며 세션 내내 대체로 고정.,vibe,하네스·도구,2,True,system-prompt,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0357,파일시스템,Filesystem,에이전트가 읽고 쓰고 실행하는 파일·폴더 트리. 코딩 에이전트의 기본 환경.,vibe,하네스·도구,1,False,filesystem,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0358,하네스,Harness,모델을 에이전트로 만드는 주변 장치 전부 — 도구·시스템 프롬프트·컨텍스트 관리·권한·훅.,vibe,하네스·도구,2,True,harness,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0359,환경,Environment,에이전트가 작용하는 세계. 도구 결과로 인식하고 도구 호출로 바꾸는 하네스 바깥 전부.,vibe,하네스·도구,2,False,environment,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0360,AI,AI,컴퓨터가 새롭게 잘하게 된 일을 가리키는 움직이는 이름표. 지금은 대규모 언어모델(LLM)을 뜻한다.,vibe,핵심 개념,1,True,ai,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0361,다음 토큰 예측,Next-token prediction,모델이 실제로 하는 일. 컨텍스트에서 다음 토큰 하나를 뽑아 붙이고 이를 반복한다.,vibe,핵심 개념,2,False,next-token-prediction,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0362,모델,Model,학습으로 정해진 수많은 숫자(파라미터) 덩어리. 다음 토큰 예측만 하며 혼자서는 아무것도 못 한다.,vibe,핵심 개념,1,True,model,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0363,비결정성,Non-determinism,같은 입력이라도 매번 다른 출력이 나올 수 있는 성질.,vibe,핵심 개념,3,False,non-determinism,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0364,에이전트,Agent,모델에 도구·시스템 프롬프트·컨텍스트를 붙여 사용자와 주고받으며 일하게 만든 것. '움직이는 모델'.,vibe,핵심 개념,1,True,agent-2,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0365,추론,Inference,학습된 모델을 실제로 돌려 출력을 만드는 것. 요청마다 일어나며 파라미터는 고정된다.,vibe,핵심 개념,2,False,inference,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0366,파라미터(가중치),Parameters,학습으로 조정된 모델 내부의 수십억 개 숫자. 모델이 아는 모든 것이 여기에 담긴다.,vibe,핵심 개념,2,False,parameters,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+base-0367,학습(훈련),Training,방대한 텍스트로 다음 토큰 예측을 잘하도록 파라미터를 조정하는 과정.,vibe,핵심 개념,2,False,training,dictionary-of-ai-coding (mattpocock) · 한글 재작성,True,reviewed-2026-07
+new-0001,대규모 언어 모델,Large Language Model,많은 텍스트를 학습해 문장을 이해하고 생성하는 AI 모델.,vibe-v2,생성형 AI·모델,1,True,large-language-model,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0002,생성형 AI,generative AI,글·이미지·음성·코드처럼 새로운 결과물을 만들어내는 AI.,vibe-v2,생성형 AI·모델,1,True,generative-ai,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0003,멀티모달,multimodal,텍스트뿐 아니라 이미지·음성·영상 등 여러 입력 형식을 함께 다루는 능력.,vibe-v2,생성형 AI·모델,2,True,multimodal,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0004,임베딩,embedding,텍스트나 이미지의 의미를 비교할 수 있도록 숫자 벡터로 바꾼 표현.,vibe-v2,생성형 AI·모델,2,True,embedding,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0005,벡터,vector,"여러 숫자를 순서대로 묶은 값으로, AI에서는 의미와 특징을 표현하는 데 사용.",vibe-v2,생성형 AI·모델,2,False,vector,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0006,유사도,similarity,두 벡터나 데이터가 의미상 얼마나 가까운지 나타내는 값.,vibe-v2,생성형 AI·모델,2,False,similarity,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0007,코사인 유사도,cosine similarity,두 벡터가 가리키는 방향의 유사성을 비교하는 대표 계산법.,vibe-v2,생성형 AI·모델,3,False,cosine-similarity,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0008,어텐션,attention,입력의 여러 부분 가운데 현재 출력에 중요한 부분에 가중치를 주는 구조.,vibe-v2,생성형 AI·모델,3,False,attention,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0009,트랜스포머,Transformer,어텐션을 중심으로 문맥을 처리하는 현대 언어 모델의 대표 신경망 구조.,vibe-v2,생성형 AI·모델,3,False,transformer,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0010,추론 모델,reasoning model,복잡한 문제를 여러 단계로 분석하고 계산하는 데 특화된 AI 모델.,vibe-v2,생성형 AI·모델,2,True,reasoning-model,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0011,베이스 모델,base model,특정 업무에 맞추기 전 일반적인 데이터로 학습된 기본 모델.,vibe-v2,생성형 AI·모델,3,False,base-model,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0012,파운데이션 모델,foundation model,여러 작업에 재사용할 수 있도록 대규모 데이터로 학습한 범용 모델.,vibe-v2,생성형 AI·모델,3,False,foundation-model,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0013,모델 체크포인트,model checkpoint,학습 중 특정 시점의 모델 가중치를 저장한 파일.,vibe-v2,생성형 AI·모델,3,False,model-checkpoint,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0014,파인튜닝,fine-tuning,기존 모델을 특정 데이터와 목적에 맞게 추가 학습하는 작업.,vibe-v2,생성형 AI·모델,2,True,fine-tuning,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0015,지도 미세조정,supervised fine-tuning,입력과 모범 답변 쌍을 이용해 모델의 응답 방식을 추가 학습하는 방법.,vibe-v2,생성형 AI·모델,3,False,supervised-fine-tuning,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0016,선호도 최적화,preference optimization,여러 답변 중 사람이 선호하는 방향으로 모델 행동을 조정하는 학습 방법.,vibe-v2,생성형 AI·모델,4,False,preference-optimization,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0017,지식 증류,knowledge distillation,큰 모델의 지식과 행동을 더 작은 모델에 전달해 가볍게 만드는 기법.,vibe-v2,생성형 AI·모델,3,False,knowledge-distillation,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0018,양자화,quantization,모델 숫자의 정밀도를 낮춰 메모리 사용량과 실행 비용을 줄이는 기법.,vibe-v2,생성형 AI·모델,3,False,quantization,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0019,컨텍스트 길이,context length,모델이 한 요청에서 참고할 수 있는 토큰의 최대 범위.,vibe-v2,생성형 AI·모델,2,True,context-length,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0020,출력 한도,output limit,모델이 한 번의 응답에서 생성할 수 있는 최대 토큰 수.,vibe-v2,생성형 AI·모델,2,False,output-limit,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0021,샘플링,sampling,모델이 다음 토큰 후보의 확률을 바탕으로 실제 출력을 고르는 과정.,vibe-v2,생성형 AI·모델,3,False,sampling,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0022,온도,temperature,출력의 다양성과 무작위성을 조절하는 생성 설정.,vibe-v2,생성형 AI·모델,2,True,temperature,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0023,Top-p,top-p,누적 확률이 일정 범위가 될 때까지의 후보만 사용해 토큰을 고르는 설정.,vibe-v2,생성형 AI·모델,3,False,top-p,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0024,결정적 출력,deterministic output,같은 입력과 설정에서 가능한 한 같은 결과가 나오도록 제한한 출력 방식.,vibe-v2,생성형 AI·모델,3,False,deterministic-output,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0025,스트리밍 응답,streaming response,답변이 완성될 때까지 기다리지 않고 생성되는 조각을 즉시 전달하는 방식.,vibe-v2,생성형 AI·모델,2,True,streaming-response,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0026,첫 토큰 지연,time to first token,요청 후 첫 번째 출력 토큰이 도착하기까지 걸린 시간.,vibe-v2,생성형 AI·모델,3,False,time-to-first-token,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0027,모델 지연시간,model latency,AI 요청부터 전체 응답이 끝날 때까지 걸리는 시간.,vibe-v2,생성형 AI·모델,2,False,model-latency,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0028,모델 처리량,model throughput,일정 시간 동안 모델이 처리하거나 생성할 수 있는 토큰 양.,vibe-v2,생성형 AI·모델,3,False,model-throughput,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0029,배치 추론,batch inference,여러 요청을 묶어 한꺼번에 처리해 비용과 처리 효율을 높이는 방식.,vibe-v2,생성형 AI·모델,3,False,batch-inference,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0030,온라인 추론,online inference,사용자 요청이 들어올 때마다 즉시 모델 결과를 생성하는 방식.,vibe-v2,생성형 AI·모델,3,False,online-inference,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0031,모델 라우팅,model routing,요청 난이도·비용·속도에 따라 사용할 모델을 자동 선택하는 구조.,vibe-v2,생성형 AI·모델,3,True,model-routing,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0032,모델 폴백,model fallback,주 모델이 실패하거나 느릴 때 다른 모델로 자동 전환하는 처리.,vibe-v2,생성형 AI·모델,3,False,model-fallback,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0033,오픈 웨이트 모델,open-weight model,학습된 가중치를 공개해 직접 실행하거나 조정할 수 있는 모델.,vibe-v2,생성형 AI·모델,3,False,open-weight-model,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0034,로컬 모델,local model,클라우드 API가 아니라 사용자 기기나 자체 서버에서 실행하는 AI 모델.,vibe-v2,생성형 AI·모델,2,False,local-model,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0035,온디바이스 AI,on-device AI,데이터를 서버로 보내지 않고 휴대폰이나 PC 안에서 실행하는 AI.,vibe-v2,생성형 AI·모델,2,False,on-device-ai,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0036,비전 모델,vision model,이미지의 내용·문자·구조를 이해하거나 분석하는 AI 모델.,vibe-v2,생성형 AI·모델,2,False,vision-model,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0037,음성 인식,speech-to-text,사람의 음성을 문자 데이터로 변환하는 기술.,vibe-v2,생성형 AI·모델,2,False,speech-to-text,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0038,음성 합성,text-to-speech,문자 내용을 자연스러운 음성으로 읽어주는 기술.,vibe-v2,생성형 AI·모델,2,False,text-to-speech,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0039,이미지 생성 모델,image generation model,텍스트 지시나 참조 이미지를 바탕으로 새로운 이미지를 만드는 모델.,vibe-v2,생성형 AI·모델,2,False,image-generation-model,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0040,모델 안전성,model safety,모델이 위험하거나 부적절한 결과를 줄이도록 설계·평가하는 영역.,vibe-v2,생성형 AI·모델,3,False,model-safety,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0041,모델 정렬,model alignment,모델 행동을 사람의 의도·가치·규칙에 맞추는 과정.,vibe-v2,생성형 AI·모델,4,False,model-alignment,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0042,편향,bias,데이터나 모델 때문에 특정 집단·관점에 결과가 치우치는 현상.,vibe-v2,생성형 AI·모델,2,False,bias,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0043,데이터 오염,data contamination,평가 문제나 정답이 학습 데이터에 포함되어 성능이 과대평가되는 문제.,vibe-v2,생성형 AI·모델,4,False,data-contamination,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0044,벤치마크,benchmark,모델이나 시스템 성능을 같은 조건에서 비교하는 표준 문제와 지표.,vibe-v2,생성형 AI·모델,2,False,benchmark,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0045,평가 데이터셋,evaluation dataset,모델 품질을 측정하려고 따로 준비한 입력과 기대 결과 모음.,vibe-v2,생성형 AI·모델,2,False,evaluation-dataset,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0046,시스템 지시,system instruction,모델의 역할·규칙·우선순위를 정하는 가장 상위 수준의 지시.,vibe-v2,프롬프트·컨텍스트·RAG,2,True,system-instruction,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0047,사용자 지시,user instruction,사용자가 현재 요청에서 모델에게 수행하라고 전달한 내용.,vibe-v2,프롬프트·컨텍스트·RAG,1,True,user-instruction,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0048,개발자 지시,developer instruction,앱 제작자가 모델 행동과 출력 형식을 정하려고 제공하는 지시.,vibe-v2,프롬프트·컨텍스트·RAG,2,False,developer-instruction,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0049,프롬프트 템플릿,prompt template,반복 작업에 변수만 바꿔 재사용할 수 있게 만든 지시문 틀.,vibe-v2,프롬프트·컨텍스트·RAG,2,True,prompt-template,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0050,역할 프롬프트,role prompt,모델에게 전문가·검토자 같은 역할을 부여하는 지시 방식.,vibe-v2,프롬프트·컨텍스트·RAG,2,False,role-prompt,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0051,제약 조건,constraint,답변 길이·형식·금지 사항처럼 결과가 따라야 할 제한.,vibe-v2,프롬프트·컨텍스트·RAG,1,True,constraint,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0052,출력 형식,output format,표·JSON·코드처럼 모델이 결과를 내야 하는 구조.,vibe-v2,프롬프트·컨텍스트·RAG,1,True,output-format,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0053,예시 기반 지시,example-based instruction,원하는 결과 예시를 보여주어 모델이 형식과 품질을 따라가게 하는 방법.,vibe-v2,프롬프트·컨텍스트·RAG,2,False,example-based-instruction,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0054,부정 지시,negative instruction,하지 말아야 할 행동이나 포함하지 말아야 할 내용을 명시하는 지시.,vibe-v2,프롬프트·컨텍스트·RAG,2,False,negative-instruction,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0055,프롬프트 체이닝,prompt chaining,큰 작업을 여러 개의 작은 프롬프트 단계로 연결해 처리하는 방식.,vibe-v2,프롬프트·컨텍스트·RAG,2,True,prompt-chaining,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0056,프롬프트 버전,prompt version,프롬프트 변경 이력을 구분하기 위해 붙이는 버전 값.,vibe-v2,프롬프트·컨텍스트·RAG,2,False,prompt-version,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0057,프롬프트 회귀,prompt regression,프롬프트를 고친 뒤 이전에 잘 되던 사례의 품질이 떨어지는 현상.,vibe-v2,프롬프트·컨텍스트·RAG,3,False,prompt-regression,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0058,프롬프트 인젝션,prompt injection,외부 문서나 입력이 원래 지시를 무시하도록 모델을 속이는 공격.,vibe-v2,프롬프트·컨텍스트·RAG,2,True,prompt-injection,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0059,간접 프롬프트 인젝션,indirect prompt injection,웹페이지·이메일·파일 안에 숨긴 지시로 에이전트 행동을 바꾸려는 공격.,vibe-v2,프롬프트·컨텍스트·RAG,3,True,indirect-prompt-injection,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0060,탈옥,jailbreak,모델의 안전 규칙을 우회하도록 입력을 조작하는 시도.,vibe-v2,프롬프트·컨텍스트·RAG,2,False,jailbreak,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0061,컨텍스트 우선순위,context priority,충돌하는 여러 지시와 자료 가운데 무엇을 먼저 따라야 하는지의 순서.,vibe-v2,프롬프트·컨텍스트·RAG,3,False,context-priority,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0062,컨텍스트 오염,context poisoning,잘못되거나 악의적인 정보가 컨텍스트에 들어가 이후 판단을 흐리는 문제.,vibe-v2,프롬프트·컨텍스트·RAG,3,False,context-poisoning,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0063,컨텍스트 드리프트,context drift,대화가 길어지며 초기 목표와 규칙에서 점차 벗어나는 현상.,vibe-v2,프롬프트·컨텍스트·RAG,3,False,context-drift,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0064,컨텍스트 선택,context selection,현재 작업에 필요한 파일·문서·대화만 골라 모델에 제공하는 작업.,vibe-v2,프롬프트·컨텍스트·RAG,2,True,context-selection,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0065,컨텍스트 패킹,context packing,제한된 토큰 안에 중요한 정보를 효율적으로 정리해 넣는 과정.,vibe-v2,프롬프트·컨텍스트·RAG,3,False,context-packing,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0066,컨텍스트 요약,context summarization,긴 대화나 문서를 핵심 정보만 남겨 짧게 압축하는 작업.,vibe-v2,프롬프트·컨텍스트·RAG,2,False,context-summarization,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0067,컨텍스트 격리,context isolation,서로 다른 사용자나 작업의 정보를 섞이지 않게 분리하는 설계.,vibe-v2,프롬프트·컨텍스트·RAG,3,False,context-isolation,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0068,검색 증강 생성,retrieval-augmented generation,외부 문서를 검색해 근거로 넣은 뒤 답변을 생성하는 방식.,vibe-v2,프롬프트·컨텍스트·RAG,2,True,retrieval-augmented-generation,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0069,검색기,retriever,질문과 관련된 문서 조각을 찾아 모델에 전달하는 구성 요소.,vibe-v2,프롬프트·컨텍스트·RAG,3,False,retriever,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0070,문서 분할,chunking,긴 문서를 검색하기 좋은 작은 단위로 나누는 작업.,vibe-v2,프롬프트·컨텍스트·RAG,2,True,chunking,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0071,청크,chunk,검색과 임베딩을 위해 잘라낸 문서의 작은 단위.,vibe-v2,프롬프트·컨텍스트·RAG,2,False,chunk,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0072,청크 크기,chunk size,한 문서 조각에 포함할 문자나 토큰의 양.,vibe-v2,프롬프트·컨텍스트·RAG,3,False,chunk-size,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0073,청크 겹침,chunk overlap,문맥 단절을 줄이기 위해 이웃 청크가 일부 내용을 공유하게 하는 설정.,vibe-v2,프롬프트·컨텍스트·RAG,3,False,chunk-overlap,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0074,벡터 검색,vector search,질문과 의미가 가까운 임베딩을 찾아 관련 문서를 검색하는 방식.,vibe-v2,프롬프트·컨텍스트·RAG,2,True,vector-search,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0075,키워드 검색,keyword search,정확히 일치하거나 비슷한 단어를 기준으로 문서를 찾는 방식.,vibe-v2,프롬프트·컨텍스트·RAG,2,False,keyword-search,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0076,하이브리드 검색,hybrid search,키워드 검색과 벡터 검색 결과를 결합하는 방식.,vibe-v2,프롬프트·컨텍스트·RAG,3,False,hybrid-search,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0077,시맨틱 검색,semantic search,같은 단어가 없어도 의미가 비슷한 내용을 찾는 검색 방식.,vibe-v2,프롬프트·컨텍스트·RAG,2,False,semantic-search,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0078,리랭킹,reranking,1차 검색 결과를 더 정교한 모델로 다시 점수화해 순서를 바꾸는 과정.,vibe-v2,프롬프트·컨텍스트·RAG,3,True,reranking,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0079,메타데이터 필터,metadata filter,날짜·작성자·카테고리 같은 부가 정보로 검색 범위를 제한하는 조건.,vibe-v2,프롬프트·컨텍스트·RAG,2,False,metadata-filter,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0080,인덱싱,indexing,문서를 검색 가능한 구조나 벡터 저장소에 등록하는 과정.,vibe-v2,프롬프트·컨텍스트·RAG,2,False,indexing,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0081,지식 베이스,knowledge base,AI가 검색해 참고할 수 있도록 정리한 문서와 데이터 모음.,vibe-v2,프롬프트·컨텍스트·RAG,2,True,knowledge-base,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0082,근거화,grounding,모델 답변을 제공된 문서·도구 결과·검증 가능한 사실에 묶는 방법.,vibe-v2,프롬프트·컨텍스트·RAG,2,True,grounding,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0083,출처 인용,citation,답변의 근거가 된 문서 위치나 링크를 표시하는 것.,vibe-v2,프롬프트·컨텍스트·RAG,2,False,citation,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0084,검색 적중률,retrieval recall,필요한 관련 문서가 검색 결과에 포함된 비율.,vibe-v2,프롬프트·컨텍스트·RAG,4,False,retrieval-recall,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0085,검색 정밀도,retrieval precision,검색된 문서 가운데 실제로 관련 있는 문서의 비율.,vibe-v2,프롬프트·컨텍스트·RAG,4,False,retrieval-precision,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0086,쿼리 재작성,query rewriting,사용자 질문을 검색에 더 잘 맞는 표현으로 바꾸는 과정.,vibe-v2,프롬프트·컨텍스트·RAG,3,False,query-rewriting,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0087,다중 쿼리 검색,multi-query retrieval,한 질문을 여러 검색문으로 바꿔 결과 범위를 넓히는 방식.,vibe-v2,프롬프트·컨텍스트·RAG,3,False,multi-query-retrieval,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0088,가상 문서 임베딩,hypothetical document embedding,질문의 가상 답변을 만든 뒤 그 임베딩으로 관련 문서를 찾는 기법.,vibe-v2,프롬프트·컨텍스트·RAG,4,False,hypothetical-document-embedding,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0089,문맥 압축,contextual compression,검색된 문서에서 질문에 필요한 부분만 추려 모델에 넣는 과정.,vibe-v2,프롬프트·컨텍스트·RAG,3,False,contextual-compression,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0090,RAG 평가,RAG evaluation,검색 관련성·근거 충실도·답변 정확성을 따로 측정하는 평가.,vibe-v2,프롬프트·컨텍스트·RAG,3,False,rag-evaluation,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0091,에이전트 루프,agent loop,모델이 판단하고 도구를 호출한 뒤 결과를 다시 읽는 과정을 반복하는 구조.,vibe-v2,에이전트·바이브코딩,2,True,agent-loop,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0092,함수 호출,function calling,모델이 정해진 스키마에 맞춰 프로그램 함수를 실행하도록 요청하는 기능.,vibe-v2,에이전트·바이브코딩,2,True,function-calling,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0093,구조화 출력,structured output,모델 결과를 JSON 스키마 같은 정해진 구조에 맞게 제한하는 기능.,vibe-v2,에이전트·바이브코딩,2,True,structured-output,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0094,JSON 스키마,JSON Schema,JSON 데이터의 필드·자료형·필수 여부를 정의하는 표준 형식.,vibe-v2,에이전트·바이브코딩,3,False,json-schema,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0095,도구 스키마,tool schema,에이전트가 사용할 도구 이름·설명·입력 필드를 정의한 구조.,vibe-v2,에이전트·바이브코딩,2,False,tool-schema,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0096,도구 선택,tool selection,현재 요청을 해결하기 위해 어떤 도구를 호출할지 결정하는 과정.,vibe-v2,에이전트·바이브코딩,2,False,tool-selection,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0097,도구 권한,tool permission,도구가 읽기·쓰기·실행할 수 있는 범위를 제한하는 설정.,vibe-v2,에이전트·바이브코딩,2,True,tool-permission,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0098,승인 게이트,approval gate,파일 삭제·결제처럼 위험한 행동 전에 사람의 확인을 요구하는 단계.,vibe-v2,에이전트·바이브코딩,2,True,approval-gate,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0099,가드레일,guardrail,입력·출력·도구 사용이 규칙을 지키는지 검사하고 위험 행동을 막는 장치.,vibe-v2,에이전트·바이브코딩,2,True,guardrail,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0100,트립와이어,tripwire,위험 조건이 감지되면 에이전트 실행을 즉시 중단시키는 신호.,vibe-v2,에이전트·바이브코딩,3,False,tripwire,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0101,도구 타임아웃,tool timeout,도구 실행이 정해진 시간을 넘으면 실패로 처리하는 제한.,vibe-v2,에이전트·바이브코딩,2,False,tool-timeout,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0102,도구 재시도,tool retry,일시적인 실패가 발생했을 때 같은 도구 실행을 다시 시도하는 처리.,vibe-v2,에이전트·바이브코딩,2,False,tool-retry,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0103,지수 백오프,exponential backoff,재시도 간격을 점점 늘려 서버 부담과 연속 실패를 줄이는 방식.,vibe-v2,에이전트·바이브코딩,3,False,exponential-backoff,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0104,멱등성,idempotency,같은 요청을 여러 번 실행해도 최종 결과가 한 번 실행한 것과 같은 성질.,vibe-v2,에이전트·바이브코딩,3,False,idempotency,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0105,핸드오프 규칙,handoff rule,어떤 조건에서 현재 에이전트가 전문 에이전트에게 일을 넘길지 정한 기준.,vibe-v2,에이전트·바이브코딩,3,False,handoff-rule,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0106,에이전트 오케스트레이션,agent orchestration,여러 에이전트와 도구의 역할·순서·상태를 조정하는 구조.,vibe-v2,에이전트·바이브코딩,3,True,agent-orchestration,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0107,전문 에이전트,specialist agent,코드 리뷰·테스트처럼 특정 업무만 집중하도록 지시와 도구를 제한한 에이전트.,vibe-v2,에이전트·바이브코딩,2,False,specialist-agent,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0108,관리자 에이전트,manager agent,큰 작업을 나누고 여러 전문 에이전트 결과를 모으는 에이전트.,vibe-v2,에이전트·바이브코딩,3,False,manager-agent,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0109,에이전트 도구화,agent as tool,한 에이전트를 다른 에이전트가 호출할 수 있는 도구처럼 사용하는 방식.,vibe-v2,에이전트·바이브코딩,3,False,agent-as-tool,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0110,에이전트 추적,agent tracing,모델 호출·도구 실행·핸드오프 흐름을 시간순으로 기록해 살펴보는 기능.,vibe-v2,에이전트·바이브코딩,2,True,agent-tracing,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0111,실행 스팬,span,추적 데이터에서 하나의 모델 호출이나 도구 실행을 나타내는 구간.,vibe-v2,에이전트·바이브코딩,3,False,span,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0112,실행 런,run,에이전트가 한 작업을 시작해 최종 결과를 내기까지의 전체 실행 단위.,vibe-v2,에이전트·바이브코딩,2,False,run,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0113,작업 계획,task plan,에이전트가 목표를 작은 단계와 검증 순서로 나눈 실행 계획.,vibe-v2,에이전트·바이브코딩,1,True,task-plan,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0114,계획 모드,plan mode,코드를 바로 고치지 않고 먼저 조사와 변경 계획만 제시하는 모드.,vibe-v2,에이전트·바이브코딩,2,True,plan-mode,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0115,실행 모드,execution mode,승인된 계획에 따라 실제 파일 수정·명령 실행을 수행하는 모드.,vibe-v2,에이전트·바이브코딩,2,False,execution-mode,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0116,드라이 런,dry run,실제 변경을 적용하지 않고 어떤 동작이 일어날지 미리 확인하는 실행.,vibe-v2,에이전트·바이브코딩,2,True,dry-run,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0117,체크포인트,checkpoint,큰 변경 중간에 되돌아갈 수 있도록 저장한 안전 지점.,vibe-v2,에이전트·바이브코딩,2,True,checkpoint,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0118,패치,patch,파일 전체가 아니라 변경된 일부 내용을 적용하는 수정 묶음.,vibe-v2,에이전트·바이브코딩,2,False,patch,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0119,디프,diff,수정 전후 파일에서 추가·삭제·변경된 줄을 보여주는 비교 결과.,vibe-v2,에이전트·바이브코딩,1,True,diff,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0120,컨텍스트 파일,context file,에이전트에게 프로젝트 규칙과 구조를 알려주려고 제공하는 문서.,vibe-v2,에이전트·바이브코딩,2,False,context-file,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0121,저장소 지시,repository instruction,프로젝트 전체에 적용할 빌드·테스트·코딩 규칙을 적은 에이전트 지시.,vibe-v2,에이전트·바이브코딩,2,True,repository-instruction,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0122,경로별 지시,path-specific instruction,특정 폴더나 파일 종류에만 적용되는 에이전트 규칙.,vibe-v2,에이전트·바이브코딩,3,False,path-specific-instruction,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0123,CLAUDE.md,CLAUDE.md,Claude Code가 프로젝트 지침으로 읽을 수 있도록 저장소에 두는 마크다운 파일.,vibe-v2,에이전트·바이브코딩,2,False,claude-md,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0124,GEMINI.md,GEMINI.md,Gemini 계열 코딩 도구에 프로젝트 지침을 전달하는 마크다운 파일.,vibe-v2,에이전트·바이브코딩,2,False,gemini-md,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0125,copilot-instructions.md,copilot-instructions.md,GitHub Copilot에 저장소 공통 규칙을 전달하는 지시 파일.,vibe-v2,에이전트·바이브코딩,2,False,copilot-instructions-md,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0126,에이전트 스킬,agent skill,관련 작업에서 불러 쓰는 지시·스크립트·자료를 폴더로 묶은 재사용 단위.,vibe-v2,에이전트·바이브코딩,2,True,agent-skill,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0127,MCP 서버,MCP server,AI 앱에 데이터·도구·프롬프트를 표준 방식으로 제공하는 프로그램.,vibe-v2,에이전트·바이브코딩,2,True,mcp-server,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0128,MCP 클라이언트,MCP client,MCP 서버에 연결해 제공된 기능을 사용하는 AI 애플리케이션 구성 요소.,vibe-v2,에이전트·바이브코딩,3,False,mcp-client,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0129,MCP 호스트,MCP host,여러 MCP 클라이언트 연결과 사용자 승인·보안을 관리하는 AI 애플리케이션.,vibe-v2,에이전트·바이브코딩,3,False,mcp-host,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0130,MCP 리소스,MCP resource,MCP 서버가 읽기용 컨텍스트로 제공하는 파일·문서·데이터.,vibe-v2,에이전트·바이브코딩,3,False,mcp-resource,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0131,MCP 도구,MCP tool,MCP 서버가 에이전트가 실행할 수 있는 행동으로 제공하는 함수.,vibe-v2,에이전트·바이브코딩,3,False,mcp-tool,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0132,MCP 프롬프트,MCP prompt,MCP 서버가 재사용 가능한 작업 템플릿으로 제공하는 프롬프트.,vibe-v2,에이전트·바이브코딩,3,False,mcp-prompt,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0133,스펙 주도 개발,spec-driven development,구현 전에 요구사항·동작·검증 기준을 문서로 확정하고 개발하는 방식.,vibe-v2,에이전트·바이브코딩,2,True,spec-driven-development,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0134,PRD,Product Requirements Document,사용자 문제·목표·기능·성공 기준을 정리한 제품 요구사항 문서.,vibe-v2,에이전트·바이브코딩,2,True,product-requirements-document,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0135,기술 명세,technical specification,기능 동작·데이터·예외·구현 제약을 개발 가능한 수준으로 적은 문서.,vibe-v2,에이전트·바이브코딩,1,True,technical-specification,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0136,수용 기준,acceptance criteria,기능이 완료되었다고 판단할 수 있는 관찰 가능한 조건.,vibe-v2,에이전트·바이브코딩,1,True,acceptance-criteria,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0137,사용자 스토리,user story,특정 사용자가 어떤 목적 때문에 무엇을 원하는지 짧게 표현한 요구사항.,vibe-v2,에이전트·바이브코딩,2,False,user-story,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0138,사용 사례,use case,사용자와 시스템이 목표를 달성하는 단계별 상호작용 시나리오.,vibe-v2,에이전트·바이브코딩,2,False,use-case,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0139,경계 사례,edge case,일반적이지 않지만 실제로 발생할 수 있어 별도 처리가 필요한 상황.,vibe-v2,에이전트·바이브코딩,1,True,edge-case,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0140,실패 경로,failure path,오류·권한 거부·네트워크 단절처럼 정상 흐름에서 벗어난 처리 과정.,vibe-v2,에이전트·바이브코딩,2,False,failure-path,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0141,비기능 요구사항,non-functional requirement,속도·보안·접근성·안정성처럼 기능 외 품질 기준.,vibe-v2,에이전트·바이브코딩,2,True,non-functional-requirement,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0142,완료의 정의,definition of done,코드·테스트·문서·배포 준비까지 작업 완료에 필요한 팀 공통 조건.,vibe-v2,에이전트·바이브코딩,2,False,definition-of-done,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0143,작업 분해,task decomposition,큰 기능을 독립적으로 구현·검증할 수 있는 작은 작업으로 나누는 과정.,vibe-v2,에이전트·바이브코딩,1,True,task-decomposition,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0144,스파이크,technical spike,불확실한 기술 문제를 짧게 조사하거나 시험 구현해 위험을 줄이는 작업.,vibe-v2,에이전트·바이브코딩,3,False,technical-spike,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0145,개념 증명,proof of concept,핵심 아이디어가 기술적으로 가능한지만 확인하는 작은 실험.,vibe-v2,에이전트·바이브코딩,2,False,proof-of-concept,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0146,상수,constant,실행 중 값이 바뀌지 않도록 정의한 데이터.,vibe-v2,프로그래밍 핵심,1,False,constant,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0147,스코프,scope,변수나 함수 이름을 사용할 수 있는 코드 범위.,vibe-v2,프로그래밍 핵심,2,True,scope,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0148,전역 변수,global variable,프로그램의 넓은 범위에서 접근할 수 있는 변수.,vibe-v2,프로그래밍 핵심,2,False,global-variable,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0149,지역 변수,local variable,함수나 블록 안에서만 사용할 수 있는 변수.,vibe-v2,프로그래밍 핵심,1,False,local-variable,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0150,널,null,값이 존재하지 않음을 나타내는 특별한 값.,vibe-v2,프로그래밍 핵심,1,True,null,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0151,널 안정성,null safety,값 없음 때문에 생기는 오류를 자료형과 검사로 줄이는 기능.,vibe-v2,프로그래밍 핵심,2,False,null-safety,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0152,옵셔널,optional,값이 있을 수도 없을 수도 있음을 자료형으로 표현한 것.,vibe-v2,프로그래밍 핵심,2,False,optional,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0153,열거형,enum,가능한 값의 목록을 이름 붙여 제한하는 자료형.,vibe-v2,프로그래밍 핵심,2,False,enum,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0154,튜플,tuple,서로 다른 자료형의 값을 정해진 순서로 묶는 자료구조.,vibe-v2,프로그래밍 핵심,2,False,tuple,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0155,집합,set,중복 없는 값들을 저장하는 자료구조.,vibe-v2,프로그래밍 핵심,2,False,set,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0156,맵 자료구조,map data structure,키를 이용해 값을 빠르게 찾는 자료구조.,vibe-v2,프로그래밍 핵심,2,False,map-data-structure,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0157,스택 자료구조,stack data structure,나중에 넣은 값을 먼저 꺼내는 후입선출 구조.,vibe-v2,프로그래밍 핵심,2,False,stack-data-structure,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0158,큐 자료구조,queue data structure,먼저 넣은 값을 먼저 꺼내는 선입선출 구조.,vibe-v2,프로그래밍 핵심,2,False,queue-data-structure,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0159,연결 리스트,linked list,각 요소가 다음 요소의 위치를 가리키도록 연결한 자료구조.,vibe-v2,프로그래밍 핵심,3,False,linked-list,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0160,트리,tree data structure,부모와 자식의 계층 관계로 데이터를 표현하는 구조.,vibe-v2,프로그래밍 핵심,2,False,tree-data-structure,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0161,그래프 자료구조,graph data structure,노드와 연결 관계로 복잡한 네트워크를 표현하는 구조.,vibe-v2,프로그래밍 핵심,3,False,graph-data-structure,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0162,해시,hash,입력 데이터를 고정 길이 값으로 변환하는 계산 결과.,vibe-v2,프로그래밍 핵심,2,False,hash,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0163,해시 테이블,hash table,해시를 이용해 키에 대응하는 값을 빠르게 찾는 자료구조.,vibe-v2,프로그래밍 핵심,3,False,hash-table,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0164,클래스,class,데이터와 동작을 가진 객체를 만들기 위한 설계도.,vibe-v2,프로그래밍 핵심,2,False,class,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0165,인스턴스,instance,클래스를 바탕으로 실제 메모리에 만들어진 객체.,vibe-v2,프로그래밍 핵심,2,False,instance,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0166,메서드,method,클래스나 객체에 속해 동작을 수행하는 함수.,vibe-v2,프로그래밍 핵심,1,False,method,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0167,속성,property,객체가 가지고 있는 값이나 상태.,vibe-v2,프로그래밍 핵심,1,False,property,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0168,생성자,constructor,객체가 만들어질 때 초기 상태를 설정하는 특별한 함수.,vibe-v2,프로그래밍 핵심,2,False,constructor,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0169,인터페이스,interface,구현해야 할 메서드와 형태를 약속하는 계약.,vibe-v2,프로그래밍 핵심,2,True,interface,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0170,추상 클래스,abstract class,일부 공통 구현과 반드시 구현할 동작을 함께 정의하는 부모 클래스.,vibe-v2,프로그래밍 핵심,3,False,abstract-class,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0171,상속,inheritance,기존 클래스의 속성과 동작을 새 클래스가 이어받는 방식.,vibe-v2,프로그래밍 핵심,2,False,inheritance,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0172,합성,composition,작은 객체들을 포함하고 조합해 더 큰 기능을 만드는 설계 방식.,vibe-v2,프로그래밍 핵심,3,False,composition,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0173,다형성,polymorphism,같은 인터페이스를 여러 객체가 각자 다른 방식으로 구현하는 성질.,vibe-v2,프로그래밍 핵심,3,False,polymorphism,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0174,캡슐화,encapsulation,내부 상태를 숨기고 정해진 방법으로만 접근하게 하는 원칙.,vibe-v2,프로그래밍 핵심,3,False,encapsulation,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0175,의존성 주입,dependency injection,필요한 객체를 내부에서 만들지 않고 외부에서 전달받는 설계 방식.,vibe-v2,프로그래밍 핵심,3,True,dependency-injection,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0176,제네릭,generic,자료형을 나중에 지정할 수 있게 코드를 일반화하는 기능.,vibe-v2,프로그래밍 핵심,3,False,generic,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0177,콜백,callback,다른 함수에 전달되어 특정 시점에 호출되는 함수.,vibe-v2,프로그래밍 핵심,2,False,callback,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0178,클로저,closure,자신이 만들어진 바깥 스코프의 변수를 기억하는 함수.,vibe-v2,프로그래밍 핵심,3,False,closure,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0179,고차 함수,higher-order function,함수를 인자로 받거나 함수 자체를 반환하는 함수.,vibe-v2,프로그래밍 핵심,3,False,higher-order-function,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0180,람다,lambda,이름 없이 짧게 작성하는 함수 표현식.,vibe-v2,프로그래밍 핵심,2,False,lambda,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0181,재귀,recursion,함수가 문제를 줄여가며 자기 자신을 다시 호출하는 방식.,vibe-v2,프로그래밍 핵심,3,False,recursion,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0182,기저 조건,base case,재귀 호출이 멈추도록 정한 종료 조건.,vibe-v2,프로그래밍 핵심,3,False,base-case,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0183,불변성,immutability,만든 뒤 값을 직접 바꾸지 않고 새 값을 만드는 성질.,vibe-v2,프로그래밍 핵심,2,False,immutability,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0184,순수 함수,pure function,같은 입력에는 같은 출력이며 외부 상태를 바꾸지 않는 함수.,vibe-v2,프로그래밍 핵심,3,False,pure-function,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0185,부작용,side effect,함수가 반환값 외에 파일·화면·외부 상태를 바꾸는 동작.,vibe-v2,프로그래밍 핵심,2,False,side-effect,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0186,동기 처리,synchronous processing,한 작업이 끝날 때까지 기다린 뒤 다음 작업을 수행하는 방식.,vibe-v2,프로그래밍 핵심,2,False,synchronous-processing,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0187,비동기 처리,asynchronous processing,긴 작업을 기다리는 동안 다른 작업을 진행할 수 있는 방식.,vibe-v2,프로그래밍 핵심,2,True,asynchronous-processing,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0188,프로미스,Promise,미래에 완료되거나 실패할 비동기 작업의 결과를 나타내는 객체.,vibe-v2,프로그래밍 핵심,2,False,promise,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0189,async/await,async/await,비동기 코드를 순차 코드처럼 읽기 쉽게 작성하는 문법.,vibe-v2,프로그래밍 핵심,2,True,async-await,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0190,이벤트 루프,event loop,대기 중인 이벤트와 비동기 작업을 순서대로 처리하는 실행 구조.,vibe-v2,프로그래밍 핵심,3,False,event-loop,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0191,스레드,thread,한 프로세스 안에서 명령을 실행하는 작업 흐름.,vibe-v2,프로그래밍 핵심,2,False,thread,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0192,프로세스,process,운영체제에서 독립된 메모리와 자원을 가진 실행 중인 프로그램.,vibe-v2,프로그래밍 핵심,2,False,process,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0193,동시성,concurrency,여러 작업이 겹치는 시간 동안 진행되도록 관리하는 성질.,vibe-v2,프로그래밍 핵심,3,False,concurrency,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0194,병렬성,parallelism,여러 작업을 실제로 같은 시간에 동시에 실행하는 성질.,vibe-v2,프로그래밍 핵심,3,False,parallelism,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0195,경쟁 상태,race condition,여러 작업의 실행 순서에 따라 결과가 달라지는 오류.,vibe-v2,프로그래밍 핵심,3,False,race-condition,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0196,DOM,Document Object Model,HTML 문서를 자바스크립트가 읽고 수정할 수 있는 객체 트리로 표현한 것.,vibe-v2,웹·프론트엔드,2,True,document-object-model,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0197,가상 DOM,Virtual DOM,실제 DOM 변경을 줄이기 위해 메모리에서 UI 차이를 계산하는 표현.,vibe-v2,웹·프론트엔드,3,False,virtual-dom,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0198,CSS 선택자,CSS selector,스타일을 적용할 HTML 요소를 찾는 패턴.,vibe-v2,웹·프론트엔드,1,False,css-selector,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0199,박스 모델,CSS box model,요소를 콘텐츠·패딩·테두리·마진 영역으로 계산하는 CSS 규칙.,vibe-v2,웹·프론트엔드,2,False,css-box-model,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0200,플렉스박스,Flexbox,한 방향의 요소 정렬과 간격 배치에 사용하는 CSS 레이아웃.,vibe-v2,웹·프론트엔드,2,True,flexbox,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0201,CSS 그리드,CSS Grid,행과 열을 함께 사용해 2차원 화면 배치를 만드는 CSS 레이아웃.,vibe-v2,웹·프론트엔드,2,True,css-grid,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0202,미디어 쿼리,media query,화면 크기나 기기 특성에 따라 다른 CSS를 적용하는 조건.,vibe-v2,웹·프론트엔드,2,False,media-query,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0203,브레이크포인트,breakpoint,레이아웃 구성이 바뀌는 화면 너비 기준점.,vibe-v2,웹·프론트엔드,2,False,breakpoint,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0204,뷰포트,viewport,브라우저에서 현재 페이지가 보이는 화면 영역.,vibe-v2,웹·프론트엔드,2,False,viewport,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0205,시맨틱 HTML,semantic HTML,내용의 의미에 맞는 header·nav·main 같은 태그를 사용하는 작성 방식.,vibe-v2,웹·프론트엔드,2,True,semantic-html,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0206,웹 접근성,web accessibility,장애 여부와 사용 환경에 관계없이 웹을 이용할 수 있게 설계하는 원칙.,vibe-v2,웹·프론트엔드,2,True,web-accessibility,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0207,ARIA,Accessible Rich Internet Applications,보조 기술에 UI의 역할·상태·관계를 알려주는 웹 접근성 속성.,vibe-v2,웹·프론트엔드,3,False,accessible-rich-internet-applications,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0208,반응형 이미지,responsive image,화면 크기와 해상도에 맞는 이미지 파일을 선택해 보여주는 방식.,vibe-v2,웹·프론트엔드,3,False,responsive-image,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0209,CSS 변수,CSS custom property,색상·간격 같은 값을 이름으로 선언해 여러 스타일에서 재사용하는 기능.,vibe-v2,웹·프론트엔드,2,False,css-custom-property,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0210,디자인 토큰,design token,색상·크기·간격 같은 디자인 값을 이름과 데이터로 관리하는 단위.,vibe-v2,웹·프론트엔드,2,True,design-token,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0211,CSS 애니메이션,CSS animation,키프레임을 이용해 요소의 스타일 변화를 시간에 따라 재생하는 기능.,vibe-v2,웹·프론트엔드,2,False,css-animation,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0212,CSS 트랜지션,CSS transition,상태가 바뀔 때 두 스타일 사이를 부드럽게 보간하는 기능.,vibe-v2,웹·프론트엔드,2,False,css-transition,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0213,자바스크립트 모듈,JavaScript module,코드를 파일 단위로 내보내고 가져와 재사용하는 구조.,vibe-v2,웹·프론트엔드,2,False,javascript-module,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0214,ESM,ECMAScript Module,import와 export 문법을 사용하는 표준 자바스크립트 모듈 형식.,vibe-v2,웹·프론트엔드,2,False,ecmascript-module,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0215,CommonJS,CommonJS,require와 module.exports를 사용하는 Node.js 전통 모듈 형식.,vibe-v2,웹·프론트엔드,3,False,commonjs,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0216,번들러,bundler,여러 자바스크립트·CSS·에셋 파일을 배포용 파일로 묶는 도구.,vibe-v2,웹·프론트엔드,2,False,bundler,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0217,트랜스파일러,transpiler,최신 문법 코드를 다른 버전이나 언어의 코드로 변환하는 도구.,vibe-v2,웹·프론트엔드,3,False,transpiler,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0218,Babel,Babel,최신 자바스크립트 문법을 구형 환경에서도 실행 가능한 코드로 변환하는 도구.,vibe-v2,웹·프론트엔드,3,False,babel,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0219,Vite,Vite,빠른 개발 서버와 최적화된 빌드를 제공하는 프론트엔드 개발 도구.,vibe-v2,웹·프론트엔드,2,False,vite,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0220,Webpack,Webpack,자바스크립트와 에셋의 의존성을 분석해 번들로 만드는 도구.,vibe-v2,웹·프론트엔드,3,False,webpack,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0221,미니파이,minification,공백과 긴 이름을 줄여 배포 파일 크기를 작게 만드는 처리.,vibe-v2,웹·프론트엔드,2,False,minification,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0222,트리 셰이킹,tree shaking,실제로 사용하지 않는 모듈 코드를 빌드 결과에서 제거하는 최적화.,vibe-v2,웹·프론트엔드,3,False,tree-shaking,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0223,코드 스플리팅,code splitting,앱 코드를 여러 묶음으로 나눠 필요한 시점에만 불러오는 최적화.,vibe-v2,웹·프론트엔드,3,False,code-splitting,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0224,지연 로딩,lazy loading,화면에 필요해질 때 이미지나 코드를 늦게 불러오는 방식.,vibe-v2,웹·프론트엔드,2,True,lazy-loading,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0225,프리로딩,preloading,곧 필요할 자원을 미리 불러와 다음 동작을 빠르게 하는 방식.,vibe-v2,웹·프론트엔드,3,False,preloading,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0226,클라이언트 사이드 렌더링,client-side rendering,브라우저가 자바스크립트로 화면 HTML을 만드는 렌더링 방식.,vibe-v2,웹·프론트엔드,2,False,client-side-rendering,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0227,서버 사이드 렌더링,server-side rendering,서버가 완성한 HTML을 먼저 보내 초기 화면을 빠르게 보여주는 방식.,vibe-v2,웹·프론트엔드,2,True,server-side-rendering,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0228,정적 사이트 생성,static site generation,빌드 시점에 페이지 HTML을 미리 만들어 배포하는 방식.,vibe-v2,웹·프론트엔드,3,False,static-site-generation,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0229,하이드레이션,hydration,서버에서 받은 HTML에 자바스크립트 동작과 상태를 연결하는 과정.,vibe-v2,웹·프론트엔드,3,False,hydration,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0230,부분 하이드레이션,partial hydration,상호작용이 필요한 일부 영역에만 자바스크립트를 연결하는 최적화.,vibe-v2,웹·프론트엔드,4,False,partial-hydration,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0231,단일 페이지 앱,single-page application,페이지 전체 새로고침 없이 자바스크립트로 화면을 전환하는 웹앱.,vibe-v2,웹·프론트엔드,2,False,single-page-application,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0232,다중 페이지 앱,multi-page application,URL 이동마다 서버에서 새 HTML 페이지를 받아오는 웹 구조.,vibe-v2,웹·프론트엔드,2,False,multi-page-application,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0233,Next.js,Next.js,React 기반으로 라우팅·서버 렌더링·빌드 기능을 제공하는 웹 프레임워크.,vibe-v2,웹·프론트엔드,2,False,next-js,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0234,Vue,Vue.js,컴포넌트와 반응형 상태로 웹 UI를 만드는 자바스크립트 프레임워크.,vibe-v2,웹·프론트엔드,2,False,vue-js,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0235,Svelte,Svelte,컴파일 단계에서 효율적인 자바스크립트로 변환되는 UI 프레임워크.,vibe-v2,웹·프론트엔드,3,False,svelte,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0236,상태 저장소,state store,여러 컴포넌트가 함께 쓰는 상태를 중앙에서 관리하는 구조.,vibe-v2,웹·프론트엔드,2,False,state-store,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0237,단방향 데이터 흐름,unidirectional data flow,상태가 한 방향으로 전달되고 이벤트로만 변경되는 UI 설계.,vibe-v2,웹·프론트엔드,3,False,unidirectional-data-flow,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0238,폼 검증,form validation,입력값의 필수 여부·형식·범위를 검사하는 처리.,vibe-v2,웹·프론트엔드,1,True,form-validation,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0239,제어 컴포넌트,controlled component,입력값을 프레임워크 상태가 직접 관리하는 컴포넌트.,vibe-v2,웹·프론트엔드,3,False,controlled-component,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0240,웹 컴포넌트,Web Components,브라우저 표준으로 캡슐화된 재사용 UI 요소를 만드는 기술 모음.,vibe-v2,웹·프론트엔드,3,False,web-components,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0241,HTTP 메서드,HTTP method,요청이 자원에 수행할 동작을 나타내는 GET·POST 같은 값.,vibe-v2,백엔드·API,1,True,http-method,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0242,GET,GET,서버에서 자원이나 목록을 조회할 때 사용하는 HTTP 메서드.,vibe-v2,백엔드·API,1,False,get,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0243,POST,POST,새 자원을 만들거나 처리를 요청할 때 주로 사용하는 HTTP 메서드.,vibe-v2,백엔드·API,1,False,post,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0244,PUT,PUT,자원 전체를 새 내용으로 교체할 때 주로 사용하는 HTTP 메서드.,vibe-v2,백엔드·API,2,False,put,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0245,PATCH,PATCH,자원의 일부 필드만 수정할 때 주로 사용하는 HTTP 메서드.,vibe-v2,백엔드·API,2,False,patch-2,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0246,DELETE 메서드,DELETE,서버 자원을 삭제하도록 요청하는 HTTP 메서드.,vibe-v2,백엔드·API,1,False,delete,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0247,HTTP 상태 코드,HTTP status code,서버가 요청 처리 결과를 세 자리 숫자로 알려주는 값.,vibe-v2,백엔드·API,1,True,http-status-code,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0248,200 OK,200 OK,요청이 성공했고 응답 본문이 있음을 나타내는 상태 코드.,vibe-v2,백엔드·API,1,False,200-ok,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0249,201 Created,201 Created,요청으로 새 자원이 성공적으로 생성되었음을 나타내는 상태 코드.,vibe-v2,백엔드·API,2,False,201-created,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0250,204 No Content,204 No Content,요청은 성공했지만 돌려줄 본문이 없음을 나타내는 상태 코드.,vibe-v2,백엔드·API,2,False,204-no-content,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0251,400 Bad Request,400 Bad Request,요청 형식이나 값이 잘못되어 처리할 수 없음을 나타내는 상태 코드.,vibe-v2,백엔드·API,1,False,400-bad-request,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0252,401 Unauthorized,401 Unauthorized,유효한 인증 정보가 없어 요청을 처리하지 못함을 나타내는 상태 코드.,vibe-v2,백엔드·API,2,False,401-unauthorized,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0253,403 Forbidden,403 Forbidden,신원은 확인했지만 해당 작업 권한이 없음을 나타내는 상태 코드.,vibe-v2,백엔드·API,2,False,403-forbidden,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0254,404 Not Found,404 Not Found,요청한 자원이나 경로를 찾지 못했음을 나타내는 상태 코드.,vibe-v2,백엔드·API,1,False,404-not-found,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0255,409 Conflict,409 Conflict,현재 자원 상태와 요청이 충돌함을 나타내는 상태 코드.,vibe-v2,백엔드·API,3,False,409-conflict,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0256,422 Unprocessable Content,422 Unprocessable Content,요청 문법은 맞지만 값 검증에 실패했음을 나타내는 상태 코드.,vibe-v2,백엔드·API,3,False,422-unprocessable-content,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0257,429 Too Many Requests,429 Too Many Requests,짧은 시간에 너무 많은 요청을 보내 제한되었음을 나타내는 상태 코드.,vibe-v2,백엔드·API,2,False,429-too-many-requests,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0258,500 Internal Server Error,500 Internal Server Error,서버 내부의 예상하지 못한 오류로 요청이 실패했음을 나타내는 상태 코드.,vibe-v2,백엔드·API,1,False,500-internal-server-error,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0259,502 Bad Gateway,502 Bad Gateway,게이트웨이가 뒤쪽 서버에서 유효한 응답을 받지 못했음을 나타내는 상태 코드.,vibe-v2,백엔드·API,3,False,502-bad-gateway,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0260,503 Service Unavailable,503 Service Unavailable,서버가 과부하나 점검 때문에 일시적으로 요청을 처리할 수 없는 상태 코드.,vibe-v2,백엔드·API,2,False,503-service-unavailable,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0261,요청 헤더,request header,인증·콘텐츠 형식·언어 같은 요청 부가 정보를 담는 영역.,vibe-v2,백엔드·API,2,False,request-header,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0262,응답 헤더,response header,캐시·콘텐츠 형식·쿠키 같은 응답 부가 정보를 담는 영역.,vibe-v2,백엔드·API,2,False,response-header,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0263,요청 본문,request body,POST나 PATCH 요청에서 서버로 보낼 실제 데이터를 담는 부분.,vibe-v2,백엔드·API,1,False,request-body,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0264,쿼리 파라미터,query parameter,URL 물음표 뒤에 붙여 필터·검색·페이지 정보를 전달하는 값.,vibe-v2,백엔드·API,1,True,query-parameter,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0265,경로 파라미터,path parameter,URL 경로 안에 포함해 특정 자원 식별자를 전달하는 값.,vibe-v2,백엔드·API,1,False,path-parameter,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0266,콘텐츠 타입,Content-Type,요청이나 응답 본문의 데이터 형식을 알려주는 HTTP 헤더.,vibe-v2,백엔드·API,2,False,content-type,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0267,Bearer 토큰,Bearer token,Authorization 헤더에 실어 API 접근 권한을 증명하는 토큰 형식.,vibe-v2,백엔드·API,2,False,bearer-token,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0268,API 키,API key,API 사용자를 식별하고 호출 권한이나 사용량을 관리하는 비밀 값.,vibe-v2,백엔드·API,2,True,api-key,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0269,액세스 토큰,access token,인증 후 일정 시간 동안 보호된 자원 접근을 허용하는 문자열.,vibe-v2,백엔드·API,2,False,access-token,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0270,리프레시 토큰,refresh token,만료된 액세스 토큰을 새로 발급받는 데 사용하는 장기 토큰.,vibe-v2,백엔드·API,3,False,refresh-token,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0271,JWT,JSON Web Token,서명된 JSON 정보로 사용자나 권한을 전달하는 토큰 형식.,vibe-v2,백엔드·API,2,False,json-web-token,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0272,OAuth 2.0,OAuth 2.0,비밀번호를 직접 공유하지 않고 다른 서비스 접근 권한을 위임하는 표준.,vibe-v2,백엔드·API,3,False,oauth-2-0,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0273,OpenID Connect,OpenID Connect,OAuth 2.0 위에서 사용자 로그인과 신원 정보를 표준화한 규격.,vibe-v2,백엔드·API,3,False,openid-connect,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0274,API 버전,API version,호환되지 않는 API 변경을 구분하기 위해 붙이는 버전.,vibe-v2,백엔드·API,2,False,api-version,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0275,페이지네이션,pagination,많은 목록을 여러 페이지나 묶음으로 나누어 가져오는 방식.,vibe-v2,백엔드·API,2,True,pagination,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0276,커서 페이지네이션,cursor pagination,마지막 항목의 위치 토큰을 이용해 다음 목록을 가져오는 방식.,vibe-v2,백엔드·API,3,False,cursor-pagination,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0277,오프셋 페이지네이션,offset pagination,건너뛸 개수와 가져올 개수로 목록 범위를 지정하는 방식.,vibe-v2,백엔드·API,3,False,offset-pagination,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0278,요청 제한,rate limiting,일정 시간 동안 허용할 API 요청 수를 제한하는 기능.,vibe-v2,백엔드·API,2,True,rate-limiting,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0279,스로틀링,throttling,호출 빈도를 일정 수준 이하로 강제로 낮추는 제어.,vibe-v2,백엔드·API,3,False,throttling,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0280,디바운싱,debouncing,연속 입력이 멈춘 뒤 한 번만 함수를 실행하는 처리.,vibe-v2,백엔드·API,2,False,debouncing,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0281,MySQL,MySQL,웹 서비스에서 널리 쓰이는 오픈소스 관계형 데이터베이스.,vibe-v2,데이터베이스·데이터,2,False,mysql,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0282,MariaDB,MariaDB,MySQL과 높은 호환성을 가진 오픈소스 관계형 데이터베이스.,vibe-v2,데이터베이스·데이터,2,False,mariadb,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0283,Firebase Realtime Database,Realtime Database,하나의 JSON 트리 구조로 데이터를 저장하고 실시간 동기화하는 Firebase DB.,vibe-v2,데이터베이스·데이터,2,False,realtime-database,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0284,벡터 데이터베이스,vector database,임베딩을 저장하고 유사도 검색에 최적화된 데이터베이스.,vibe-v2,데이터베이스·데이터,2,True,vector-database,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0285,데이터 모델,data model,서비스에서 어떤 데이터를 어떤 관계와 규칙으로 저장할지 정한 구조.,vibe-v2,데이터베이스·데이터,2,False,data-model,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0286,엔터티,entity,데이터 모델에서 사용자·상품처럼 독립적으로 식별되는 대상.,vibe-v2,데이터베이스·데이터,2,False,entity,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0287,속성 컬럼,attribute,엔터티의 이름·가격처럼 하나의 특성을 나타내는 데이터 항목.,vibe-v2,데이터베이스·데이터,2,False,attribute,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0288,복합키,composite key,둘 이상의 컬럼을 함께 사용해 레코드를 유일하게 구분하는 키.,vibe-v2,데이터베이스·데이터,3,False,composite-key,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0289,유니크 제약,unique constraint,특정 컬럼 값이 테이블 안에서 중복되지 않게 막는 규칙.,vibe-v2,데이터베이스·데이터,2,False,unique-constraint,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0290,NOT NULL,NOT NULL,컬럼에 값 없음이 저장되지 않도록 강제하는 제약.,vibe-v2,데이터베이스·데이터,2,False,not-null,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0291,기본값,default value,새 레코드에서 값을 생략했을 때 자동으로 들어가는 값.,vibe-v2,데이터베이스·데이터,1,False,default-value,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0292,체크 제약,check constraint,컬럼 값이 지정한 조건을 만족할 때만 저장되게 하는 규칙.,vibe-v2,데이터베이스·데이터,3,False,check-constraint,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0293,참조 무결성,referential integrity,외래키가 실제로 존재하는 부모 레코드만 가리키도록 유지하는 성질.,vibe-v2,데이터베이스·데이터,3,False,referential-integrity,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0294,일대일 관계,one-to-one relationship,한 레코드가 다른 테이블의 최대 한 레코드와 연결되는 관계.,vibe-v2,데이터베이스·데이터,2,False,one-to-one-relationship,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0295,일대다 관계,one-to-many relationship,한 부모 레코드가 여러 자식 레코드와 연결되는 관계.,vibe-v2,데이터베이스·데이터,2,False,one-to-many-relationship,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0296,다대다 관계,many-to-many relationship,양쪽 레코드가 서로 여러 개씩 연결될 수 있는 관계.,vibe-v2,데이터베이스·데이터,2,False,many-to-many-relationship,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0297,조인 테이블,junction table,다대다 관계를 두 개의 일대다 관계로 저장하는 연결 테이블.,vibe-v2,데이터베이스·데이터,3,False,junction-table,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0298,INNER JOIN,INNER JOIN,두 테이블에서 연결 조건이 맞는 행만 반환하는 조인.,vibe-v2,데이터베이스·데이터,2,False,inner-join,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0299,LEFT JOIN,LEFT JOIN,왼쪽 테이블의 모든 행과 일치하는 오른쪽 행을 반환하는 조인.,vibe-v2,데이터베이스·데이터,2,False,left-join,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0300,GROUP BY,GROUP BY,같은 값을 가진 행을 묶어 집계할 때 사용하는 SQL 구문.,vibe-v2,데이터베이스·데이터,2,False,group-by,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0301,HAVING,HAVING,GROUP BY로 묶은 집계 결과에 조건을 적용하는 SQL 구문.,vibe-v2,데이터베이스·데이터,3,False,having,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0302,집계 함수,aggregate function,COUNT·SUM·AVG처럼 여러 행을 하나의 값으로 계산하는 함수.,vibe-v2,데이터베이스·데이터,2,False,aggregate-function,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0303,서브쿼리,subquery,다른 SQL 문 안에 포함된 조회 문.,vibe-v2,데이터베이스·데이터,3,False,subquery,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0304,공통 테이블 표현식,common table expression,복잡한 쿼리의 중간 결과에 이름을 붙여 재사용하는 SQL 구문.,vibe-v2,데이터베이스·데이터,3,False,common-table-expression,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0305,뷰 테이블,database view,쿼리 결과를 가상 테이블처럼 저장해 사용하는 객체.,vibe-v2,데이터베이스·데이터,3,False,database-view,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0306,구체화 뷰,materialized view,쿼리 결과를 실제로 저장하고 주기적으로 갱신하는 데이터베이스 객체.,vibe-v2,데이터베이스·데이터,4,False,materialized-view,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0307,쿼리 실행 계획,query execution plan,데이터베이스가 쿼리를 어떤 순서와 방법으로 처리할지 보여주는 계획.,vibe-v2,데이터베이스·데이터,3,False,query-execution-plan,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0308,풀 테이블 스캔,full table scan,인덱스를 쓰지 않고 테이블의 모든 행을 읽는 조회 방식.,vibe-v2,데이터베이스·데이터,3,False,full-table-scan,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0309,복합 인덱스,composite index,둘 이상의 컬럼을 순서대로 포함한 인덱스.,vibe-v2,데이터베이스·데이터,3,False,composite-index,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0310,낙관적 잠금,optimistic locking,충돌이 드물다고 보고 저장 시점에 버전을 검사하는 동시성 제어.,vibe-v2,데이터베이스·데이터,4,False,optimistic-locking,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0311,비관적 잠금,pessimistic locking,충돌을 막기 위해 데이터를 읽거나 수정하는 동안 잠그는 방식.,vibe-v2,데이터베이스·데이터,4,False,pessimistic-locking,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0312,데드락,database deadlock,여러 트랜잭션이 서로 가진 잠금을 기다리며 진행하지 못하는 상태.,vibe-v2,데이터베이스·데이터,4,False,database-deadlock,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0313,격리 수준,isolation level,동시에 실행되는 트랜잭션이 서로의 변경을 볼 수 있는 정도.,vibe-v2,데이터베이스·데이터,4,False,isolation-level,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0314,원자성,atomicity,트랜잭션의 작업이 모두 성공하거나 모두 취소되어야 하는 성질.,vibe-v2,데이터베이스·데이터,3,False,atomicity,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0315,일관성,consistency,트랜잭션 전후 데이터가 정의된 규칙을 계속 만족하는 성질.,vibe-v2,데이터베이스·데이터,3,False,consistency,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0316,풀,pull,원격 저장소의 변경을 받아 현재 브랜치에 통합하는 Git 작업.,vibe-v2,Git·DevOps·클라우드,1,False,pull,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0317,페치,fetch,원격 저장소 변경 이력만 받아오고 현재 브랜치에는 합치지 않는 작업.,vibe-v2,Git·DevOps·클라우드,2,False,fetch,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0318,체크아웃,checkout,특정 브랜치나 커밋 상태로 작업 폴더를 전환하는 Git 작업.,vibe-v2,Git·DevOps·클라우드,2,False,checkout,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0319,스위치 명령,git switch,작업할 Git 브랜치를 전환하는 명령.,vibe-v2,Git·DevOps·클라우드,2,False,git-switch,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0320,리베이스,rebase,브랜치의 시작점을 다른 커밋 위로 옮겨 이력을 다시 만드는 작업.,vibe-v2,Git·DevOps·클라우드,3,False,rebase,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0321,체리픽,cherry-pick,다른 브랜치의 특정 커밋 하나만 현재 브랜치에 적용하는 작업.,vibe-v2,Git·DevOps·클라우드,3,False,cherry-pick,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0322,스태시,stash,커밋하지 않은 변경을 임시 보관하고 작업 폴더를 깨끗하게 만드는 기능.,vibe-v2,Git·DevOps·클라우드,2,False,stash,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0323,태그,Git tag,특정 커밋에 버전명 같은 고정 이름을 붙이는 Git 객체.,vibe-v2,Git·DevOps·클라우드,2,False,git-tag,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0324,머지 충돌,merge conflict,같은 코드 부분의 서로 다른 변경을 Git이 자동으로 합치지 못한 상태.,vibe-v2,Git·DevOps·클라우드,2,True,merge-conflict,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0325,원격 저장소,remote repository,인터넷이나 서버에 있어 여러 사람이 공유하는 Git 저장소.,vibe-v2,Git·DevOps·클라우드,1,False,remote-repository,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0326,origin,origin,클론할 때 기본 원격 저장소에 관례적으로 붙는 이름.,vibe-v2,Git·DevOps·클라우드,2,False,origin,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0327,HEAD,Git HEAD,현재 체크아웃한 브랜치의 최신 커밋을 가리키는 포인터.,vibe-v2,Git·DevOps·클라우드,3,False,git-head,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0328,커밋 해시,commit hash,각 Git 커밋을 유일하게 식별하는 문자열.,vibe-v2,Git·DevOps·클라우드,2,False,commit-hash,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0329,커밋 메시지,commit message,변경 목적과 내용을 설명하는 커밋 기록 문구.,vibe-v2,Git·DevOps·클라우드,1,True,commit-message,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0330,세맨틱 버저닝,semantic versioning,호환성 변화에 따라 주·부·패치 번호를 올리는 버전 규칙.,vibe-v2,Git·DevOps·클라우드,2,False,semantic-versioning,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0331,체인지로그,changelog,버전별 새 기능·변경·수정 사항을 기록한 문서.,vibe-v2,Git·DevOps·클라우드,2,False,changelog,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0332,모노레포,monorepo,여러 앱이나 패키지 코드를 하나의 저장소에서 관리하는 방식.,vibe-v2,Git·DevOps·클라우드,3,False,monorepo,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0333,워크스페이스,workspace,여러 패키지나 프로젝트를 함께 개발하도록 묶은 작업 영역.,vibe-v2,Git·DevOps·클라우드,2,False,workspace,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0334,락 파일,lockfile,설치된 의존성의 정확한 버전과 무결성 정보를 고정한 파일.,vibe-v2,Git·DevOps·클라우드,2,True,lockfile,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0335,시맨틱 릴리스,semantic release,커밋 규칙을 읽어 버전과 변경 로그·배포를 자동화하는 방식.,vibe-v2,Git·DevOps·클라우드,3,False,semantic-release,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0336,CI,continuous integration,코드 변경마다 자동 빌드와 테스트를 실행해 통합 문제를 빨리 찾는 방식.,vibe-v2,Git·DevOps·클라우드,2,True,continuous-integration,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0337,CD,continuous delivery,검증된 변경을 언제든 배포할 수 있게 자동화하는 방식.,vibe-v2,Git·DevOps·클라우드,2,True,continuous-delivery,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0338,파이프라인,CI pipeline,빌드·테스트·배포 단계를 순서대로 실행하는 자동화 흐름.,vibe-v2,Git·DevOps·클라우드,2,False,ci-pipeline,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0339,워크플로,workflow,특정 이벤트에 따라 실행되는 자동화 작업과 단계의 정의.,vibe-v2,Git·DevOps·클라우드,2,False,workflow,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0340,러너,CI runner,CI 작업 명령을 실제로 실행하는 서버나 가상 환경.,vibe-v2,Git·DevOps·클라우드,2,False,ci-runner,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0341,빌드 아티팩트,build artifact,빌드 결과로 생성된 앱 파일·패키지·보고서.,vibe-v2,Git·DevOps·클라우드,2,False,build-artifact,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0342,배포 환경,deployment environment,개발·테스트·스테이징·운영처럼 목적이 다른 실행 환경.,vibe-v2,Git·DevOps·클라우드,2,False,deployment-environment,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0343,스테이징,staging,운영 배포 전 실제와 비슷한 조건에서 최종 검증하는 환경.,vibe-v2,Git·DevOps·클라우드,2,True,staging,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0344,프로덕션,production,실제 사용자가 이용하는 운영 환경.,vibe-v2,Git·DevOps·클라우드,1,True,production,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0345,개발 환경,development environment,개발자가 코드를 수정하고 빠르게 시험하는 환경.,vibe-v2,Git·DevOps·클라우드,1,False,development-environment,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0346,설정 파일,configuration file,프로그램 동작 옵션과 환경별 값을 저장한 파일.,vibe-v2,Git·DevOps·클라우드,1,False,configuration-file,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0347,시크릿,secret,API 키·비밀번호처럼 공개 저장소에 넣으면 안 되는 민감한 설정 값.,vibe-v2,Git·DevOps·클라우드,1,True,secret,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0348,.env 파일,.env file,환경 변수를 키-값 형태로 적는 파일로 보통 버전 관리에서 제외합니다.,vibe-v2,Git·DevOps·클라우드,2,True,env-file,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0349,컨테이너,container,앱과 필요한 실행 환경을 격리해 어디서나 비슷하게 실행하는 단위.,vibe-v2,Git·DevOps·클라우드,2,True,container,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0350,컨테이너 이미지,container image,컨테이너 실행에 필요한 파일과 설정을 담은 읽기 전용 템플릿.,vibe-v2,Git·DevOps·클라우드,2,False,container-image,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0351,Docker,Docker,컨테이너 이미지를 만들고 실행·배포하는 대표 플랫폼.,vibe-v2,Git·DevOps·클라우드,2,False,docker,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0352,Dockerfile,Dockerfile,컨테이너 이미지를 만드는 단계와 명령을 적은 파일.,vibe-v2,Git·DevOps·클라우드,2,False,dockerfile,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0353,Docker Compose,Docker Compose,여러 컨테이너 서비스와 네트워크·볼륨을 한 파일로 실행하는 도구.,vibe-v2,Git·DevOps·클라우드,2,False,docker-compose,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0354,이미지 레지스트리,container registry,컨테이너 이미지를 저장하고 내려받는 서버.,vibe-v2,Git·DevOps·클라우드,2,False,container-registry,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0355,볼륨,container volume,컨테이너가 삭제되어도 데이터를 유지하도록 연결한 저장 공간.,vibe-v2,Git·DevOps·클라우드,2,False,container-volume,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0356,Kubernetes,Kubernetes,많은 컨테이너의 배포·확장·복구를 자동화하는 오케스트레이션 플랫폼.,vibe-v2,Git·DevOps·클라우드,3,False,kubernetes,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0357,파드,Kubernetes Pod,Kubernetes에서 함께 실행되는 하나 이상의 컨테이너 묶음.,vibe-v2,Git·DevOps·클라우드,3,False,kubernetes-pod,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0358,디플로이먼트,Kubernetes Deployment,파드의 원하는 개수와 업데이트 방식을 관리하는 Kubernetes 객체.,vibe-v2,Git·DevOps·클라우드,3,False,kubernetes-deployment,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0359,서비스 객체,Kubernetes Service,변하는 파드 주소 앞에 안정적인 네트워크 접근점을 제공하는 객체.,vibe-v2,Git·DevOps·클라우드,3,False,kubernetes-service,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0360,인그레스,Kubernetes Ingress,클러스터 외부 HTTP 요청을 내부 서비스로 라우팅하는 규칙.,vibe-v2,Git·DevOps·클라우드,4,False,kubernetes-ingress,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0361,오토스케일링,autoscaling,부하에 따라 서버나 파드 수를 자동으로 늘리고 줄이는 기능.,vibe-v2,Git·DevOps·클라우드,3,False,autoscaling,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0362,클라우드,cloud computing,인터넷을 통해 서버·저장소·데이터베이스 같은 컴퓨팅 자원을 빌려 쓰는 방식.,vibe-v2,Git·DevOps·클라우드,1,False,cloud-computing,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0363,가상 머신,virtual machine,물리 서버 자원을 나눠 독립된 컴퓨터처럼 실행하는 가상 환경.,vibe-v2,Git·DevOps·클라우드,2,False,virtual-machine,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0364,리전,cloud region,클라우드 데이터센터가 위치한 지리적 운영 구역.,vibe-v2,Git·DevOps·클라우드,2,False,cloud-region,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0365,가용 영역,availability zone,한 리전 안에서 전력과 네트워크 장애를 분리한 데이터센터 구역.,vibe-v2,Git·DevOps·클라우드,3,False,availability-zone,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0366,테스트 케이스,test case,입력·실행 절차·기대 결과를 정리한 하나의 검증 항목.,vibe-v2,테스트·품질·보안,1,True,test-case,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0367,테스트 시나리오,test scenario,사용자 흐름 전체를 기준으로 여러 테스트 케이스를 묶은 상황.,vibe-v2,테스트·품질·보안,2,False,test-scenario,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0368,테스트 계획,test plan,범위·환경·담당·일정·종료 조건을 정리한 테스트 문서.,vibe-v2,테스트·품질·보안,2,False,test-plan,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0369,회귀 테스트,regression test,변경 후 기존 기능이 다시 깨지지 않았는지 확인하는 테스트.,vibe-v2,테스트·품질·보안,2,True,regression-test,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0370,스모크 테스트,smoke test,빌드의 핵심 기능이 최소한 실행되는지 빠르게 확인하는 테스트.,vibe-v2,테스트·품질·보안,2,False,smoke-test,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0371,엔드투엔드 테스트,end-to-end test,실제 사용자 흐름처럼 프론트부터 DB까지 전체를 검증하는 테스트.,vibe-v2,테스트·품질·보안,2,False,end-to-end-test,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0372,UI 테스트,UI test,버튼·입력·화면 전환 같은 사용자 인터페이스 동작을 자동 검증하는 테스트.,vibe-v2,테스트·품질·보안,2,False,ui-test,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0373,스냅샷 테스트,snapshot test,렌더링 결과나 직렬화 결과를 이전 저장본과 비교하는 테스트.,vibe-v2,테스트·품질·보안,3,False,snapshot-test,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0374,골든 테스트,golden test,UI 이미지 결과를 기준 이미지와 픽셀 단위로 비교하는 테스트.,vibe-v2,테스트·품질·보안,3,False,golden-test,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0375,계약 테스트,contract test,서비스 사이 요청·응답 규격이 서로 호환되는지 검증하는 테스트.,vibe-v2,테스트·품질·보안,3,False,contract-test,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0376,성능 테스트,performance test,응답 시간·처리량·자원 사용량이 기준을 만족하는지 측정하는 테스트.,vibe-v2,테스트·품질·보안,2,False,performance-test,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0377,부하 테스트,load test,예상 사용자 수나 요청량에서 시스템 성능을 측정하는 테스트.,vibe-v2,테스트·품질·보안,2,False,load-test,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0378,스트레스 테스트,stress test,한계를 넘는 부하를 가해 장애 지점과 복구 능력을 확인하는 테스트.,vibe-v2,테스트·품질·보안,3,False,stress-test,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0379,사용성 테스트,usability test,실제 사용자가 과업을 얼마나 쉽고 정확하게 수행하는지 관찰하는 테스트.,vibe-v2,테스트·품질·보안,2,True,usability-test,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0380,탐색적 테스트,exploratory testing,정해진 절차에만 의존하지 않고 사용하며 결함을 발견하는 테스트.,vibe-v2,테스트·품질·보안,2,False,exploratory-testing,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0381,테스트 더블,test double,실제 의존성을 대신해 테스트에서 사용하는 대체 객체의 통칭.,vibe-v2,테스트·품질·보안,3,False,test-double,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0382,목 객체,mock object,호출 여부와 인자를 검증할 수 있도록 만든 가짜 의존 객체.,vibe-v2,테스트·품질·보안,2,False,mock-object,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0383,스텁,stub,정해진 입력에 미리 준비한 결과를 반환하는 단순 대체 객체.,vibe-v2,테스트·품질·보안,2,False,stub,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0384,페이크,fake,실제보다 단순하지만 동작 가능한 구현을 가진 테스트용 대체 객체.,vibe-v2,테스트·품질·보안,3,False,fake,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0385,코드 커버리지,code coverage,테스트가 실행한 코드 줄·분기·함수의 비율.,vibe-v2,테스트·품질·보안,2,False,code-coverage,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0386,분기 커버리지,branch coverage,조건문의 참과 거짓 경로가 테스트된 비율.,vibe-v2,테스트·품질·보안,3,False,branch-coverage,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0387,테스트 피라미드,test pyramid,많은 단위 테스트와 적은 수의 통합·E2E 테스트를 권하는 구성 원칙.,vibe-v2,테스트·품질·보안,3,False,test-pyramid,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0388,정적 분석,static analysis,프로그램을 실행하지 않고 코드에서 오류와 위험 패턴을 찾는 검사.,vibe-v2,테스트·품질·보안,2,True,static-analysis,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0389,포매터,code formatter,코드 들여쓰기와 줄바꿈을 정해진 스타일로 자동 정리하는 도구.,vibe-v2,테스트·품질·보안,1,False,code-formatter,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0390,타입 체커,type checker,자료형 규칙 위반을 실행 전에 찾아주는 도구.,vibe-v2,테스트·품질·보안,2,False,type-checker,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0391,취약점,vulnerability,공격자가 시스템 보안을 해칠 수 있는 설계나 구현의 약점.,vibe-v2,테스트·품질·보안,2,True,vulnerability,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0392,위협 모델링,threat modeling,보호할 자산·공격자·공격 경로·대응책을 체계적으로 분석하는 과정.,vibe-v2,테스트·품질·보안,3,False,threat-modeling,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0393,공격 표면,attack surface,외부 입력과 접근점 가운데 공격에 이용될 수 있는 전체 범위.,vibe-v2,테스트·품질·보안,3,False,attack-surface,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0394,입력 검증,input validation,외부 입력의 형식·길이·범위를 확인해 잘못된 데이터를 거부하는 처리.,vibe-v2,테스트·품질·보안,1,True,input-validation,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0395,출력 인코딩,output encoding,사용자 데이터를 HTML 등 문맥에 맞게 변환해 코드 실행을 막는 처리.,vibe-v2,테스트·품질·보안,3,False,output-encoding,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0396,SQL 인젝션,SQL injection,입력값으로 악성 SQL을 삽입해 DB 명령을 바꾸는 공격.,vibe-v2,테스트·품질·보안,2,True,sql-injection,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0397,XSS,cross-site scripting,웹페이지에 악성 스크립트를 삽입해 다른 사용자의 브라우저에서 실행하는 공격.,vibe-v2,테스트·품질·보안,2,False,cross-site-scripting,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0398,CSRF,cross-site request forgery,로그인된 사용자의 권한으로 원치 않는 요청을 보내게 만드는 공격.,vibe-v2,테스트·품질·보안,3,False,cross-site-request-forgery,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0399,경로 순회,path traversal,파일 경로 조작으로 허용되지 않은 파일에 접근하는 공격.,vibe-v2,테스트·품질·보안,3,False,path-traversal,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0400,명령어 인젝션,command injection,사용자 입력을 통해 서버 운영체제 명령을 실행시키는 공격.,vibe-v2,테스트·품질·보안,3,False,command-injection,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0401,비밀정보 노출,secret exposure,API 키·토큰·비밀번호가 코드나 로그에 공개되는 보안 사고.,vibe-v2,테스트·품질·보안,2,True,secret-exposure,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0402,암호화,encryption,키를 가진 사람만 읽을 수 있도록 데이터를 변환하는 기술.,vibe-v2,테스트·품질·보안,2,False,encryption,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0403,단방향 해시,one-way hash,원본 복원이 어렵게 데이터를 고정 길이 값으로 변환하는 방식.,vibe-v2,테스트·품질·보안,2,False,one-way-hash,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0404,비밀번호 솔트,password salt,같은 비밀번호도 다른 해시가 나오게 추가하는 무작위 값.,vibe-v2,테스트·품질·보안,3,False,password-salt,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0405,다중 요소 인증,multi-factor authentication,비밀번호 외에 기기·생체 등 다른 확인 요소를 함께 요구하는 인증.,vibe-v2,테스트·품질·보안,2,False,multi-factor-authentication,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0406,앱 패키지 이름,application ID,안드로이드에서 앱을 전 세계적으로 유일하게 식별하는 문자열.,vibe-v2,모바일·앱 출시,2,True,application-id,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0407,번들 식별자,bundle identifier,애플 플랫폼에서 앱을 유일하게 식별하는 문자열.,vibe-v2,모바일·앱 출시,2,False,bundle-identifier,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0408,버전 이름,version name,사용자에게 보이는 1.2.0 같은 앱 버전 문자열.,vibe-v2,모바일·앱 출시,1,False,version-name,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0409,서명 키,signing key,앱 배포 파일에 전자 서명을 만드는 비밀 개인 키.,vibe-v2,모바일·앱 출시,2,True,signing-key,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0410,프로비저닝 프로파일,provisioning profile,iOS 앱의 서명·기기·권한 정보를 연결하는 배포 설정 파일.,vibe-v2,모바일·앱 출시,3,False,provisioning-profile,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0411,디버그 빌드,debug build,로그와 디버깅 기능을 포함해 개발 중 사용하는 앱 빌드.,vibe-v2,모바일·앱 출시,1,False,debug-build,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0412,릴리스 빌드,release build,최적화와 서명을 적용해 사용자 배포에 사용하는 앱 빌드.,vibe-v2,모바일·앱 출시,1,True,release-build,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0413,내부 테스트,internal testing,개발팀과 소수 테스터에게 빠르게 배포하는 스토어 테스트 단계.,vibe-v2,모바일·앱 출시,2,False,internal-testing,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0414,오픈 테스트,open testing,참여 링크나 스토어를 통해 넓은 사용자에게 공개하는 테스트 단계.,vibe-v2,모바일·앱 출시,2,False,open-testing,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0415,단계적 출시,staged rollout,새 버전을 일부 사용자부터 시작해 비율을 늘리며 배포하는 방식.,vibe-v2,모바일·앱 출시,2,True,staged-rollout,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0416,스토어 심사,store review,앱과 메타데이터가 스토어 정책을 지키는지 확인하는 절차.,vibe-v2,모바일·앱 출시,1,False,store-review,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0417,스토어 메타데이터,store metadata,앱 이름·설명·스크린샷·카테고리처럼 스토어에 표시되는 정보.,vibe-v2,모바일·앱 출시,2,False,store-metadata,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0418,개인정보 처리방침,privacy policy,수집하는 개인정보와 이용·보관·삭제 방법을 공개한 문서.,vibe-v2,모바일·앱 출시,1,True,privacy-policy,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0419,콘텐츠 등급,content rating,앱 내용에 따라 적합한 사용자 연령을 분류한 등급.,vibe-v2,모바일·앱 출시,2,False,content-rating,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0420,권한 선언,permission declaration,앱이 카메라·위치 같은 시스템 기능을 사용한다고 등록하는 설정.,vibe-v2,모바일·앱 출시,2,False,permission-declaration,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0421,런타임 권한,runtime permission,앱 실행 중 민감 기능을 쓰기 전에 사용자에게 요청하는 권한.,vibe-v2,모바일·앱 출시,2,True,runtime-permission,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0422,유니버설 링크,universal link,웹 URL을 iOS 앱의 특정 화면과 안전하게 연결하는 방식.,vibe-v2,모바일·앱 출시,3,False,universal-link,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0423,앱 링크,Android App Links,검증된 웹 도메인 URL을 안드로이드 앱 화면과 연결하는 방식.,vibe-v2,모바일·앱 출시,3,False,android-app-links,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0424,푸시 토큰,push token,푸시 서비스가 특정 앱 설치 기기를 식별하는 값.,vibe-v2,모바일·앱 출시,2,False,push-token,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0425,알림 채널,notification channel,안드로이드에서 알림 종류별 중요도와 소리 설정을 묶는 단위.,vibe-v2,모바일·앱 출시,2,False,notification-channel,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0426,백그라운드 제한,background restriction,배터리 보호를 위해 앱의 뒤쪽 실행을 제한하는 운영체제 정책.,vibe-v2,모바일·앱 출시,3,False,background-restriction,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0427,앱 생명주기 이벤트,app lifecycle event,시작·중지·백그라운드 전환 등 앱 상태 변화 알림.,vibe-v2,모바일·앱 출시,2,False,app-lifecycle-event,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0428,화면 회전,orientation change,세로와 가로 전환으로 화면 크기와 구성이 바뀌는 사건.,vibe-v2,모바일·앱 출시,2,False,orientation-change,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0429,안전 영역,safe area,노치·상태바·홈 인디케이터에 가리지 않는 콘텐츠 표시 영역.,vibe-v2,모바일·앱 출시,2,True,safe-area,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0430,윈도 인셋,window insets,시스템 바와 키보드가 차지하는 화면 여백 정보.,vibe-v2,모바일·앱 출시,3,False,window-insets,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0431,적응형 레이아웃,adaptive layout,창 크기·자세·입력 방식에 맞춰 구조 자체를 바꾸는 화면 설계.,vibe-v2,모바일·앱 출시,2,True,adaptive-layout,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0432,폴더블 자세,foldable posture,접힘·책 모드·테이블탑처럼 폴더블 기기의 물리적 상태.,vibe-v2,모바일·앱 출시,3,False,foldable-posture,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0433,앱 크래시율,crash-free users,크래시 없이 앱을 사용한 사용자 비율로 보는 안정성 지표.,vibe-v2,모바일·앱 출시,2,False,crash-free-users,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0434,ANR,Application Not Responding,안드로이드 메인 스레드가 오래 막혀 앱이 응답하지 않는 상태.,vibe-v2,모바일·앱 출시,3,False,application-not-responding,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0435,콜드 스타트,cold start,앱 프로세스가 없는 상태에서 처음 화면을 띄우는 시작 과정.,vibe-v2,모바일·앱 출시,2,False,cold-start,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0436,정보 구조,information architecture,콘텐츠와 기능을 사용자가 찾기 쉽게 분류하고 연결한 구조.,vibe-v2,UX·UI·제품·학습게임,2,True,information-architecture,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0437,시각적 위계,visual hierarchy,크기·색·간격으로 무엇을 먼저 봐야 하는지 알려주는 구성.,vibe-v2,UX·UI·제품·학습게임,1,True,visual-hierarchy,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0438,어포던스,affordance,요소의 생김새가 눌러짐·드래그됨 같은 사용 방법을 암시하는 성질.,vibe-v2,UX·UI·제품·학습게임,2,False,affordance,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0439,피드백,interaction feedback,사용자의 행동이 인식되고 처리되었음을 시각·소리·진동으로 알려주는 반응.,vibe-v2,UX·UI·제품·학습게임,1,True,interaction-feedback,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0440,마이크로인터랙션,microinteraction,좋아요·완료처럼 하나의 작은 행동을 즐겁고 명확하게 만드는 반응.,vibe-v2,UX·UI·제품·학습게임,2,True,microinteraction,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0441,모션 디자인,motion design,이동·전환·속도를 이용해 상태 변화와 관계를 설명하는 디자인.,vibe-v2,UX·UI·제품·학습게임,2,False,motion-design,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0442,감속 모션,easing,애니메이션 속도를 자연스럽게 가속·감속시키는 시간 곡선.,vibe-v2,UX·UI·제품·학습게임,3,False,easing,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0443,모션 감소,reduced motion,어지러움과 집중 문제를 줄이도록 큰 애니메이션을 최소화하는 접근성 설정.,vibe-v2,UX·UI·제품·학습게임,2,True,reduced-motion,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0444,터치 타깃,touch target,사용자가 손가락으로 안정적으로 누를 수 있도록 확보한 상호작용 영역.,vibe-v2,UX·UI·제품·학습게임,1,True,touch-target,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0445,색상 대비,color contrast,글자와 배경을 구분할 수 있는 밝기 차이.,vibe-v2,UX·UI·제품·학습게임,1,True,color-contrast,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0446,대비율,contrast ratio,전경과 배경 밝기 차이를 수치로 나타낸 접근성 지표.,vibe-v2,UX·UI·제품·학습게임,2,False,contrast-ratio,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0447,스크린 리더,screen reader,화면 요소와 글자를 음성이나 점자로 읽어주는 보조 기술.,vibe-v2,UX·UI·제품·학습게임,2,False,screen-reader,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0448,접근성 라벨,accessibility label,아이콘이나 컨트롤의 의미를 보조 기술에 전달하는 설명.,vibe-v2,UX·UI·제품·학습게임,2,False,accessibility-label,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0449,초점 순서,focus order,키보드나 보조 기술로 이동할 때 요소가 선택되는 순서.,vibe-v2,UX·UI·제품·학습게임,2,False,focus-order,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0450,동적 글자 크기,dynamic type,사용자 시스템 글자 크기 설정에 맞춰 앱 텍스트가 커지는 기능.,vibe-v2,UX·UI·제품·학습게임,2,False,dynamic-type,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0451,국제화,internationalization,여러 언어와 지역 형식을 지원할 수 있게 코드를 준비하는 작업.,vibe-v2,UX·UI·제품·학습게임,2,False,internationalization,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0452,현지화,localization,특정 언어와 지역에 맞게 번역·날짜·통화·문화 요소를 적용하는 작업.,vibe-v2,UX·UI·제품·학습게임,2,False,localization,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0453,오른쪽에서 왼쪽,right-to-left,아랍어처럼 화면 흐름과 글자가 오른쪽에서 왼쪽으로 진행되는 방향.,vibe-v2,UX·UI·제품·학습게임,3,False,right-to-left,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0454,빈 상태,empty state,표시할 데이터가 없을 때 이유와 다음 행동을 안내하는 화면 상태.,vibe-v2,UX·UI·제품·학습게임,1,True,empty-state,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0455,오류 예방,error prevention,실수하기 어려운 선택지와 검증으로 오류가 생기기 전에 막는 설계.,vibe-v2,UX·UI·제품·학습게임,2,False,error-prevention,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0456,실행 취소,undo,방금 한 작업을 이전 상태로 되돌릴 수 있는 기능.,vibe-v2,UX·UI·제품·학습게임,1,True,undo,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0457,확인 다이얼로그,confirmation dialog,삭제처럼 되돌리기 어려운 작업 전에 의도를 다시 확인하는 창.,vibe-v2,UX·UI·제품·학습게임,2,False,confirmation-dialog,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0458,점진적 공개 UX,progressive disclosure UX,처음에는 핵심만 보여주고 필요할 때 고급 기능을 펼치는 설계.,vibe-v2,UX·UI·제품·학습게임,2,True,progressive-disclosure-ux,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0459,인지 부하,cognitive load,사용자가 동시에 기억하고 판단해야 하는 정보의 부담.,vibe-v2,UX·UI·제품·학습게임,2,True,cognitive-load,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0460,선택 피로,choice overload,선택지가 너무 많아 결정이 느려지거나 포기하게 되는 현상.,vibe-v2,UX·UI·제품·학습게임,2,False,choice-overload,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0461,피츠의 법칙,Fitts’s law,대상이 크고 가까울수록 더 빠르고 쉽게 누를 수 있다는 법칙.,vibe-v2,UX·UI·제품·학습게임,3,False,fitts-s-law,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0462,힉의 법칙,Hick’s law,선택지가 많고 복잡할수록 결정 시간이 길어진다는 법칙.,vibe-v2,UX·UI·제품·학습게임,3,False,hick-s-law,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0463,제이콥의 법칙,Jakob’s law,사용자는 다른 앱에서 익힌 방식대로 새 앱도 동작하기를 기대한다는 원칙.,vibe-v2,UX·UI·제품·학습게임,3,False,jakob-s-law,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0464,온보딩 체크리스트,onboarding checklist,처음 사용자가 핵심 행동을 순서대로 완료하도록 안내하는 목록.,vibe-v2,UX·UI·제품·학습게임,2,False,onboarding-checklist,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0465,코치 마크,coach mark,처음 보는 기능 위에 짧게 사용법을 표시하는 안내 요소.,vibe-v2,UX·UI·제품·학습게임,2,False,coach-mark,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0466,툴팁,tooltip,요소에 대한 짧은 설명을 일시적으로 보여주는 작은 팝업.,vibe-v2,UX·UI·제품·학습게임,1,False,tooltip,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0467,사용자 여정,user journey,사용자가 목표를 달성하기까지 겪는 단계·감정·접점을 정리한 흐름.,vibe-v2,UX·UI·제품·학습게임,2,False,user-journey,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0468,퍼널,funnel,시작부터 가입·완료·결제까지 단계별 사용자 감소를 보는 분석 구조.,vibe-v2,UX·UI·제품·학습게임,2,True,funnel,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0469,전환율,conversion rate,특정 행동을 완료한 사용자의 비율.,vibe-v2,UX·UI·제품·학습게임,1,False,conversion-rate,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0470,활성 사용자,active user,정의된 기간에 의미 있는 행동을 한 사용자.,vibe-v2,UX·UI·제품·학습게임,1,False,active-user,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0471,DAU,daily active users,하루 동안 앱에서 의미 있는 활동을 한 고유 사용자 수.,vibe-v2,UX·UI·제품·학습게임,2,False,daily-active-users,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0472,MAU,monthly active users,한 달 동안 앱에서 의미 있는 활동을 한 고유 사용자 수.,vibe-v2,UX·UI·제품·학습게임,2,False,monthly-active-users,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0473,고착도,stickiness,사용자가 월간 사용 중 얼마나 자주 일간 사용으로 돌아오는지 보는 지표.,vibe-v2,UX·UI·제품·학습게임,3,False,stickiness,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0474,코호트,cohort,가입일이나 행동처럼 같은 특성을 가진 사용자 집단.,vibe-v2,UX·UI·제품·학습게임,2,False,cohort,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0475,A/B 테스트,A/B test,두 버전을 무작위 사용자에게 보여주고 지표 차이를 비교하는 실험.,vibe-v2,UX·UI·제품·학습게임,2,True,a-b-test,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0476,가설,product hypothesis,특정 변화가 사용자 행동과 지표를 개선할 것이라는 검증 가능한 예상.,vibe-v2,UX·UI·제품·학습게임,1,False,product-hypothesis,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0477,북극성 지표,north star metric,제품이 사용자에게 제공하는 핵심 가치를 대표하는 장기 지표.,vibe-v2,UX·UI·제품·학습게임,3,False,north-star-metric,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0478,가드레일 지표,guardrail metric,주요 지표 개선 과정에서 악화되면 안 되는 안전 지표.,vibe-v2,UX·UI·제품·학습게임,3,False,guardrail-metric,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0479,게임화,gamification,게임이 아닌 활동에 목표·보상·진행 요소를 적용하는 설계.,vibe-v2,UX·UI·제품·학습게임,1,True,gamification,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0480,게임 기반 학습,game-based learning,학습 내용 자체를 게임 규칙과 플레이 안에 넣는 교육 방식.,vibe-v2,UX·UI·제품·학습게임,2,True,game-based-learning,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0481,경험치,experience points,학습 행동의 누적 진행도를 숫자로 보여주는 보상.,vibe-v2,UX·UI·제품·학습게임,1,False,experience-points,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0482,레벨,player level,누적 경험치나 숙련도에 따라 올라가는 장기 진행 단계.,vibe-v2,UX·UI·제품·학습게임,1,False,player-level,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0483,연속 학습,learning streak,정해진 기간 동안 학습을 이어간 연속 기록.,vibe-v2,UX·UI·제품·학습게임,1,False,learning-streak,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0484,스트릭 보호,streak freeze,하루 학습을 놓쳐도 제한적으로 연속 기록을 유지해 주는 기능.,vibe-v2,UX·UI·제품·학습게임,2,False,streak-freeze,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0485,보석 재화,gems,학습 완료로 얻고 꾸미기나 힌트에 사용하는 게임 내 보상 재화.,vibe-v2,UX·UI·제품·학습게임,1,False,gems,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0486,수집 도감,collection book,배운 용어·배지·캐릭터를 모아 진행 상황을 시각화하는 화면.,vibe-v2,UX·UI·제품·학습게임,2,False,collection-book,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0487,퀘스트,quest,분명한 목표와 보상이 있는 짧은 학습 과제.,vibe-v2,UX·UI·제품·학습게임,1,True,quest,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0488,일일 미션,daily mission,매일 새로 제공되는 짧은 학습 목표.,vibe-v2,UX·UI·제품·학습게임,1,False,daily-mission,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0489,보스 스테이지,boss stage,여러 유형의 문제를 연속으로 풀어 단원 숙련을 확인하는 특별 단계.,vibe-v2,UX·UI·제품·학습게임,2,False,boss-stage,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0490,콤보,combo,연속 정답에 따라 보상과 피드백이 커지는 진행 장치.,vibe-v2,UX·UI·제품·학습게임,1,False,combo,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0491,퍼펙트 보너스,perfect bonus,한 세트를 틀리지 않고 마쳤을 때 주는 추가 보상.,vibe-v2,UX·UI·제품·학습게임,1,False,perfect-bonus,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0492,보상 예측 가능성,reward predictability,학습 행동과 보상의 관계를 사용자가 이해할 수 있는 정도.,vibe-v2,UX·UI·제품·학습게임,3,False,reward-predictability,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0493,루트박스,loot box,무작위 보상을 상자 형태로 제공하는 시스템으로 유료 사용 시 주의가 필요한 구조.,vibe-v2,UX·UI·제품·학습게임,2,False,loot-box,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0494,숙련도,mastery,특정 용어를 정확히 기억하고 상황에 맞게 사용할 수 있는 정도.,vibe-v2,UX·UI·제품·학습게임,1,True,mastery,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0495,숙달 학습,mastery learning,기준에 도달할 때까지 보충과 재도전을 반복한 뒤 다음 단계로 가는 방식.,vibe-v2,UX·UI·제품·학습게임,2,True,mastery-learning,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0496,인출 연습,retrieval practice,정답을 다시 읽기보다 기억에서 직접 꺼내 답하며 학습하는 방법.,vibe-v2,UX·UI·제품·학습게임,2,True,retrieval-practice,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0497,간격 반복,spaced repetition,복습 간격을 점차 늘려 장기 기억을 강화하는 학습 방법.,vibe-v2,UX·UI·제품·학습게임,2,True,spaced-repetition,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0498,교차 학습,interleaving,비슷한 주제와 문제 유형을 섞어 구별하고 적용하는 힘을 높이는 방법.,vibe-v2,UX·UI·제품·학습게임,3,False,interleaving,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0499,적응형 난이도,adaptive difficulty,정답률·속도·자신감에 따라 다음 문제 난이도를 조절하는 기능.,vibe-v2,UX·UI·제품·학습게임,2,True,adaptive-difficulty,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
+new-0500,힌트 사다리,hint ladder,작은 단서부터 정답에 가까운 단서까지 단계적으로 제공하는 힌트 구조.,vibe-v2,UX·UI·제품·학습게임,2,True,hint-ladder,OpenAI·Anthropic·MCP·GitHub·Android·Apple·MDN 등 공식 문서 기반 한글 재작성,True,reviewed-2026-07
