@@ -541,15 +541,57 @@ planRoutes.get("/projects/:id/export", async (c) => {
 // 이유: @anthropic-ai/sdk 를 번들하면 워커 gzip 이 ~514KB 늘어 무료 플랜 1MB 한도의
 // 절반을 차지하고(CLAUDE.md 12-1), SDK 의 agent-toolset 이 node:stream 을 끌어온다.
 // 여기서 쓰는 건 Messages API 단일 엔드포인트뿐이라 raw fetch 로 충분하다.
-const AI_MODEL = "claude-opus-5";
 const ANTHROPIC_VERSION = "2023-06-01";
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
+const ANTHROPIC_MODELS_URL = "https://api.anthropic.com/v1/models?limit=100";
 const PROMPT_VERSION = "structurer-0.1.0";
+
+// 사용자 키마다 쓸 수 있는 모델이 다르다(권한·요금제). 고정하면 403이 나므로
+// 키로 모델 목록을 조회해 이 선호 순서대로 고른다.
+const MODEL_PREFERENCE = [
+  "claude-opus-5",
+  "claude-sonnet-5",
+  "claude-opus-4-8",
+  "claude-sonnet-4-6",
+  "claude-haiku-4-5",
+];
 
 type AnthropicMessage = {
   content: { type: string; text?: string }[];
   stop_reason: string | null;
 };
+
+/** 업스트림 오류 본문에서 사람이 읽을 수 있는 사유를 뽑는다 (크레딧 부족 등) */
+async function upstreamReason(res: Response): Promise<string> {
+  try {
+    const body = (await res.json()) as { error?: { message?: string } };
+    return (body.error?.message ?? "").slice(0, 300);
+  } catch {
+    return "";
+  }
+}
+
+/** 이 키가 실제로 쓸 수 있는 모델 하나를 고른다. */
+async function pickModel(
+  apiKey: string,
+): Promise<{ model: string } | { errorCode: string; status: 401 | 403 | 502 }> {
+  const res = await fetch(ANTHROPIC_MODELS_URL, {
+    headers: { "anthropic-version": ANTHROPIC_VERSION, "x-api-key": apiKey },
+  });
+  if (!res.ok) {
+    if (res.status === 401) return { errorCode: "api_key_invalid", status: 401 };
+    if (res.status === 403) return { errorCode: "api_key_forbidden", status: 403 };
+    const reason = await upstreamReason(res);
+    return { errorCode: reason ? `ai_upstream:${reason}` : `ai_error_${res.status}`, status: 502 };
+  }
+  const body = (await res.json()) as { data?: { id: string }[] };
+  const ids = new Set((body.data ?? []).map((m) => m.id));
+  for (const m of MODEL_PREFERENCE) if (ids.has(m)) return { model: m };
+  // 선호 목록에 없으면 이 키가 가진 아무 claude 모델이라도 쓴다
+  const fallback = (body.data ?? []).find((m) => m.id.startsWith("claude"));
+  if (fallback) return { model: fallback.id };
+  return { errorCode: "no_model_available", status: 403 };
+}
 
 // 사용자 원문은 지시문과 같은 평면에 두지 않는다. 태그로 감싼 데이터로만 넘긴다.
 const OPEN_TAG = "<사용자_원문>";
@@ -674,6 +716,11 @@ planRoutes.post("/projects/:id/ai/structure", async (c) => {
     "위 데이터를 스키마에 맞춰 구조화하십시오.",
   ].join("\n");
 
+  // 이 키가 쓸 수 있는 모델을 먼저 확인한다 (모델을 고정하면 권한 없는 키에서 403)
+  const picked = await pickModel(apiKey);
+  if ("errorCode" in picked) return c.json(err(picked.errorCode), picked.status);
+  const model = picked.model;
+
   let draft: Record<string, unknown>;
   try {
     const upstream = await fetch(ANTHROPIC_URL, {
@@ -684,8 +731,9 @@ planRoutes.post("/projects/:id/ai/structure", async (c) => {
         "x-api-key": apiKey,
       },
       body: JSON.stringify({
-        model: AI_MODEL,
-        max_tokens: 8000,
+        model,
+        // 사고 토큰과 응답이 max_tokens 를 함께 쓴다. 8000이면 긴 원문에서 잘릴 수 있어 넉넉히 둔다.
+        max_tokens: 16000,
         thinking: { type: "adaptive" },
         output_config: {
           effort: "medium",
@@ -699,9 +747,13 @@ planRoutes.post("/projects/:id/ai/structure", async (c) => {
 
     if (!upstream.ok) {
       if (upstream.status === 401) return c.json(err("api_key_invalid"), 401);
-      if (upstream.status === 403) return c.json(err("api_key_forbidden"), 403);
       if (upstream.status === 429) return c.json(err("api_rate_limited"), 429);
-      return c.json(err(`ai_error_${upstream.status}`), 502);
+      // 크레딧 부족 같은 실제 사유를 그대로 보여준다. 코드만 주면 원인을 알 수 없다.
+      const reason = await upstreamReason(upstream);
+      return c.json(
+        err(reason ? `ai_upstream:${reason}` : `ai_error_${upstream.status}`),
+        upstream.status === 403 ? 403 : 502,
+      );
     }
 
     const response = (await upstream.json()) as AnthropicMessage;
@@ -718,13 +770,7 @@ planRoutes.post("/projects/:id/ai/structure", async (c) => {
   }
 
   // 초안은 사용자가 승인하기 전까지 저장하지 않는다. 화면에서 확인 후 저장을 누르면 PATCH 로 반영된다.
-  return c.json(
-    ok({
-      model: AI_MODEL,
-      promptVersion: PROMPT_VERSION,
-      draft,
-    }),
-  );
+  return c.json(ok({ model, promptVersion: PROMPT_VERSION, draft }));
 });
 
 /** AI 초안을 채택했을 때 표기용 기록만 남긴다 (판정에는 쓰이지 않음) */
@@ -738,9 +784,13 @@ planRoutes.post("/projects/:id/ai/applied", async (c) => {
   const project = await ownedProject(db, id, user.id);
   if (!project) return c.json(err("not_found"), 404);
 
+  const body = await c.req.json().catch(() => null);
+  const parsed = z.object({ model: z.string().trim().max(60).optional() }).safeParse(body ?? {});
+  const model = parsed.success && parsed.data.model ? parsed.data.model : "unknown";
+
   await db
     .update(planProjects)
-    .set({ aiAssistedAt: new Date(), aiModel: AI_MODEL, updatedAt: new Date() })
+    .set({ aiAssistedAt: new Date(), aiModel: model, updatedAt: new Date() })
     .where(eq(planProjects.id, id));
   return c.json(ok({ ok: true }));
 });
