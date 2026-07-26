@@ -7,6 +7,7 @@ import {
   planAi,
   setPlanApiKey,
   PLAN_AI_ERROR_MESSAGE,
+  PLAN_AI_FORBIDDEN_HINTS,
   PLAN_PIVOT_LABEL,
   PLAN_STAGE_LABEL,
   type Me,
@@ -39,7 +40,11 @@ export default function AppPlan({ me, meLoading }: { me: Me; meLoading: boolean 
   const [keySaved, setKeySaved] = useState(false);
   const [stageFilter, setStageFilter] = useState<PlanStage | "ALL">("ALL");
   const [checking, setChecking] = useState(false);
-  const [checkResult, setCheckResult] = useState<{ ok: boolean; text: string } | null>(null);
+  const [checkResult, setCheckResult] = useState<{
+    ok: boolean;
+    text: string;
+    hints?: string[];
+  } | null>(null);
 
   const isMember = Boolean(me);
 
@@ -113,7 +118,13 @@ export default function AppPlan({ me, meLoading }: { me: Me; meLoading: boolean 
           : "키는 유효하지만 쓸 수 있는 모델이 없습니다. Anthropic 콘솔에서 결제·권한을 확인해 주세요.",
       });
     } else if (res.error.startsWith("ai_upstream:")) {
-      setCheckResult({ ok: false, text: `Anthropic 응답 — ${res.error.slice("ai_upstream:".length)}` });
+      const detail = res.error.slice("ai_upstream:".length);
+      setCheckResult({
+        ok: false,
+        text: `Anthropic 응답 — ${detail}`,
+        // 403 은 원인이 여러 개라 점검 목록을 함께 보여준다
+        hints: detail.includes("403") ? PLAN_AI_FORBIDDEN_HINTS : undefined,
+      });
     } else {
       setCheckResult({
         ok: false,
@@ -227,6 +238,16 @@ export default function AppPlan({ me, meLoading }: { me: Me; meLoading: boolean 
                 }`}
               >
                 <p className="break-words">{checkResult.text}</p>
+                {checkResult.hints && (
+                  <>
+                    <p className="mt-2 text-xs font-semibold">이 순서로 확인해 보세요</p>
+                    <ol className="mt-1 list-decimal space-y-0.5 pl-5 text-xs">
+                      {checkResult.hints.map((h, i) => (
+                        <li key={i}>{h}</li>
+                      ))}
+                    </ol>
+                  </>
+                )}
               </div>
             )}
             <p className="mt-2 text-xs text-muted">

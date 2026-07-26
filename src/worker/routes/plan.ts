@@ -699,6 +699,8 @@ planRoutes.post("/ai/check", async (c) => {
   const apiKey = c.req.header("x-anthropic-key")?.trim();
   if (!apiKey) return c.json(err("api_key_required"), 400);
   if (!apiKey.startsWith("sk-ant-")) return c.json(err("invalid_api_key_format"), 400);
+  // 조직 관리용 키(sk-ant-admin-)는 모델 호출 권한이 없어 403 Request not allowed 가 난다
+  if (apiKey.startsWith("sk-ant-admin")) return c.json(err("admin_key_not_usable"), 400);
 
   const res = await fetch(ANTHROPIC_MODELS_URL, {
     headers: { "anthropic-version": ANTHROPIC_VERSION, "x-api-key": apiKey },
@@ -727,6 +729,7 @@ planRoutes.post("/projects/:id/ai/structure", async (c) => {
   const apiKey = c.req.header("x-anthropic-key")?.trim();
   if (!apiKey) return c.json(err("api_key_required"), 400);
   if (!apiKey.startsWith("sk-ant-")) return c.json(err("invalid_api_key_format"), 400);
+  if (apiKey.startsWith("sk-ant-admin")) return c.json(err("admin_key_not_usable"), 400);
 
   const project = await ownedProject(db, id, user.id);
   if (!project) return c.json(err("not_found"), 404);
