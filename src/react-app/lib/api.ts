@@ -559,6 +559,10 @@ export const PLAN_AI_ERROR_MESSAGE: Record<string, string> = {
   invalid_api_key_format: "Anthropic API 키 형식이 아닙니다. sk-ant- 로 시작해야 합니다.",
   api_key_invalid: "API 키가 유효하지 않습니다. Anthropic 콘솔에서 다시 확인해 주세요.",
   api_key_forbidden: "이 API 키로는 호출이 허용되지 않습니다.",
+  oauth_token_not_usable:
+    "이건 Claude Code·claude.ai 로그인 토큰(sk-ant-oat…)이라 API 호출에 쓸 수 없습니다. console.anthropic.com → API Keys 에서 sk-ant-api… 키를 새로 만들어 주세요.",
+  session_key_not_usable:
+    "이건 브라우저 세션 키(sk-ant-sid…)라 API 호출에 쓸 수 없습니다. console.anthropic.com → API Keys 에서 sk-ant-api… 키를 새로 만들어 주세요.",
   admin_key_not_usable:
     "조직 관리용 키(sk-ant-admin-)는 모델을 호출할 수 없습니다. Console → API Keys 에서 일반 API 키를 새로 만들어 주세요.",
   no_model_available: "키는 유효하지만 사용 가능한 모델이 없습니다. 결제·권한을 확인해 주세요.",

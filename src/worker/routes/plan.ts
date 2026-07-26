@@ -611,6 +611,20 @@ async function candidateModels(
   return { models };
 }
 
+/** 키 종류를 접두사로 판별한다.
+ *
+ * sk-ant- 로 시작하는 문자열이 전부 API 키인 것은 아니다. Claude Code·claude.ai
+ * 로그인으로 발급되는 OAuth 토큰(sk-ant-oat…)이나 세션 키(sk-ant-sid…)를
+ * x-api-key 로 보내면 403 Request not allowed 가 나는데 원인을 알기 어렵다.
+ */
+function classifyKey(key: string): { ok: true } | { ok: false; code: string } {
+  if (!key.startsWith("sk-ant-")) return { ok: false, code: "invalid_api_key_format" };
+  if (key.startsWith("sk-ant-admin")) return { ok: false, code: "admin_key_not_usable" };
+  if (key.startsWith("sk-ant-oat")) return { ok: false, code: "oauth_token_not_usable" };
+  if (key.startsWith("sk-ant-sid")) return { ok: false, code: "session_key_not_usable" };
+  return { ok: true };
+}
+
 /** 모델을 바꾸면 통할 수 있는 실패인가 (권한 없음 / 없는 모델 / 미지원 파라미터) */
 function shouldTryNextModel(status: number, reason: string): boolean {
   if (status === 403 || status === 404) return true;
@@ -714,9 +728,8 @@ function block(label: string, value: string | null | undefined): string {
 planRoutes.post("/ai/check", async (c) => {
   const apiKey = c.req.header("x-anthropic-key")?.trim();
   if (!apiKey) return c.json(err("api_key_required"), 400);
-  if (!apiKey.startsWith("sk-ant-")) return c.json(err("invalid_api_key_format"), 400);
-  // 조직 관리용 키(sk-ant-admin-)는 모델 호출 권한이 없어 403 Request not allowed 가 난다
-  if (apiKey.startsWith("sk-ant-admin")) return c.json(err("admin_key_not_usable"), 400);
+  const kind = classifyKey(apiKey);
+  if (!kind.ok) return c.json(err(kind.code), 400);
 
   const res = await fetch(ANTHROPIC_MODELS_URL, {
     headers: { "anthropic-version": ANTHROPIC_VERSION, "x-api-key": apiKey },
@@ -724,7 +737,7 @@ planRoutes.post("/ai/check", async (c) => {
   if (!res.ok) {
     const reason = await upstreamReason(res);
     return c.json(
-      err(reason ? `ai_upstream:[HTTP ${res.status}] ${reason}` : `ai_error_${res.status}`),
+      err(`ai_upstream:모델 목록 조회 단계에서 실패 — [HTTP ${res.status}] ${reason || "사유 없음"}`),
       res.status === 401 ? 401 : res.status === 403 ? 403 : 502,
     );
   }
@@ -755,7 +768,13 @@ planRoutes.post("/ai/check", async (c) => {
     lastError = `[HTTP ${probe.status}] ${reason || "알 수 없는 오류"}`;
     if (!shouldTryNextModel(probe.status, reason)) break;
   }
-  return c.json(err(`ai_upstream:${lastError || "호출 가능한 모델을 찾지 못했습니다"}`), 502);
+  // 여기까지 왔다면 모델 목록 조회는 됐는데 실제 호출이 전부 막힌 것이다
+  return c.json(
+    err(
+      `ai_upstream:모델 목록(${models.length}개) 조회는 됐지만 실제 호출이 모두 거부됨 — ${lastError || "사유 없음"}`,
+    ),
+    502,
+  );
 });
 
 planRoutes.post("/projects/:id/ai/structure", async (c) => {
@@ -768,8 +787,8 @@ planRoutes.post("/projects/:id/ai/structure", async (c) => {
   // 사용자가 브라우저에서 직접 입력한 본인 키. 서버는 저장하지 않고 이 요청에만 쓴다.
   const apiKey = c.req.header("x-anthropic-key")?.trim();
   if (!apiKey) return c.json(err("api_key_required"), 400);
-  if (!apiKey.startsWith("sk-ant-")) return c.json(err("invalid_api_key_format"), 400);
-  if (apiKey.startsWith("sk-ant-admin")) return c.json(err("admin_key_not_usable"), 400);
+  const kind = classifyKey(apiKey);
+  if (!kind.ok) return c.json(err(kind.code), 400);
 
   const project = await ownedProject(db, id, user.id);
   if (!project) return c.json(err("not_found"), 404);
