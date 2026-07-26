@@ -55,6 +55,11 @@ const STRUCTURE_FIELDS: {
   { key: "distributionChannel", label: "유입 경로", hint: "첫 100명을 어디서 데려오는가." },
 ];
 
+// 경고의 field 값(영문 키) → 구조화 탭의 한글 라벨. 경고에서 바로 해당 칸으로 보내는 데 쓴다.
+const FIELD_LABEL: Record<string, string> = Object.fromEntries(
+  STRUCTURE_FIELDS.map((f) => [f.key as string, f.label]),
+);
+
 const RAW_FIELDS: { key: keyof PlanProject; label: string; rows: number }[] = [
   { key: "rawIdea", label: "아이디어", rows: 5 },
   { key: "targetUserRaw", label: "예상 사용자", rows: 2 },
@@ -140,6 +145,26 @@ export default function AppPlanDetail({ me }: { me: Me }) {
   const setField = useCallback((key: keyof PlanProject, value: string) => {
     setDraft((d) => ({ ...d, [key]: value }));
   }, []);
+
+  /** 경고를 눌렀을 때 구조화 탭의 해당 입력칸으로 이동해 커서를 놓는다 */
+  const focusField = useCallback((key: string) => {
+    setTab("structure");
+    // 탭이 그려진 뒤에 스크롤해야 위치가 잡힌다
+    requestAnimationFrame(() => {
+      const el = document.getElementById(`plan-field-${key}`);
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      (el as HTMLTextAreaElement | null)?.focus({ preventScroll: true });
+    });
+  }, []);
+
+  /** 필수 4칸 중 아직 비어 있는 칸 — 진단 전에 미리 알려준다 */
+  const missingRequired = useMemo(
+    () =>
+      STRUCTURE_FIELDS.filter(
+        (f) => f.required && ((draft[f.key] as string | null) ?? "").trim().length < 2,
+      ),
+    [draft],
+  );
 
   const save = useCallback(async () => {
     if (!detail) return;
@@ -324,6 +349,30 @@ export default function AppPlanDetail({ me }: { me: Me }) {
         </div>
       )}
 
+      {/* 필수 칸 안내 — 진단 엔진은 원문이 아니라 구조화 12칸만 읽는다 */}
+      {missingRequired.length > 0 && (
+        <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <p className="font-semibold">
+            아직 채우지 않은 필수 칸이 {missingRequired.length}개 있습니다
+          </p>
+          <p className="mt-1 text-xs">
+            진단은 <b>① 원문이 아니라 ② 구조화 12칸</b>을 읽습니다. 아래 칸이 비면 관련 항목이 0점이
+            되고 치명 경고가 뜹니다.
+          </p>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {missingRequired.map((f) => (
+              <button
+                key={f.key}
+                onClick={() => focusField(f.key as string)}
+                className="rounded-full bg-white px-3 py-1 text-xs font-semibold underline-offset-2 hover:underline"
+              >
+                {f.label} 적기 →
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* 최근 진단 요약 */}
       {result && (
         <section className="mb-8 rounded-2xl border border-line bg-card p-5">
@@ -481,6 +530,7 @@ export default function AppPlanDetail({ me }: { me: Me }) {
                 </span>
                 <span className="text-xs text-muted">{f.hint}</span>
                 <textarea
+                  id={`plan-field-${f.key}`}
                   value={(draft[f.key] as string | null) ?? ""}
                   onChange={(e) => setField(f.key, e.target.value)}
                   rows={f.rows ?? 1}
@@ -534,12 +584,20 @@ export default function AppPlanDetail({ me }: { me: Me }) {
                       className={`rounded-xl border px-4 py-3 text-sm ${severityTone(w.severity)}`}
                     >
                       <p className="font-semibold">
-                        [{w.severity}] {w.code}
-                        {w.field && <span className="ml-1 font-normal opacity-70">({w.field})</span>}
+                        [{w.severity === "CRITICAL" ? "치명" : w.severity === "WARN" ? "주의" : "참고"}]{" "}
+                        {w.field && FIELD_LABEL[w.field] ? FIELD_LABEL[w.field] : w.code}
                       </p>
                       <p className="mt-1">{w.message}</p>
                       {w.recommendedAction && (
                         <p className="mt-1 text-xs opacity-80">→ {w.recommendedAction}</p>
+                      )}
+                      {w.field && FIELD_LABEL[w.field] && (
+                        <button
+                          onClick={() => focusField(w.field as string)}
+                          className="mt-2 rounded-full bg-white/70 px-3 py-1 text-xs font-semibold underline-offset-2 hover:underline"
+                        >
+                          ✏️ 구조화 탭의 「{FIELD_LABEL[w.field]}」 칸에서 고치기
+                        </button>
                       )}
                     </div>
                   ))}
