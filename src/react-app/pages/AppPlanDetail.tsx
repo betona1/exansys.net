@@ -112,6 +112,8 @@ export default function AppPlanDetail({ me }: { me: Me }) {
   const [error, setError] = useState("");
   const [aiBusy, setAiBusy] = useState(false);
   const [aiDraft, setAiDraft] = useState<Record<string, string> | null>(null);
+  const [aiError, setAiError] = useState("");
+  const [aiModel, setAiModel] = useState("");
   const [aiNotes, setAiNotes] = useState<{ field: string; origin: string; reason: string }[]>([]);
   const [aiUnknowns, setAiUnknowns] = useState<string[]>([]);
 
@@ -213,11 +215,12 @@ export default function AppPlanDetail({ me }: { me: Me }) {
   const runAi = useCallback(async () => {
     const key = getPlanApiKey();
     if (!key) {
-      setError("AI 초안을 쓰려면 앱기획 목록 화면에서 본인 API 키를 먼저 저장해 주세요.");
+      setAiError("AI 초안을 쓰려면 앱기획 목록 화면에서 본인 API 키를 먼저 저장해 주세요.");
       return;
     }
     setAiBusy(true);
     setError("");
+    setAiError("");
     setAiDraft(null);
     if (dirty) await save();
     const res = await planAi<{
@@ -233,8 +236,12 @@ export default function AppPlanDetail({ me }: { me: Me }) {
       setAiDraft(fields as Record<string, string>);
       setAiNotes(notes ?? []);
       setAiUnknowns(unknowns ?? []);
+      setAiModel(res.data.model);
+    } else if (res.error.startsWith("ai_upstream:")) {
+      // Anthropic 이 알려준 실제 사유를 그대로 보여준다 (크레딧 부족 등)
+      setAiError(`Anthropic 응답: ${res.error.slice("ai_upstream:".length)}`);
     } else {
-      setError(PLAN_AI_ERROR_MESSAGE[res.error] ?? "AI 요청에 실패했습니다.");
+      setAiError(PLAN_AI_ERROR_MESSAGE[res.error] ?? `AI 요청에 실패했습니다. (${res.error})`);
     }
   }, [dirty, save, id]);
 
@@ -253,10 +260,13 @@ export default function AppPlanDetail({ me }: { me: Me }) {
         return next;
       });
       setAiDraft(null);
-      await api(`/api/plan/projects/${id}/ai/applied`, { method: "POST", body: "{}" });
+      await api(`/api/plan/projects/${id}/ai/applied`, {
+        method: "POST",
+        body: JSON.stringify({ model: aiModel }),
+      });
       setTab("structure");
     },
-    [aiDraft, id],
+    [aiDraft, aiModel, id],
   );
 
   const remove = useCallback(async () => {
@@ -443,12 +453,25 @@ export default function AppPlanDetail({ me }: { me: Me }) {
             >
               {aiBusy ? "초안 만드는 중…" : "AI로 구조화 초안 만들기"}
             </button>
+            {aiError && (
+              <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                <p className="font-semibold">AI 요청 실패</p>
+                <p className="mt-1 break-words">{aiError}</p>
+                <p className="mt-2 text-xs">
+                  키·크레딧은 console.anthropic.com → Settings 에서 확인할 수 있습니다. AI 없이 아래
+                  ② 구조화 탭을 직접 채워도 진단 결과는 동일합니다.
+                </p>
+              </div>
+            )}
           </div>
 
           {/* AI 초안 검토 */}
           {aiDraft && (
             <div className="rounded-2xl border-2 border-cobalt bg-card p-5">
-              <h3 className="text-sm font-bold">AI 초안 — 확인 후 반영하세요</h3>
+              <h3 className="text-sm font-bold">
+                AI 초안 — 확인 후 반영하세요
+                {aiModel && <span className="ml-2 text-xs font-normal text-muted">{aiModel}</span>}
+              </h3>
               <p className="mt-1 text-xs text-muted">
                 INFERRED로 표시된 칸은 원문에 없는 추측입니다. 반드시 직접 확인하세요.
               </p>
