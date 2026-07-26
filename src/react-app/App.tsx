@@ -11,6 +11,8 @@ import Privacy from "./pages/Privacy";
 import Crew from "./pages/Crew";
 import CrewDetail from "./pages/CrewDetail";
 import AppReview from "./pages/AppReview";
+import AppPlan from "./pages/AppPlan";
+import AppPlanDetail from "./pages/AppPlanDetail";
 import AiEdu from "./pages/AiEdu";
 import AiEduDetail from "./pages/AiEduDetail";
 import TechDex from "./pages/TechDex";
@@ -58,6 +60,8 @@ export default function App() {
         <Route path="/crew" element={<Crew me={me} meLoading={loading} />} />
         <Route path="/crew/:id" element={<CrewDetail me={me} />} />
         <Route path="/appreview" element={<AppReview me={me} meLoading={loading} />} />
+        <Route path="/app-plan" element={<AppPlan me={me} meLoading={loading} />} />
+        <Route path="/app-plan/:id" element={<AppPlanDetail me={me} />} />
         <Route path="/ai-edu" element={<AiEdu me={me} />} />
         <Route path="/ai-edu/:id" element={<AiEduDetail me={me} />} />
         <Route path="/techdex" element={<TechDex me={me} />} />

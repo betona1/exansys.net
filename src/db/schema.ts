@@ -315,3 +315,100 @@ export const techdexSuggestions = sqliteTable(
   },
   (t) => [index("idx_techdex_sugg_status").on(t.status)],
 );
+
+// ─────────────────────────────────────────────────────────────
+// 앱기획 (AppCompass) — 아이디어 단위로 저장, 작성자 본인만 열람/수정
+// 규칙 엔진(src/worker/lib/plan-engine.ts)이 점수·신뢰도·피벗을 계산한다.
+// AI는 구조화 초안만 돕고 판정에는 관여하지 않는다.
+// ─────────────────────────────────────────────────────────────
+
+// 아이디어 1건 = 앱기획 프로젝트 1건 (원문 7칸 + 구조화 12칸을 함께 보관)
+export const planProjects = sqliteTable(
+  "plan_projects",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id),
+    appName: text("app_name").notNull(),
+    stage: text("stage").notNull().default("IDEA"), // IDEA|RESEARCH|PROTOTYPE|MVP|LIVE|PAUSED|ARCHIVED
+    status: text("status").notNull().default("ACTIVE"), // ACTIVE|ARCHIVED
+
+    // A단계 — 사용자가 쓴 원문. 이후 단계에서 절대 덮어쓰지 않는다.
+    rawIdea: text("raw_idea"),
+    targetUserRaw: text("target_user_raw"),
+    problemRaw: text("problem_raw"),
+    solutionRaw: text("solution_raw"),
+    revenueModelRaw: text("revenue_model_raw"),
+    distributionChannelRaw: text("distribution_channel_raw"),
+
+    // B단계 — 구조화 12칸
+    targetUser: text("target_user"),
+    payer: text("payer"),
+    influencer: text("influencer"),
+    problemSituation: text("problem_situation"),
+    currentSolution: text("current_solution"),
+    currentSolutionProblem: text("current_solution_problem"),
+    coreAction: text("core_action"),
+    expectedResult: text("expected_result"),
+    firstSuccess: text("first_success"),
+    retentionReason: text("retention_reason"),
+    revenueModel: text("revenue_model"),
+    distributionChannel: text("distribution_channel"),
+
+    // AI 초안 표기용 (판정에는 쓰지 않음)
+    aiAssistedAt: integer("ai_assisted_at", { mode: "timestamp" }),
+    aiModel: text("ai_model"),
+
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+  },
+  (t) => [index("idx_plan_projects_user").on(t.userId, t.status)],
+);
+
+// 근거 — 사람이 등록한 것만 존재한다 (AI는 근거를 만들지 않는다)
+export const planEvidence = sqliteTable(
+  "plan_evidence",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    projectId: integer("project_id")
+      .notNull()
+      .references(() => planProjects.id),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id),
+    evidenceType: text("evidence_type").notNull(), // FOUNDER_ASSUMPTION|DESK_RESEARCH|USER_INTERVIEW|PROTOTYPE_TEST|BEHAVIOR_DATA|EXPERT_REVIEW
+    title: text("title").notNull(),
+    summary: text("summary"),
+    sourceReference: text("source_reference"),
+    sampleSize: integer("sample_size"),
+    confidenceOverride: real("confidence_override"),
+    supports: text("supports").notNull().default("[]"), // JSON: DimensionCode[]
+    contradicts: text("contradicts").notNull().default("[]"), // JSON: DimensionCode[]
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  },
+  (t) => [index("idx_plan_evidence_project").on(t.projectId)],
+);
+
+// 진단 실행 스냅샷 — 같은 입력이면 같은 결과가 나오도록 엔진/정책 버전을 함께 남긴다
+export const planAnalyses = sqliteTable(
+  "plan_analyses",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    projectId: integer("project_id")
+      .notNull()
+      .references(() => planProjects.id),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id),
+    totalScore: real("total_score").notNull(),
+    overallConfidence: real("overall_confidence").notNull(),
+    decision: text("decision").notNull(),
+    wouldBeDecision: text("would_be_decision"),
+    engineVersion: text("engine_version").notNull(),
+    policyVersion: text("policy_version").notNull(),
+    resultJson: text("result_json").notNull(), // AnalysisResult 전체
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  },
+  (t) => [index("idx_plan_analyses_project").on(t.projectId, t.createdAt)],
+);
