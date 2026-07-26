@@ -20,6 +20,44 @@ const MODEL_PREFERENCE = [
   "claude-haiku-4-5",
 ];
 
+// 백만 토큰당 단가(USD). 사용량 표시에만 쓰며 청구는 Anthropic 이 한다.
+const MODEL_PRICING: Record<string, { input: number; output: number }> = {
+  "claude-fable-5": { input: 10, output: 50 },
+  "claude-opus-5": { input: 5, output: 25 },
+  "claude-opus-4-8": { input: 5, output: 25 },
+  "claude-opus-4-7": { input: 5, output: 25 },
+  "claude-opus-4-6": { input: 5, output: 25 },
+  "claude-sonnet-5": { input: 3, output: 15 },
+  "claude-sonnet-4-6": { input: 3, output: 15 },
+  "claude-haiku-4-5": { input: 1, output: 5 },
+};
+
+/** adaptive thinking·effort 를 받아주는 모델. 구형에 보내면 400 이 난다. */
+const THINKING_MODELS = new Set([
+  "claude-fable-5",
+  "claude-opus-5",
+  "claude-opus-4-8",
+  "claude-opus-4-7",
+  "claude-opus-4-6",
+  "claude-sonnet-5",
+  "claude-sonnet-4-6",
+]);
+
+export type AiUsage = {
+  model: string;
+  inputTokens: number;
+  outputTokens: number;
+  /** 추정 비용(USD). 단가표에 없는 모델이면 null */
+  costUsd: number | null;
+  thinking: boolean;
+};
+
+function estimateCost(model: string, input: number, output: number): number | null {
+  const p = MODEL_PRICING[model];
+  if (!p) return null;
+  return (input / 1_000_000) * p.input + (output / 1_000_000) * p.output;
+}
+
 function headers(apiKey: string): Record<string, string> {
   return {
     "content-type": "application/json",
@@ -111,60 +149,102 @@ export async function checkKeyDirect(apiKey: string): Promise<DirectResult<{ mod
   return { ok: false, error: `모델 목록은 조회됐지만 실제 호출이 모두 거부됨 — ${lastError}` };
 }
 
-/** 구조화 초안 생성 — 프롬프트는 서버가 만든 것을 그대로 쓴다. */
+/** 구조화 초안 생성.
+ *
+ * 신형 모델에는 adaptive thinking 과 높은 effort 를 준다. 원문에서 무엇을 어느 칸으로
+ * 옮길지 판단하는 작업이라 사고를 켜면 결과 품질이 확연히 달라진다. 구형 모델은 이
+ * 파라미터를 거부(400)하므로 같은 모델로 파라미터 없이 한 번 더 시도한다.
+ */
 export async function structureDirect(
   apiKey: string,
   system: string,
   userMessage: string,
-): Promise<DirectResult<{ model: string; draft: Record<string, unknown> }>> {
+  onProgress?: (stage: string) => void,
+): Promise<DirectResult<{ model: string; draft: Record<string, unknown>; usage: AiUsage }>> {
+  onProgress?.("쓸 수 있는 모델 확인 중…");
   const candidates = await candidateModels(apiKey);
   if (!candidates.ok) return candidates;
 
   let lastError = "";
   for (const model of candidates.data.slice(0, 5)) {
-    let res: Response;
-    try {
-      res = await fetch(MESSAGES_URL, {
-        method: "POST",
-        headers: headers(apiKey),
-        // thinking·output_config 는 신형 모델 전용이라 보내지 않는다.
-        // 출력 형식은 프롬프트로 지시하고 응답에서 JSON 만 뽑아낸다.
-        body: JSON.stringify({
+    // 신형 모델이면 사고를 켜고 한 번, 거부당하면 끄고 한 번
+    const attempts = THINKING_MODELS.has(model) ? [true, false] : [false];
+
+    for (const withThinking of attempts) {
+      onProgress?.(
+        withThinking
+          ? `${model} 로 생각하며 작성 중… (30초쯤 걸립니다)`
+          : `${model} 로 작성 중…`,
+      );
+
+      const payload: Record<string, unknown> = {
+        model,
+        max_tokens: withThinking ? 16000 : 8000,
+        system,
+        messages: [{ role: "user", content: userMessage }],
+      };
+      if (withThinking) {
+        payload.thinking = { type: "adaptive" };
+        payload.output_config = { effort: "high" };
+      }
+
+      let res: Response;
+      try {
+        res = await fetch(MESSAGES_URL, {
+          method: "POST",
+          headers: headers(apiKey),
+          body: JSON.stringify(payload),
+        });
+      } catch {
+        return { ok: false, error: "브라우저에서 Anthropic 에 연결하지 못했습니다." };
+      }
+
+      if (!res.ok) {
+        const reason = await reasonOf(res);
+        lastError = `[HTTP ${res.status}] ${reason || "사유 없음"}`;
+        // 사고 파라미터를 거부한 것이면 같은 모델로 끄고 재시도(다음 attempts 항목)
+        if (withThinking && res.status === 400) continue;
+        if (shouldTryNextModel(res.status, reason)) break; // 다음 모델로
+        return { ok: false, error: lastError };
+      }
+
+      const body = (await res.json()) as {
+        content?: { type: string; text?: string }[];
+        stop_reason?: string | null;
+        usage?: { input_tokens?: number; output_tokens?: number };
+      };
+      // 안전 분류기가 거절하면 HTTP 200 + stop_reason:"refusal" 로 온다.
+      if (body.stop_reason === "refusal") {
+        return { ok: false, error: "AI가 이 내용의 처리를 거절했습니다. 원문을 확인해 주세요." };
+      }
+
+      const text = body.content?.find((b) => b.type === "text")?.text ?? "";
+      const draft = extractJson(text);
+      if (!draft) {
+        lastError =
+          body.stop_reason === "max_tokens"
+            ? "응답이 잘렸습니다(원문이 너무 깁니다)"
+            : "JSON 형식이 아닌 응답";
+        continue;
+      }
+
+      const inputTokens = body.usage?.input_tokens ?? 0;
+      const outputTokens = body.usage?.output_tokens ?? 0;
+      return {
+        ok: true,
+        data: {
           model,
-          max_tokens: 8000,
-          system,
-          messages: [{ role: "user", content: userMessage }],
-        }),
-      });
-    } catch {
-      return { ok: false, error: "브라우저에서 Anthropic 에 연결하지 못했습니다." };
+          draft,
+          usage: {
+            model,
+            inputTokens,
+            outputTokens,
+            costUsd: estimateCost(model, inputTokens, outputTokens),
+            thinking: withThinking,
+          },
+        },
+      };
     }
-
-    if (!res.ok) {
-      const reason = await reasonOf(res);
-      lastError = `[HTTP ${res.status}] ${reason || "사유 없음"}`;
-      if (shouldTryNextModel(res.status, reason)) continue;
-      return { ok: false, error: lastError };
-    }
-
-    const body = (await res.json()) as {
-      content?: { type: string; text?: string }[];
-      stop_reason?: string | null;
-    };
-    // 안전 분류기가 거절하면 HTTP 200 + stop_reason:"refusal" 로 온다.
-    if (body.stop_reason === "refusal") {
-      return { ok: false, error: "AI가 이 내용의 처리를 거절했습니다. 원문을 확인해 주세요." };
-    }
-    const text = body.content?.find((b) => b.type === "text")?.text ?? "";
-    const draft = extractJson(text);
-    if (!draft) {
-      lastError =
-        body.stop_reason === "max_tokens"
-          ? "응답이 잘렸습니다(원문이 너무 깁니다)"
-          : "JSON 형식이 아닌 응답";
-      continue;
-    }
-    return { ok: true, data: { model, draft } };
   }
   return { ok: false, error: lastError || "초안을 만들지 못했습니다." };
 }

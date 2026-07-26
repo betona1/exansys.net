@@ -21,7 +21,7 @@ import {
   type PlanProject,
   type PlanStage,
 } from "../lib/api";
-import { structureDirect } from "../lib/plan-ai";
+import { structureDirect, type AiUsage } from "../lib/plan-ai";
 
 type Tab = "raw" | "structure" | "evidence" | "diagnosis" | "plan";
 
@@ -114,6 +114,8 @@ export default function AppPlanDetail({ me }: { me: Me }) {
   const [aiDraft, setAiDraft] = useState<Record<string, string> | null>(null);
   const [aiError, setAiError] = useState("");
   const [aiModel, setAiModel] = useState("");
+  const [aiStage, setAiStage] = useState("");
+  const [aiUsage, setAiUsage] = useState<AiUsage | null>(null);
   const [aiNotes, setAiNotes] = useState<{ field: string; origin: string; reason: string }[]>([]);
   const [aiUnknowns, setAiUnknowns] = useState<string[]>([]);
 
@@ -158,6 +160,12 @@ export default function AppPlanDetail({ me }: { me: Me }) {
       (el as HTMLTextAreaElement | null)?.focus({ preventScroll: true });
     });
   }, []);
+
+  /** 원문 총 길이. AI 는 원문에 없는 내용을 지어내지 않으므로 이게 짧으면 초안도 빈약하다. */
+  const rawLength = useMemo(
+    () => RAW_FIELDS.reduce((n, f) => n + ((draft[f.key] as string | null) ?? "").trim().length, 0),
+    [draft],
+  );
 
   /** 필수 4칸 중 아직 비어 있는 칸 — 진단 전에 미리 알려준다 */
   const missingRequired = useMemo(
@@ -222,6 +230,8 @@ export default function AppPlanDetail({ me }: { me: Me }) {
     setError("");
     setAiError("");
     setAiDraft(null);
+    setAiUsage(null);
+    setAiStage("원문 저장 중…");
     if (dirty) await save();
 
     // 프롬프트는 서버가 만들고(무엇을 물을지는 서버가 단일 관리),
@@ -232,12 +242,14 @@ export default function AppPlanDetail({ me }: { me: Me }) {
     );
     if (!prompt.ok) {
       setAiBusy(false);
+      setAiStage("");
       setAiError("프롬프트를 준비하지 못했습니다. 새로고침 후 다시 시도해 주세요.");
       return;
     }
 
-    const res = await structureDirect(key, prompt.data.system, prompt.data.userMessage);
+    const res = await structureDirect(key, prompt.data.system, prompt.data.userMessage, setAiStage);
     setAiBusy(false);
+    setAiStage("");
     if (res.ok) {
       const { notes, unknowns, ...fields } = res.data.draft as Record<string, unknown> & {
         notes?: { field: string; origin: string; reason: string }[];
@@ -247,6 +259,7 @@ export default function AppPlanDetail({ me }: { me: Me }) {
       setAiNotes(notes ?? []);
       setAiUnknowns(unknowns ?? []);
       setAiModel(res.data.model);
+      setAiUsage(res.data.usage);
     } else {
       setAiError(res.error);
     }
@@ -457,13 +470,34 @@ export default function AppPlanDetail({ me }: { me: Me }) {
               위 원문을 12칸으로 나누는 <b>초안</b>만 만듭니다. 점수·신뢰도·피벗 판정에는 관여하지
               않으며, 원문에 없는 내용은 비워 둡니다. 본인 API 키로 동작합니다.
             </p>
+            {rawLength < 100 && (
+              <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                지금 원문이 <b>{rawLength}자</b>입니다. AI는 <b>원문에 없는 내용을 지어내지 않도록</b>
+                {" "}막아 두었기 때문에, 원문이 짧으면 대부분의 칸이 빈칸으로 나옵니다. 위 칸들을
+                {" "}편하게 더 적고 눌러주세요 (300자 이상 권장).
+              </p>
+            )}
             <button
               onClick={runAi}
               disabled={aiBusy}
-              className="mt-3 rounded-full bg-cobalt px-6 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
+              className="mt-3 inline-flex items-center gap-2 rounded-full bg-cobalt px-6 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
             >
+              {aiBusy && (
+                <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+              )}
               {aiBusy ? "초안 만드는 중…" : "AI로 구조화 초안 만들기"}
             </button>
+            {aiBusy && (
+              <div className="mt-3 rounded-xl border border-line bg-paper px-4 py-3 text-sm">
+                <p className="font-medium">{aiStage || "준비 중…"}</p>
+                <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-line">
+                  <div className="h-full w-1/3 animate-pulse rounded-full bg-cobalt" />
+                </div>
+                <p className="mt-2 text-xs text-muted">
+                  생각하며 쓰는 모델은 30초~1분 걸릴 수 있습니다. 창을 닫지 마세요.
+                </p>
+              </div>
+            )}
             {aiError && (
               <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 <p className="font-semibold">AI 요청 실패</p>
@@ -479,10 +513,25 @@ export default function AppPlanDetail({ me }: { me: Me }) {
           {/* AI 초안 검토 */}
           {aiDraft && (
             <div className="rounded-2xl border-2 border-cobalt bg-card p-5">
-              <h3 className="text-sm font-bold">
-                AI 초안 — 확인 후 반영하세요
-                {aiModel && <span className="ml-2 text-xs font-normal text-muted">{aiModel}</span>}
-              </h3>
+              <h3 className="text-sm font-bold">AI 초안 — 확인 후 반영하세요</h3>
+              {aiUsage && (
+                <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
+                  <span className="rounded-full bg-paper px-2 py-0.5 font-semibold text-ink">
+                    {aiUsage.model}
+                  </span>
+                  <span>{aiUsage.thinking ? "생각하며 작성" : "빠른 작성"}</span>
+                  <span>
+                    토큰 입력 {aiUsage.inputTokens.toLocaleString("ko-KR")} · 출력{" "}
+                    {aiUsage.outputTokens.toLocaleString("ko-KR")}
+                  </span>
+                  {aiUsage.costUsd !== null && (
+                    <span>
+                      비용 약 ${aiUsage.costUsd.toFixed(4)} (₩
+                      {Math.round(aiUsage.costUsd * 1400).toLocaleString("ko-KR")})
+                    </span>
+                  )}
+                </p>
+              )}
               <p className="mt-1 text-xs text-muted">
                 INFERRED로 표시된 칸은 원문에 없는 추측입니다. 반드시 직접 확인하세요.
               </p>
