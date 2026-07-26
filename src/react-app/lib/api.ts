@@ -531,21 +531,6 @@ export function setPlanApiKey(key: string) {
   }
 }
 
-/** 앱기획 AI 요청 — 사용자 본인 키를 헤더로만 전달한다 (요청 처리 후 서버에서 폐기) */
-export async function planAi<T>(path: string, apiKey: string): Promise<ApiResult<T>> {
-  try {
-    const res = await fetch(path, {
-      method: "POST",
-      credentials: "same-origin",
-      headers: { "Content-Type": "application/json", "x-anthropic-key": apiKey },
-      body: "{}",
-    });
-    return (await res.json()) as ApiResult<T>;
-  } catch {
-    return { ok: false, error: "network_error" };
-  }
-}
-
 /** 403 Request not allowed 처럼 원인이 여러 개일 때 붙이는 점검 목록 */
 export const PLAN_AI_FORBIDDEN_HINTS = [
   "Console(console.anthropic.com) → Billing 에서 API 크레딧 잔액이 0인지 확인 (claude.ai Pro 구독과 별개입니다)",
@@ -554,21 +539,3 @@ export const PLAN_AI_FORBIDDEN_HINTS = [
   "키를 만든 워크스페이스에 모델 접근이 제한돼 있지 않은지 확인",
 ];
 
-export const PLAN_AI_ERROR_MESSAGE: Record<string, string> = {
-  api_key_required: "API 키를 먼저 입력해 주세요.",
-  invalid_api_key_format: "Anthropic API 키 형식이 아닙니다. sk-ant- 로 시작해야 합니다.",
-  api_key_invalid: "API 키가 유효하지 않습니다. Anthropic 콘솔에서 다시 확인해 주세요.",
-  api_key_forbidden: "이 API 키로는 호출이 허용되지 않습니다.",
-  oauth_token_not_usable:
-    "이건 Claude Code·claude.ai 로그인 토큰(sk-ant-oat…)이라 API 호출에 쓸 수 없습니다. console.anthropic.com → API Keys 에서 sk-ant-api… 키를 새로 만들어 주세요.",
-  session_key_not_usable:
-    "이건 브라우저 세션 키(sk-ant-sid…)라 API 호출에 쓸 수 없습니다. console.anthropic.com → API Keys 에서 sk-ant-api… 키를 새로 만들어 주세요.",
-  admin_key_not_usable:
-    "조직 관리용 키(sk-ant-admin-)는 모델을 호출할 수 없습니다. Console → API Keys 에서 일반 API 키를 새로 만들어 주세요.",
-  no_model_available: "키는 유효하지만 사용 가능한 모델이 없습니다. 결제·권한을 확인해 주세요.",
-  api_rate_limited: "요청이 몰렸습니다. 잠시 후 다시 시도해 주세요.",
-  ai_refused: "AI가 이 내용의 처리를 거절했습니다. 원문을 다시 확인해 주세요.",
-  ai_output_truncated: "AI 응답이 잘렸습니다. 원문을 줄여서 다시 시도해 주세요.",
-  ai_empty_response: "AI 응답이 비어 있습니다. 다시 시도해 주세요.",
-  ai_request_failed: "AI 요청에 실패했습니다. 네트워크와 키를 확인해 주세요.",
-};

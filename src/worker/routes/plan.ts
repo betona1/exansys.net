@@ -543,128 +543,29 @@ planRoutes.get("/projects/:id/export", async (c) => {
 // 모델은 초안만 만들고 점수·신뢰도·피벗에는 절대 관여하지 않는다.
 // ═════════════════════════════════════════════════════════════
 
-// Anthropic 공식 SDK 대신 raw HTTP 로 호출한다.
-// 이유: @anthropic-ai/sdk 를 번들하면 워커 gzip 이 ~514KB 늘어 무료 플랜 1MB 한도의
-// 절반을 차지하고(CLAUDE.md 12-1), SDK 의 agent-toolset 이 node:stream 을 끌어온다.
-// 여기서 쓰는 건 Messages API 단일 엔드포인트뿐이라 raw fetch 로 충분하다.
-const ANTHROPIC_VERSION = "2023-06-01";
-const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
-const ANTHROPIC_MODELS_URL = "https://api.anthropic.com/v1/models?limit=100";
+// 실제 Anthropic 호출은 브라우저가 한다(src/react-app/lib/plan-ai.ts).
+// Cloudflare Worker 에서 나가는 요청이 403 "Request not allowed" 로 막히기 때문이다.
+// 서버는 "무엇을 물을지"만 단일 관리하고 사용자 API 키는 받지도, 저장하지도 않는다.
 const PROMPT_VERSION = "structurer-0.1.0";
-
-// 사용자 키마다 쓸 수 있는 모델이 다르다(권한·요금제). 고정하면 403이 나므로
-// 키로 모델 목록을 조회해 이 선호 순서대로 고른다.
-const MODEL_PREFERENCE = [
-  "claude-opus-5",
-  "claude-sonnet-5",
-  "claude-opus-4-8",
-  "claude-sonnet-4-6",
-  "claude-haiku-4-5",
-];
-
-type AnthropicMessage = {
-  content: { type: string; text?: string }[];
-  stop_reason: string | null;
-};
-
-/** Anthropic 호출 공통 헤더.
- *
- * anthropic-dangerous-direct-browser-access 가 없으면 브라우저에서 온 요청으로
- * 판정돼 403 "Request not allowed" 가 난다. Cloudflare Worker 의 subrequest 도
- * 여기에 걸리는 경우가 있어 서버 호출이지만 명시한다.
- * (키는 서버가 헤더로만 받고 저장하지 않으므로 브라우저에 노출되지 않는다)
- */
-function anthropicHeaders(apiKey: string): Record<string, string> {
-  return {
-    "content-type": "application/json",
-    "anthropic-version": ANTHROPIC_VERSION,
-    "anthropic-dangerous-direct-browser-access": "true",
-    "x-api-key": apiKey,
-  };
-}
-
-/** 업스트림 오류 본문에서 사람이 읽을 수 있는 사유를 뽑는다 (크레딧 부족 등) */
-async function upstreamReason(res: Response): Promise<string> {
-  try {
-    const body = (await res.json()) as { error?: { message?: string } };
-    return (body.error?.message ?? "").slice(0, 300);
-  } catch {
-    return "";
-  }
-}
-
-/** 이 키로 시도해 볼 모델을 선호 순서대로 만든다.
- *
- * /v1/models 에 뜬다고 다 호출할 수 있는 것은 아니다(권한 없으면 403). 또 구형 모델은
- * adaptive thinking·structured outputs 를 지원하지 않아 400 이 난다. 그래서 하나만
- * 고르지 않고 후보 목록을 만들어 실제 호출이 성공할 때까지 차례로 시도한다.
- */
-async function candidateModels(
-  apiKey: string,
-): Promise<{ models: string[] } | { errorCode: string; status: 401 | 403 | 502 }> {
-  const res = await fetch(ANTHROPIC_MODELS_URL, {
-    headers: anthropicHeaders(apiKey),
-  });
-  if (!res.ok) {
-    // 401/403 이라도 사유를 버리지 않는다. "권한 없음"만 보여주면 원인을 알 수 없다.
-    const reason = await upstreamReason(res);
-    if (reason) {
-      return {
-        errorCode: `ai_upstream:[HTTP ${res.status}] ${reason}`,
-        status: res.status === 401 ? 401 : res.status === 403 ? 403 : 502,
-      };
-    }
-    if (res.status === 401) return { errorCode: "api_key_invalid", status: 401 };
-    if (res.status === 403) return { errorCode: "api_key_forbidden", status: 403 };
-    return { errorCode: `ai_error_${res.status}`, status: 502 };
-  }
-  const body = (await res.json()) as { data?: { id: string }[] };
-  const available = (body.data ?? []).map((m) => m.id).filter((id) => id.startsWith("claude"));
-  const preferred = MODEL_PREFERENCE.filter((m) => available.includes(m));
-  // 선호 목록에 없는 모델도 뒤에 붙여 마지막까지 시도해 본다
-  const models = [...new Set([...preferred, ...available])];
-  if (models.length === 0) return { errorCode: "no_model_available", status: 403 };
-  return { models };
-}
-
-/** 키 종류를 접두사로 판별한다.
- *
- * sk-ant- 로 시작하는 문자열이 전부 API 키인 것은 아니다. Claude Code·claude.ai
- * 로그인으로 발급되는 OAuth 토큰(sk-ant-oat…)이나 세션 키(sk-ant-sid…)를
- * x-api-key 로 보내면 403 Request not allowed 가 나는데 원인을 알기 어렵다.
- */
-function classifyKey(key: string): { ok: true } | { ok: false; code: string } {
-  if (!key.startsWith("sk-ant-")) return { ok: false, code: "invalid_api_key_format" };
-  if (key.startsWith("sk-ant-admin")) return { ok: false, code: "admin_key_not_usable" };
-  if (key.startsWith("sk-ant-oat")) return { ok: false, code: "oauth_token_not_usable" };
-  if (key.startsWith("sk-ant-sid")) return { ok: false, code: "session_key_not_usable" };
-  return { ok: true };
-}
-
-/** 모델을 바꾸면 통할 수 있는 실패인가 (권한 없음 / 없는 모델 / 미지원 파라미터) */
-function shouldTryNextModel(status: number, reason: string): boolean {
-  if (status === 403 || status === 404) return true;
-  if (status !== 400) return false;
-  // 구형 모델이 thinking·output_config 같은 신규 파라미터를 거부하는 경우
-  return /thinking|output_config|effort|model|not permitted|not support/i.test(reason);
-}
-
-/** 코드펜스나 앞뒤 설명이 섞여 와도 JSON 본문만 뽑아낸다 */
-function extractJson(text: string): Record<string, unknown> | null {
-  const cleaned = text.replace(/```(?:json)?/gi, "").trim();
-  const start = cleaned.indexOf("{");
-  const end = cleaned.lastIndexOf("}");
-  if (start === -1 || end <= start) return null;
-  try {
-    return JSON.parse(cleaned.slice(start, end + 1)) as Record<string, unknown>;
-  } catch {
-    return null;
-  }
-}
 
 // 사용자 원문은 지시문과 같은 평면에 두지 않는다. 태그로 감싼 데이터로만 넘긴다.
 const OPEN_TAG = "<사용자_원문>";
 const CLOSE_TAG = "</사용자_원문>";
+
+const STRUCTURE_FIELDS = [
+  "targetUser",
+  "payer",
+  "influencer",
+  "problemSituation",
+  "currentSolution",
+  "currentSolutionProblem",
+  "coreAction",
+  "expectedResult",
+  "firstSuccess",
+  "retentionReason",
+  "revenueModel",
+  "distributionChannel",
+] as const;
 
 const STRUCTURE_SYSTEM = `당신은 앱 기획 문서를 정리하는 보조 도구입니다. 판단하는 사람이 아닙니다.
 
@@ -702,21 +603,6 @@ unknowns에는 원문만으로는 알 수 없어 사람이 사용자에게 직�
 
 모든 문장은 한국어로 씁니다.`;
 
-const STRUCTURE_FIELDS = [
-  "targetUser",
-  "payer",
-  "influencer",
-  "problemSituation",
-  "currentSolution",
-  "currentSolutionProblem",
-  "coreAction",
-  "expectedResult",
-  "firstSuccess",
-  "retentionReason",
-  "revenueModel",
-  "distributionChannel",
-] as const;
-
 // 구형 모델은 structured outputs 를 지원하지 않는다. 어떤 모델이든 통하도록
 // 출력 형식은 파라미터가 아니라 프롬프트로 지시하고, 응답에서 JSON 만 뽑아 쓴다.
 const OUTPUT_FORMAT_INSTRUCTION = `
@@ -740,72 +626,9 @@ function block(label: string, value: string | null | undefined): string {
   return `[${label}]\n${sanitize(value) || "(비어 있음)"}`;
 }
 
-/** 키 점검 — 토큰을 쓰지 않고 이 키로 어떤 모델을 쓸 수 있는지 확인한다. */
-planRoutes.post("/ai/check", async (c) => {
-  const apiKey = c.req.header("x-anthropic-key")?.trim();
-  if (!apiKey) return c.json(err("api_key_required"), 400);
-  const kind = classifyKey(apiKey);
-  if (!kind.ok) return c.json(err(kind.code), 400);
-
-  const res = await fetch(ANTHROPIC_MODELS_URL, {
-    headers: anthropicHeaders(apiKey),
-  });
-  if (!res.ok) {
-    const reason = await upstreamReason(res);
-    return c.json(
-      err(`ai_upstream:모델 목록 조회 단계에서 실패 — [HTTP ${res.status}] ${reason || "사유 없음"}`),
-      res.status === 401 ? 401 : res.status === 403 ? 403 : 502,
-    );
-  }
-  const body = (await res.json()) as { data?: { id: string }[] };
-  const models = (body.data ?? []).map((m) => m.id);
-
-  // 목록에 있다고 호출까지 되는 건 아니다. 실제로 한 번 불러봐야 권한을 알 수 있다.
-  // 토큰 몇 개짜리 최소 요청이라 비용은 사실상 0이다.
-  const available = models.filter((id) => id.startsWith("claude"));
-  const candidates = [...new Set([...MODEL_PREFERENCE.filter((m) => available.includes(m)), ...available])];
-  let lastError = "";
-  for (const model of candidates.slice(0, 5)) {
-    const probe = await fetch(ANTHROPIC_URL, {
-      method: "POST",
-      headers: anthropicHeaders(apiKey),
-      body: JSON.stringify({
-        model,
-        max_tokens: 8,
-        messages: [{ role: "user", content: "OK 라고만 답하십시오." }],
-      }),
-    });
-    if (probe.ok) return c.json(ok({ models, picked: model, verified: true }));
-    const reason = await upstreamReason(probe);
-    lastError = `[HTTP ${probe.status}] ${reason || "알 수 없는 오류"}`;
-    if (!shouldTryNextModel(probe.status, reason)) break;
-  }
-  // 여기까지 왔다면 모델 목록 조회는 됐는데 실제 호출이 전부 막힌 것이다
-  return c.json(
-    err(
-      `ai_upstream:모델 목록(${models.length}개) 조회는 됐지만 실제 호출이 모두 거부됨 — ${lastError || "사유 없음"}`,
-    ),
-    502,
-  );
-});
-
-planRoutes.post("/projects/:id/ai/structure", async (c) => {
-  const db = drizzle(c.env.DB);
-  await ensureTables(db);
-  const user = c.get("user");
-  const id = Number(c.req.param("id"));
-  if (!Number.isInteger(id)) return c.json(err("invalid_params"), 400);
-
-  // 사용자가 브라우저에서 직접 입력한 본인 키. 서버는 저장하지 않고 이 요청에만 쓴다.
-  const apiKey = c.req.header("x-anthropic-key")?.trim();
-  if (!apiKey) return c.json(err("api_key_required"), 400);
-  const kind = classifyKey(apiKey);
-  if (!kind.ok) return c.json(err(kind.code), 400);
-
-  const project = await ownedProject(db, id, user.id);
-  if (!project) return c.json(err("not_found"), 404);
-
-  const userMessage = [
+/** 사용자 원문을 태그로 감싼 데이터 블록으로 만든다. 여기에 지시문을 섞지 않는다. */
+function buildStructureUserMessage(project: ProjectRow): string {
+  return [
     `${OPEN_TAG}`,
     block("앱 이름", project.appName),
     "",
@@ -822,73 +645,33 @@ planRoutes.post("/projects/:id/ai/structure", async (c) => {
     block("유입 경로", project.distributionChannelRaw),
     `${CLOSE_TAG}`,
     "",
-    "위 데이터를 스키마에 맞춰 구조화하십시오.",
+    "위 데이터를 지정된 형식에 맞춰 구조화하십시오.",
   ].join("\n");
+}
 
-  // 이 키로 쓸 수 있는 모델 후보를 받아 실제로 통할 때까지 차례로 시도한다.
-  const candidates = await candidateModels(apiKey);
-  if ("errorCode" in candidates) return c.json(err(candidates.errorCode), candidates.status);
+/** 구조화 프롬프트만 만들어 준다. 실제 Anthropic 호출은 브라우저가 한다.
+ *
+ * Cloudflare Worker 에서 나가는 요청이 403 으로 막히기 때문에 호출 주체를 브라우저로 옮겼다.
+ * 무엇을 물을지(프롬프트·출력 형식)는 여전히 서버가 단일 관리한다. 키는 받지 않는다.
+ */
+planRoutes.post("/projects/:id/ai/prompt", async (c) => {
+  const db = drizzle(c.env.DB);
+  await ensureTables(db);
+  const user = c.get("user");
+  const id = Number(c.req.param("id"));
+  if (!Number.isInteger(id)) return c.json(err("invalid_params"), 400);
 
-  let draft: Record<string, unknown> | null = null;
-  let usedModel = "";
-  let lastError = "";
+  const project = await ownedProject(db, id, user.id);
+  if (!project) return c.json(err("not_found"), 404);
 
-  for (const model of candidates.models.slice(0, 5)) {
-    let upstream: Response;
-    try {
-      upstream = await fetch(ANTHROPIC_URL, {
-        method: "POST",
-        headers: anthropicHeaders(apiKey),
-        // thinking·output_config 는 신형 모델 전용이라 보내지 않는다.
-        // 어떤 모델에서도 동작하는 최소 파라미터만 쓴다.
-        body: JSON.stringify({
-          model,
-          max_tokens: 8000,
-          system: STRUCTURE_SYSTEM + OUTPUT_FORMAT_INSTRUCTION,
-          messages: [{ role: "user", content: userMessage }],
-        }),
-      });
-    } catch {
-      lastError = "네트워크 오류";
-      continue;
-    }
-
-    if (!upstream.ok) {
-      const reason = await upstreamReason(upstream);
-      lastError = `[HTTP ${upstream.status}] ${reason || "알 수 없는 오류"}`;
-      // 모델을 바꾸면 통할 수 있는 실패면 다음 후보로
-      if (shouldTryNextModel(upstream.status, reason)) continue;
-      if (upstream.status === 429) return c.json(err("api_rate_limited"), 429);
-      if (upstream.status === 401) return c.json(err("api_key_invalid"), 401);
-      return c.json(err(`ai_upstream:${lastError}`), 502);
-    }
-
-    const response = (await upstream.json()) as AnthropicMessage;
-    // 안전 분류기가 거절하면 HTTP 200 + stop_reason:"refusal" 로 온다. content 를 먼저 읽으면 안 된다.
-    if (response.stop_reason === "refusal") return c.json(err("ai_refused"), 400);
-
-    const text = response.content?.find((b) => b.type === "text")?.text ?? "";
-    const parsed = extractJson(text);
-    if (!parsed) {
-      lastError =
-        response.stop_reason === "max_tokens"
-          ? "응답이 잘렸습니다(원문이 너무 깁니다)"
-          : "JSON 형식이 아닌 응답";
-      continue;
-    }
-    draft = parsed;
-    usedModel = model;
-    break;
-  }
-
-  if (!draft) {
-    return c.json(err(lastError ? `ai_upstream:${lastError}` : "ai_request_failed"), 502);
-  }
-
-  // 초안은 사용자가 승인하기 전까지 저장하지 않는다. 화면에서 확인 후 저장을 누르면 PATCH 로 반영된다.
-  return c.json(ok({ model: usedModel, promptVersion: PROMPT_VERSION, draft }));
+  return c.json(
+    ok({
+      system: STRUCTURE_SYSTEM + OUTPUT_FORMAT_INSTRUCTION,
+      userMessage: buildStructureUserMessage(project),
+      promptVersion: PROMPT_VERSION,
+    }),
+  );
 });
-
 /** AI 초안을 채택했을 때 표기용 기록만 남긴다 (판정에는 쓰이지 않음) */
 planRoutes.post("/projects/:id/ai/applied", async (c) => {
   const db = drizzle(c.env.DB);
