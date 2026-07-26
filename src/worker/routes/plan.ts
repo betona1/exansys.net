@@ -585,10 +585,17 @@ async function pickModel(
     headers: { "anthropic-version": ANTHROPIC_VERSION, "x-api-key": apiKey },
   });
   if (!res.ok) {
+    // 401/403 이라도 사유를 버리지 않는다. "권한 없음"만 보여주면 원인을 알 수 없다.
+    const reason = await upstreamReason(res);
+    if (reason) {
+      return {
+        errorCode: `ai_upstream:[HTTP ${res.status}] ${reason}`,
+        status: res.status === 401 ? 401 : res.status === 403 ? 403 : 502,
+      };
+    }
     if (res.status === 401) return { errorCode: "api_key_invalid", status: 401 };
     if (res.status === 403) return { errorCode: "api_key_forbidden", status: 403 };
-    const reason = await upstreamReason(res);
-    return { errorCode: reason ? `ai_upstream:${reason}` : `ai_error_${res.status}`, status: 502 };
+    return { errorCode: `ai_error_${res.status}`, status: 502 };
   }
   const body = (await res.json()) as { data?: { id: string }[] };
   const ids = new Set((body.data ?? []).map((m) => m.id));
@@ -687,6 +694,28 @@ function block(label: string, value: string | null | undefined): string {
   return `[${label}]\n${sanitize(value) || "(비어 있음)"}`;
 }
 
+/** 키 점검 — 토큰을 쓰지 않고 이 키로 어떤 모델을 쓸 수 있는지 확인한다. */
+planRoutes.post("/ai/check", async (c) => {
+  const apiKey = c.req.header("x-anthropic-key")?.trim();
+  if (!apiKey) return c.json(err("api_key_required"), 400);
+  if (!apiKey.startsWith("sk-ant-")) return c.json(err("invalid_api_key_format"), 400);
+
+  const res = await fetch(ANTHROPIC_MODELS_URL, {
+    headers: { "anthropic-version": ANTHROPIC_VERSION, "x-api-key": apiKey },
+  });
+  if (!res.ok) {
+    const reason = await upstreamReason(res);
+    return c.json(
+      err(reason ? `ai_upstream:[HTTP ${res.status}] ${reason}` : `ai_error_${res.status}`),
+      res.status === 401 ? 401 : res.status === 403 ? 403 : 502,
+    );
+  }
+  const body = (await res.json()) as { data?: { id: string }[] };
+  const models = (body.data ?? []).map((m) => m.id);
+  const picked = MODEL_PREFERENCE.find((m) => models.includes(m)) ?? models[0] ?? null;
+  return c.json(ok({ models, picked }));
+});
+
 planRoutes.post("/projects/:id/ai/structure", async (c) => {
   const db = drizzle(c.env.DB);
   await ensureTables(db);
@@ -752,13 +781,12 @@ planRoutes.post("/projects/:id/ai/structure", async (c) => {
     });
 
     if (!upstream.ok) {
-      if (upstream.status === 401) return c.json(err("api_key_invalid"), 401);
-      if (upstream.status === 429) return c.json(err("api_rate_limited"), 429);
       // 크레딧 부족 같은 실제 사유를 그대로 보여준다. 코드만 주면 원인을 알 수 없다.
       const reason = await upstreamReason(upstream);
+      if (upstream.status === 429 && !reason) return c.json(err("api_rate_limited"), 429);
       return c.json(
-        err(reason ? `ai_upstream:${reason}` : `ai_error_${upstream.status}`),
-        upstream.status === 403 ? 403 : 502,
+        err(reason ? `ai_upstream:[HTTP ${upstream.status}] ${reason}` : `ai_error_${upstream.status}`),
+        upstream.status === 401 ? 401 : upstream.status === 403 ? 403 : 502,
       );
     }
 

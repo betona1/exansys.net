@@ -4,7 +4,9 @@ import { Link } from "react-router-dom";
 import {
   api,
   getPlanApiKey,
+  planAi,
   setPlanApiKey,
+  PLAN_AI_ERROR_MESSAGE,
   PLAN_PIVOT_LABEL,
   PLAN_STAGE_LABEL,
   type Me,
@@ -36,6 +38,8 @@ export default function AppPlan({ me, meLoading }: { me: Me; meLoading: boolean 
   const [keyOpen, setKeyOpen] = useState(false);
   const [keySaved, setKeySaved] = useState(false);
   const [stageFilter, setStageFilter] = useState<PlanStage | "ALL">("ALL");
+  const [checking, setChecking] = useState(false);
+  const [checkResult, setCheckResult] = useState<{ ok: boolean; text: string } | null>(null);
 
   const isMember = Boolean(me);
 
@@ -86,7 +90,36 @@ export default function AppPlan({ me, meLoading }: { me: Me; meLoading: boolean 
   const saveKey = useCallback(() => {
     setPlanApiKey(apiKey);
     setKeySaved(true);
+    setCheckResult(null);
     setTimeout(() => setKeySaved(false), 2000);
+  }, [apiKey]);
+
+  /** 토큰을 쓰지 않고 키가 실제로 동작하는지, 어떤 모델을 쓸 수 있는지 확인 */
+  const checkKey = useCallback(async () => {
+    const key = apiKey.trim();
+    if (!key) {
+      setCheckResult({ ok: false, text: "키를 먼저 입력해 주세요." });
+      return;
+    }
+    setChecking(true);
+    setCheckResult(null);
+    const res = await planAi<{ models: string[]; picked: string | null }>("/api/plan/ai/check", key);
+    setChecking(false);
+    if (res.ok) {
+      setCheckResult({
+        ok: true,
+        text: res.data.picked
+          ? `정상입니다. 이 키로 ${res.data.models.length}개 모델을 쓸 수 있고, 구조화에는 ${res.data.picked} 를 사용합니다.`
+          : "키는 유효하지만 쓸 수 있는 모델이 없습니다. Anthropic 콘솔에서 결제·권한을 확인해 주세요.",
+      });
+    } else if (res.error.startsWith("ai_upstream:")) {
+      setCheckResult({ ok: false, text: `Anthropic 응답 — ${res.error.slice("ai_upstream:".length)}` });
+    } else {
+      setCheckResult({
+        ok: false,
+        text: PLAN_AI_ERROR_MESSAGE[res.error] ?? `확인 실패 (${res.error})`,
+      });
+    }
   }, [apiKey]);
 
   if (meLoading) {
@@ -166,6 +199,13 @@ export default function AppPlan({ me, meLoading }: { me: Me; meLoading: boolean 
               >
                 {keySaved ? "저장됨 ✓" : "저장"}
               </button>
+              <button
+                onClick={checkKey}
+                disabled={checking}
+                className="rounded-full border border-line px-5 py-2 text-sm transition hover:border-ink disabled:opacity-50"
+              >
+                {checking ? "확인 중…" : "키 점검"}
+              </button>
               {apiKey && (
                 <button
                   onClick={() => {
@@ -178,8 +218,20 @@ export default function AppPlan({ me, meLoading }: { me: Me; meLoading: boolean 
                 </button>
               )}
             </div>
+            {checkResult && (
+              <div
+                className={`mt-3 rounded-xl border px-4 py-3 text-sm ${
+                  checkResult.ok
+                    ? "border-green bg-lime/20 text-green-deep"
+                    : "border-red-200 bg-red-50 text-red-700"
+                }`}
+              >
+                <p className="break-words">{checkResult.text}</p>
+              </div>
+            )}
             <p className="mt-2 text-xs text-muted">
-              키 발급: console.anthropic.com → API Keys. AI를 쓰지 않아도 규칙 엔진 진단은 그대로 동작합니다.
+              키 발급: console.anthropic.com → API Keys. <b>키 점검</b>은 토큰을 쓰지 않고 키가
+              동작하는지만 확인합니다. AI를 쓰지 않아도 규칙 엔진 진단은 그대로 동작합니다.
             </p>
           </div>
         )}
