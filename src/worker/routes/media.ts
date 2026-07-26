@@ -1,5 +1,5 @@
 // 공개 미디어 서빙 — 앱 쇼케이스 스크린샷 (R2 shots/, 누구나 열람 가능)
-// 크루 갤러리(gallery/)는 crew.ts에서 crew 이상으로 게이트, APK(builds/)는 apps.ts에서 member 이상
+// 앱튜버갤러리(gallery/)는 crew.ts에서 crew 이상으로 게이트, APK(builds/)는 apps.ts에서 member 이상
 import { Hono } from "hono";
 import type { Env } from "../types";
 import { err } from "../types";
