@@ -108,14 +108,15 @@ export default function AppPlan({ me, meLoading }: { me: Me; meLoading: boolean 
     }
     setChecking(true);
     setCheckResult(null);
-    const res = await planAi<{ models: string[]; picked: string | null }>("/api/plan/ai/check", key);
+    const res = await planAi<{ models: string[]; picked: string | null; verified?: boolean }>(
+      "/api/plan/ai/check",
+      key,
+    );
     setChecking(false);
     if (res.ok) {
       setCheckResult({
         ok: true,
-        text: res.data.picked
-          ? `정상입니다. 이 키로 ${res.data.models.length}개 모델을 쓸 수 있고, 구조화에는 ${res.data.picked} 를 사용합니다.`
-          : "키는 유효하지만 쓸 수 있는 모델이 없습니다. Anthropic 콘솔에서 결제·권한을 확인해 주세요.",
+        text: `정상입니다. 실제 호출까지 확인했고, 구조화에는 ${res.data.picked} 를 사용합니다.`,
       });
     } else if (res.error.startsWith("ai_upstream:")) {
       const detail = res.error.slice("ai_upstream:".length);
