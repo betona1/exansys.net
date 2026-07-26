@@ -4,9 +4,7 @@ import { Link } from "react-router-dom";
 import {
   api,
   getPlanApiKey,
-  planAi,
   setPlanApiKey,
-  PLAN_AI_ERROR_MESSAGE,
   PLAN_AI_FORBIDDEN_HINTS,
   PLAN_PIVOT_LABEL,
   PLAN_STAGE_LABEL,
@@ -14,6 +12,7 @@ import {
   type PlanProjectSummary,
   type PlanStage,
 } from "../lib/api";
+import { checkKeyDirect } from "../lib/plan-ai";
 
 function fmtDate(ms: number) {
   const d = new Date(ms);
@@ -108,28 +107,19 @@ export default function AppPlan({ me, meLoading }: { me: Me; meLoading: boolean 
     }
     setChecking(true);
     setCheckResult(null);
-    const res = await planAi<{ models: string[]; picked: string | null; verified?: boolean }>(
-      "/api/plan/ai/check",
-      key,
-    );
+    // 서버를 거치지 않고 브라우저에서 직접 호출한다 (키가 서버로 가지 않는다)
+    const res = await checkKeyDirect(key);
     setChecking(false);
     if (res.ok) {
       setCheckResult({
         ok: true,
-        text: `정상입니다. 실제 호출까지 확인했고, 구조화에는 ${res.data.picked} 를 사용합니다.`,
-      });
-    } else if (res.error.startsWith("ai_upstream:")) {
-      const detail = res.error.slice("ai_upstream:".length);
-      setCheckResult({
-        ok: false,
-        text: `Anthropic 응답 — ${detail}`,
-        // 403 은 원인이 여러 개라 점검 목록을 함께 보여준다
-        hints: detail.includes("403") ? PLAN_AI_FORBIDDEN_HINTS : undefined,
+        text: `정상입니다. 실제 호출까지 확인했고, 구조화에는 ${res.data.model} 를 사용합니다.`,
       });
     } else {
       setCheckResult({
         ok: false,
-        text: PLAN_AI_ERROR_MESSAGE[res.error] ?? `확인 실패 (${res.error})`,
+        text: res.error,
+        hints: res.error.includes("403") ? PLAN_AI_FORBIDDEN_HINTS : undefined,
       });
     }
   }, [apiKey]);

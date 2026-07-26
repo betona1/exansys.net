@@ -5,8 +5,6 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   api,
   getPlanApiKey,
-  planAi,
-  PLAN_AI_ERROR_MESSAGE,
   PLAN_DIMENSION_CODES,
   PLAN_DIMENSION_LABEL,
   PLAN_EVIDENCE_CONFIDENCE,
@@ -23,6 +21,7 @@ import {
   type PlanProject,
   type PlanStage,
 } from "../lib/api";
+import { structureDirect } from "../lib/plan-ai";
 
 type Tab = "raw" | "structure" | "evidence" | "diagnosis" | "plan";
 
@@ -224,25 +223,32 @@ export default function AppPlanDetail({ me }: { me: Me }) {
     setAiError("");
     setAiDraft(null);
     if (dirty) await save();
-    const res = await planAi<{
-      model: string;
-      draft: Record<string, string> & {
+
+    // 프롬프트는 서버가 만들고(무엇을 물을지는 서버가 단일 관리),
+    // 실제 Anthropic 호출은 브라우저가 직접 한다. 키는 서버로 가지 않는다.
+    const prompt = await api<{ system: string; userMessage: string }>(
+      `/api/plan/projects/${id}/ai/prompt`,
+      { method: "POST", body: "{}" },
+    );
+    if (!prompt.ok) {
+      setAiBusy(false);
+      setAiError("프롬프트를 준비하지 못했습니다. 새로고침 후 다시 시도해 주세요.");
+      return;
+    }
+
+    const res = await structureDirect(key, prompt.data.system, prompt.data.userMessage);
+    setAiBusy(false);
+    if (res.ok) {
+      const { notes, unknowns, ...fields } = res.data.draft as Record<string, unknown> & {
         notes?: { field: string; origin: string; reason: string }[];
         unknowns?: string[];
       };
-    }>(`/api/plan/projects/${id}/ai/structure`, key);
-    setAiBusy(false);
-    if (res.ok) {
-      const { notes, unknowns, ...fields } = res.data.draft;
       setAiDraft(fields as Record<string, string>);
       setAiNotes(notes ?? []);
       setAiUnknowns(unknowns ?? []);
       setAiModel(res.data.model);
-    } else if (res.error.startsWith("ai_upstream:")) {
-      // Anthropic 이 알려준 실제 사유를 그대로 보여준다 (크레딧 부족 등)
-      setAiError(`Anthropic 응답: ${res.error.slice("ai_upstream:".length)}`);
     } else {
-      setAiError(PLAN_AI_ERROR_MESSAGE[res.error] ?? `AI 요청에 실패했습니다. (${res.error})`);
+      setAiError(res.error);
     }
   }, [dirty, save, id]);
 
