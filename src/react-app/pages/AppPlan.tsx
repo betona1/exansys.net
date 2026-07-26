@@ -9,6 +9,7 @@ import {
   PLAN_STAGE_LABEL,
   type Me,
   type PlanProjectSummary,
+  type PlanStage,
 } from "../lib/api";
 
 function fmtDate(ms: number) {
@@ -34,6 +35,7 @@ export default function AppPlan({ me, meLoading }: { me: Me; meLoading: boolean 
   const [apiKey, setApiKeyState] = useState("");
   const [keyOpen, setKeyOpen] = useState(false);
   const [keySaved, setKeySaved] = useState(false);
+  const [stageFilter, setStageFilter] = useState<PlanStage | "ALL">("ALL");
 
   const isMember = Boolean(me);
 
@@ -225,6 +227,30 @@ export default function AppPlan({ me, meLoading }: { me: Me; meLoading: boolean 
         <h2 className="mb-3 text-sm font-semibold text-muted">
           내 아이디어 {projects.length > 0 && `· ${projects.length}건`}
         </h2>
+
+        {/* 단계 필터 — 실제로 등록된 단계만 보여준다 */}
+        {projects.length > 1 && (
+          <div className="mb-4 flex flex-wrap gap-1.5">
+            {(["ALL", ...(Object.keys(PLAN_STAGE_LABEL) as PlanStage[])] as const)
+              .filter((s) => s === "ALL" || projects.some((p) => p.stage === s))
+              .map((s) => {
+                const count = s === "ALL" ? projects.length : projects.filter((p) => p.stage === s).length;
+                return (
+                  <button
+                    key={s}
+                    onClick={() => setStageFilter(s)}
+                    className={`rounded-full border px-3.5 py-1.5 text-xs font-medium transition ${
+                      stageFilter === s
+                        ? "border-ink bg-ink text-white"
+                        : "border-line text-muted hover:border-ink hover:text-ink"
+                    }`}
+                  >
+                    {s === "ALL" ? "전체" : PLAN_STAGE_LABEL[s]} {count}
+                  </button>
+                );
+              })}
+          </div>
+        )}
         {loading ? (
           <p className="py-10 text-center text-muted">불러오는 중…</p>
         ) : projects.length === 0 ? (
@@ -233,7 +259,9 @@ export default function AppPlan({ me, meLoading }: { me: Me; meLoading: boolean 
           </p>
         ) : (
           <ul className="grid gap-3">
-            {projects.map((p) => (
+            {projects
+              .filter((p) => stageFilter === "ALL" || p.stage === stageFilter)
+              .map((p) => (
               <li key={p.id}>
                 <Link
                   to={`/app-plan/${p.id}`}
