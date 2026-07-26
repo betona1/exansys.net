@@ -157,8 +157,8 @@ download_logs(id, app_id, ip_hash, ua_hash, date)  -- 중복 방지용, 30일 �
 
 | 경로 | 내용 |
 |---|---|
-| `src/react-app/` | 사이트 프론트 (React SPA) — 홈·앱 쇼케이스(QR)·크루 갤러리·개발문의·AI교육·앱리뷰·TechDex 웹·VibeQuest 신고게시판/개인정보처리방침 |
-| `src/worker/` | 백엔드 API (Hono, `/api/*`) — auth·apps·admin·crew·edu·techdex·vibequest 라우트 |
+| `src/react-app/` | 사이트 프론트 (React SPA) — 홈·앱 쇼케이스(QR)·크루 갤러리·개발문의·AI교육·앱리뷰·앱기획·TechDex 웹·VibeQuest 신고게시판/개인정보처리방침 |
+| `src/worker/` | 백엔드 API (Hono, `/api/*`) — auth·apps·admin·crew·edu·plan(앱기획)·techdex·vibequest 라우트 |
 | `public/` | 정적 자산 — PWA(sw.js·manifest), `public/vibequest/`는 **Flutter 웹 빌드 산출물**(빌드 후 복사해 배포) |
 | 배포 | main push → Cloudflare Workers Builds 자동 배포 (워커 gzip 1MB 한도 주의, `?raw` 번들 남용 금지) |
 | 서브도메인 | techdex.exansys.net(운영), vibequest.exansys.net(CF 대시보드에서 커스텀 도메인 추가 시 /vibequest/로 자동 이동) |

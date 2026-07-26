@@ -12,6 +12,7 @@ import { visitRoutes } from "./routes/visits";
 import { mediaRoutes } from "./routes/media";
 import { appReviewRoutes } from "./routes/appreview";
 import { eduRoutes } from "./routes/edu";
+import { planRoutes } from "./routes/plan";
 import { techdexRoutes } from "./routes/techdex";
 import { vibequestRoutes } from "./routes/vibequest";
 
@@ -33,6 +34,7 @@ app.route("/api", mediaRoutes); // /api/media/shots/* (공개 스크린샷)
 app.route("/api", eduRoutes); // /api/edu/* (AI교육 게시판)
 app.route("/api/visits", visitRoutes);
 app.route("/api/appreview", appReviewRoutes);
+app.route("/api/plan", planRoutes); // 앱기획 (member 이상, 본인 것만)
 app.route("/api/techdex", techdexRoutes);
 app.route("/api/vibequest", vibequestRoutes); // VibeQuest 앱: 신고·원격 콘텐츠
 app.route("/api/apps", appRoutes);
