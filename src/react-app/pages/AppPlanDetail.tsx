@@ -12,6 +12,7 @@ import {
   PLAN_EVIDENCE_CONFIDENCE,
   PLAN_EVIDENCE_LABEL,
   PLAN_PIVOT_LABEL,
+  PLAN_STAGE_FOCUS,
   PLAN_STAGE_LABEL,
   type Me,
   type PlanAnalysisResult,
@@ -347,6 +348,10 @@ export default function AppPlanDetail({ me }: { me: Me }) {
             {analyzing ? "진단 중…" : "진단 실행"}
           </button>
         </div>
+        <p className="mt-2 rounded-xl bg-paper px-3 py-2 text-sm">
+          <b>{PLAN_STAGE_LABEL[(draft.stage ?? "IDEA") as PlanStage]} 단계</b> —{" "}
+          <span className="text-muted">{PLAN_STAGE_FOCUS[(draft.stage ?? "IDEA") as PlanStage]}</span>
+        </p>
         <p className="mt-2 text-xs text-muted">
           🔒 본인 전용 · 마지막 수정 {fmtDateTime(savedAt ?? detail.project.updatedAt)}
           {detail.project.aiModel && ` · 구조화 초안 보조: ${detail.project.aiModel}`}

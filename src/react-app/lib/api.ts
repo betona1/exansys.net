@@ -431,7 +431,18 @@ export type PlanTargetCandidate = {
   recommendedExperiment: string;
 };
 
+export const PLAN_STAGE_FOCUS: Record<PlanStage, string> = {
+  IDEA: "아직 만들지 마세요. 문제가 실재하는지부터 확인할 단계입니다.",
+  RESEARCH: "인터뷰로 문제와 타깃을 좁히는 단계입니다.",
+  PROTOTYPE: "핵심 행동이 실제로 완료되는지 확인하는 단계입니다.",
+  MVP: "실제 사용자의 행동 데이터로 가설을 검증하는 단계입니다.",
+  LIVE: "유지율과 지불 근거를 확인하는 단계입니다.",
+  PAUSED: "재개 조건을 정하는 단계입니다. 무엇이 확인되면 다시 시작할지 적어두세요.",
+  ARCHIVED: "접은 아이디어입니다. 진단 결과는 기록용으로만 보세요.",
+};
+
 export type PlanAnalysisResult = {
+  stage: { code: PlanStage; label: string; focus: string };
   meta: {
     engine: string;
     engineVersion: string;

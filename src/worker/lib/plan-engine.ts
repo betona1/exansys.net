@@ -68,7 +68,8 @@ export type WarningCode =
   | "FEATURE_FIRST_IDEA"
   | "UNSUPPORTED_CLAIM"
   | "LOW_EVIDENCE"
-  | "CONFLICTING_EVIDENCE";
+  | "CONFLICTING_EVIDENCE"
+  | "STAGE_EVIDENCE_GAP";
 
 export type PivotDecision =
   | "KEEP"
@@ -103,6 +104,107 @@ export const PROJECT_STAGES = [
   "ARCHIVED",
 ] as const;
 export type ProjectStage = (typeof PROJECT_STAGES)[number];
+
+export const STAGE_LABELS: Record<ProjectStage, string> = {
+  IDEA: "아이디어",
+  RESEARCH: "리서치",
+  PROTOTYPE: "프로토타입",
+  MVP: "MVP",
+  LIVE: "운영 중",
+  PAUSED: "중단",
+  ARCHIVED: "보관",
+};
+
+/** 단계별 검증 규칙.
+ *
+ * 같은 아이디어라도 "머릿속에만 있는 것"과 "이미 출시해 사용자가 쓰는 것"은
+ * 지금 해야 할 일과 있어야 할 근거가 다르다. 점수 계산식은 건드리지 않고,
+ * 단계에 맞는 다음 행동과 근거 공백만 추가로 지적한다.
+ */
+type StageRule = {
+  focus: string;
+  /** 이 단계라면 최소한 하나는 있어야 하는 근거 유형 */
+  expectedEvidence: EvidenceType[];
+  evidenceGapMessage: string;
+  nextActions: string[];
+  /** 이 단계에서는 비어 있으면 치명으로 격상하는 칸 */
+  criticalFields: ("firstSuccess" | "retentionReason")[];
+};
+
+const STAGE_RULES: Record<ProjectStage, StageRule> = {
+  IDEA: {
+    focus: "아직 만들지 마세요. 문제가 실재하는지부터 확인할 단계입니다.",
+    expectedEvidence: [],
+    evidenceGapMessage: "",
+    nextActions: [
+      "해당 상황에 있는 사람 5명을 찾아 최근 한 달의 실제 경험을 묻습니다.",
+      "무엇을 만들지 정하기 전에 문제 정의 문장을 먼저 확정합니다.",
+    ],
+    criticalFields: [],
+  },
+  RESEARCH: {
+    focus: "인터뷰로 문제와 타깃을 좁히는 단계입니다.",
+    expectedEvidence: ["USER_INTERVIEW", "DESK_RESEARCH", "EXPERT_REVIEW"],
+    evidenceGapMessage:
+      "리서치 단계인데 인터뷰·데스크리서치 근거가 하나도 없습니다. 리서치 단계의 산출물은 근거입니다.",
+    nextActions: [
+      "인터뷰 내용을 근거로 등록하고 어느 평가 항목을 지지하는지 연결합니다.",
+      "타깃 후보 중 하나를 골라 스크리닝 질문으로 좁힙니다.",
+    ],
+    criticalFields: [],
+  },
+  PROTOTYPE: {
+    focus: "핵심 행동이 실제로 완료되는지 확인하는 단계입니다.",
+    expectedEvidence: ["PROTOTYPE_TEST", "BEHAVIOR_DATA"],
+    evidenceGapMessage:
+      "프로토타입 단계인데 테스트 결과 근거가 없습니다. 만들었다면 완료율을 측정해 등록해야 합니다.",
+    nextActions: [
+      "핵심 행동만 남긴 클릭더미로 첫 세션 완료율을 측정합니다.",
+      "이탈 지점을 기록하고 첫 성공 경험을 3분 이내로 다시 설계합니다.",
+    ],
+    criticalFields: ["firstSuccess"],
+  },
+  MVP: {
+    focus: "실제 사용자의 행동 데이터로 가설을 검증하는 단계입니다.",
+    expectedEvidence: ["BEHAVIOR_DATA", "PROTOTYPE_TEST"],
+    evidenceGapMessage:
+      "MVP 단계인데 행동 데이터 근거가 없습니다. 이미 사용자가 쓰고 있다면 추측이 아니라 로그로 판단해야 합니다.",
+    nextActions: [
+      "activation_complete · core_action_complete · day1_return 세 이벤트가 실제로 기록되는지 확인합니다.",
+      "첫 주 코호트의 재방문율을 근거로 등록합니다.",
+    ],
+    criticalFields: ["firstSuccess", "retentionReason"],
+  },
+  LIVE: {
+    focus: "유지율과 지불 근거를 확인하는 단계입니다.",
+    expectedEvidence: ["BEHAVIOR_DATA"],
+    evidenceGapMessage:
+      "운영 중인데 행동 데이터 근거가 없습니다. 출시된 제품의 판단은 로그에서 나와야 합니다.",
+    nextActions: [
+      "주간 코호트 유지율과 핵심 행동 완료율을 근거로 등록합니다.",
+      "유입 채널별 전환을 비교해 가장 싼 채널 하나에 집중합니다.",
+    ],
+    criticalFields: ["firstSuccess", "retentionReason"],
+  },
+  PAUSED: {
+    focus: "재개 조건을 정하는 단계입니다. 무엇이 확인되면 다시 시작할지 적어두세요.",
+    expectedEvidence: [],
+    evidenceGapMessage: "",
+    nextActions: ["재개 판단 기준을 한 문장으로 적고, 그것을 확인할 실험 하나를 정합니다."],
+    criticalFields: [],
+  },
+  ARCHIVED: {
+    focus: "접은 아이디어입니다. 진단 결과는 기록용으로만 보세요.",
+    expectedEvidence: [],
+    evidenceGapMessage: "",
+    nextActions: ["다음 아이디어에 옮길 교훈 한 줄을 남깁니다."],
+    criticalFields: [],
+  },
+};
+
+export function stageFocus(stage: ProjectStage): string {
+  return STAGE_RULES[stage].focus;
+}
 
 // ─────────────────────────────────────────────────────────────
 // 정책 (가중치·임계치) — 전역 상수로 흩뿌리지 않고 한 객체에 모은다
@@ -272,6 +374,11 @@ export type AnalysisResult = {
     createdAt: string;
     modelProvider: string | null;
     modelName: string | null;
+  };
+  stage: {
+    code: ProjectStage;
+    label: string;
+    focus: string;
   };
   idea: IdeaStructure;
   diagnosis: {
@@ -625,6 +732,59 @@ export function detectWarnings(idea: IdeaStructure): DiagnosisWarning[] {
         "WARN",
         "currentSolutionProblem",
         "현재 방법이 시간·복잡성·실패·불안·비용 중 무엇 때문에 부족한지 적습니다.",
+      ),
+    );
+  }
+
+  return warnings;
+}
+
+/** 단계별 추가 검증. 점수 계산식은 건드리지 않고 경고만 더한다. */
+export function detectStageWarnings(
+  idea: IdeaStructure,
+  stage: ProjectStage,
+  evidence: EvidenceItem[],
+): DiagnosisWarning[] {
+  const rule = STAGE_RULES[stage];
+  const warnings: DiagnosisWarning[] = [];
+  const label = STAGE_LABELS[stage];
+
+  // 이 단계라면 있어야 할 근거가 하나도 없을 때
+  if (rule.expectedEvidence.length > 0) {
+    const has = evidence.some((e) => rule.expectedEvidence.includes(e.evidenceType));
+    if (!has) {
+      warnings.push(
+        warn(
+          "STAGE_EVIDENCE_GAP",
+          rule.evidenceGapMessage,
+          "CRITICAL",
+          null,
+          `${rule.expectedEvidence.map((t) => EVIDENCE_TYPE_LABELS[t]).join(" 또는 ")} 근거를 등록합니다.`,
+        ),
+      );
+    }
+  }
+
+  // 단계가 올라갈수록 비어 있으면 안 되는 칸이 늘어난다 (dedupe가 더 심각한 쪽을 남긴다)
+  if (rule.criticalFields.includes("firstSuccess") && !hasText(idea.firstSuccess, 2)) {
+    warnings.push(
+      warn(
+        "NO_FIRST_SUCCESS",
+        `${label} 단계인데 첫 성공 경험이 정의되어 있지 않습니다. 이미 만든 것을 무엇 기준으로 평가할지 알 수 없습니다.`,
+        "CRITICAL",
+        "firstSuccess",
+        "처음 진입한 사용자가 몇 분 안에 무엇을 해내야 하는지 적습니다.",
+      ),
+    );
+  }
+  if (rule.criticalFields.includes("retentionReason") && !hasText(idea.retentionReason, 2)) {
+    warnings.push(
+      warn(
+        "NO_RETENTION_REASON",
+        `${label} 단계인데 다시 돌아올 이유가 없습니다. 이 단계에서 재방문 설계가 없으면 유지율이 나올 수 없습니다.`,
+        "CRITICAL",
+        "retentionReason",
+        "사용자가 내일 다시 열어야 하는 이유를 제품 안의 장치로 만듭니다.",
       ),
     );
   }
@@ -1320,16 +1480,21 @@ export function runAnalysis(
   options: {
     evidence?: EvidenceItem[];
     policy?: EvaluationPolicy;
+    stage?: ProjectStage;
     now?: Date;
     assist?: { provider: string; model: string } | null;
   } = {},
 ): AnalysisResult {
   const policy = options.policy ?? DEFAULT_POLICY;
   const evidence = options.evidence ?? [];
+  const stage = options.stage ?? "IDEA";
   const createdAt = options.now ?? new Date();
 
-  // 1. 검증
-  let warnings = dedupeWarnings(detectWarnings(idea));
+  // 1. 검증 — 공통 규칙 + 현재 단계에서만 성립하는 규칙
+  let warnings = dedupeWarnings([
+    ...detectWarnings(idea),
+    ...detectStageWarnings(idea, stage, evidence),
+  ]);
 
   // 2. 신뢰도
   const conf = computeConfidence(evidence, policy);
@@ -1357,8 +1522,9 @@ export function runAnalysis(
   // 5. 피벗 판정
   const pivot = decidePivot(diagnosis, policy);
 
-  // 6. 사용자가 지금 할 일 — 점수가 아니라 행동을 먼저 보여준다
-  const actions: string[] = [...pivot.nextActions];
+  // 6. 사용자가 지금 할 일 — 점수가 아니라 행동을 먼저 보여준다.
+  //    현재 단계에서 해야 할 일을 맨 앞에 둔다 (아이디어 단계에 유지율 얘기를 해봐야 소용없다)
+  const actions: string[] = [...STAGE_RULES[stage].nextActions, ...pivot.nextActions];
   const weakest = [...diagnosis.dimensions]
     .sort((a, b) => a.rawScore - b.rawScore || a.code.localeCompare(b.code))
     .slice(0, 2);
@@ -1377,6 +1543,7 @@ export function runAnalysis(
       modelProvider: options.assist?.provider ?? null,
       modelName: options.assist?.model ?? null,
     },
+    stage: { code: stage, label: STAGE_LABELS[stage], focus: STAGE_RULES[stage].focus },
     idea,
     diagnosis,
     targets,

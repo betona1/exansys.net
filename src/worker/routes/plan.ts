@@ -22,6 +22,7 @@ import {
   type EvidenceItem,
   type EvidenceType,
   type IdeaStructure,
+  type ProjectStage,
 } from "../lib/plan-engine";
 import { buildReportMarkdown, buildTechspecMarkdown } from "../lib/plan-report";
 
@@ -451,6 +452,7 @@ planRoutes.post("/projects/:id/analyze", async (c) => {
   const evidence = await loadEvidence(db, id);
   const result = runAnalysis(toIdea(project), {
     evidence,
+    stage: project.stage as ProjectStage,
     now: new Date(),
     assist: project.aiModel ? { provider: "anthropic", model: project.aiModel } : null,
   });
@@ -515,7 +517,11 @@ planRoutes.get("/projects/:id/export", async (c) => {
   if (!project) return c.json(err("not_found"), 404);
 
   const evidence = await loadEvidence(db, id);
-  const result = runAnalysis(toIdea(project), { evidence, now: new Date() });
+  const result = runAnalysis(toIdea(project), {
+    evidence,
+    stage: project.stage as ProjectStage,
+    now: new Date(),
+  });
   const markdown =
     format === "techspec"
       ? buildTechspecMarkdown(result)

@@ -42,6 +42,7 @@ export function buildReportMarkdown(result: AnalysisResult, evidence: EvidenceIt
 
   // 결론 먼저
   lines.push("## 1. 결론", "");
+  lines.push(`- **현재 단계**: ${result.stage.label} — ${result.stage.focus}`);
   lines.push(`- **판단**: ${PIVOT_LABELS[pivot.decision]} (\`${pivot.decision}\`)`);
   if (pivot.wouldBeDecision) {
     lines.push(
@@ -167,6 +168,7 @@ export function buildTechspecMarkdown(result: AnalysisResult): string {
 
   const name = fieldOr(idea.appName, "(이름 없는 앱)");
   lines.push(`# TECHSPEC — ${name}`, "");
+  lines.push(`> 현재 단계: **${result.stage.label}** — ${result.stage.focus}`, "");
   lines.push(
     `> 이 문서는 진단 결과에서 자동 생성되었습니다. 판단 상태는 **${PIVOT_LABELS[pivot.decision]}** 이며,`,
     `> 총점 ${diagnosis.totalScore.toFixed(1)} / 근거 신뢰도 ${(diagnosis.overallConfidence * 100).toFixed(0)}% 기준입니다.`,
