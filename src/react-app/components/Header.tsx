@@ -105,7 +105,7 @@ export default function Header({ me, logout }: { me: Me; logout: () => Promise<v
                   {open && (
                     <div className="absolute right-0 top-full mt-2 w-48 rounded-xl border border-line bg-card p-1.5 shadow-xl shadow-ink/8">
                       <div className="px-3 py-2 text-xs text-muted">
-                        {me.role === "admin" ? "관리자" : me.role === "staff" ? "직원" : me.role === "crew" ? "크루" : "회원"} 계정
+                        {me.role === "admin" ? "관리자" : me.role === "staff" ? "직원" : me.role === "crew" ? "앱튜버" : "회원"} 계정
                       </div>
                       {/* 모바일에선 상단 메뉴가 숨겨지므로 프로필 메뉴에서 이동 */}
                       <Link

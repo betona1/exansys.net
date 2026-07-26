@@ -44,7 +44,7 @@ export default function CrewDetail({ me }: { me: Me }) {
       setImages(res.data.images);
       setComments(res.data.comments);
     } else {
-      setError(res.error === "forbidden" || res.error === "unauthorized" ? "크루 전용 게시글입니다." : "게시글을 찾을 수 없습니다.");
+      setError(res.error === "forbidden" || res.error === "unauthorized" ? "앱튜버 전용 게시글입니다." : "게시글을 찾을 수 없습니다.");
     }
   }, [id]);
 
@@ -140,7 +140,7 @@ export default function CrewDetail({ me }: { me: Me }) {
         </form>
       ) : (
         <p className="mt-3 rounded-xl border border-line bg-card px-4 py-3 text-sm text-muted">
-          댓글 작성은 크루 멤버만 가능합니다. 누구나 갤러리와 댓글은 볼 수 있어요.
+          댓글 작성은 앱튜버만 가능합니다. 누구나 갤러리와 댓글은 볼 수 있어요.
         </p>
       )}
 

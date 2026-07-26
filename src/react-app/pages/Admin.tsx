@@ -145,7 +145,7 @@ export default function Admin({ me, meLoading }: { me: Me; meLoading: boolean })
     <main className="mx-auto max-w-6xl px-6 py-14">
       <h1 className="font-display text-3xl font-extrabold tracking-tight">관리자</h1>
       <p className="mt-1 text-sm text-muted">
-        {me!.name} · {isAdmin ? "관리자" : isStaff ? "직원" : "크루"}
+        {me!.name} · {isAdmin ? "관리자" : isStaff ? "직원" : "앱튜버"}
       </p>
 
       <div className="mt-7 flex gap-1.5 border-b border-line">

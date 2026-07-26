@@ -1,4 +1,4 @@
-// 크루(앱개발자 모임) 내부 갤러리 (CLAUDE.md 5-6절)
+// 앱튜버갤러리 (앱개발자 모임 내부 갤러리) (CLAUDE.md 5-6절)
 // crew 역할 이상만 접근. 이미지 R2 저장 (클라이언트에서 webp 변환 후 업로드, 최대 5MB)
 import { Hono } from "hono";
 import { drizzle } from "drizzle-orm/d1";
@@ -13,7 +13,7 @@ import appEducationHtml from "../resources/app-education.html?raw";
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5MB (5-6절)
 
-// 크루 자료실 — 학습용 정적 문서(HTML)를 crew 전용으로 서빙.
+// 앱튜버 자료실 — 학습용 정적 문서(HTML)를 crew 전용으로 서빙.
 // 새 자료는 여기에 항목을 추가하면 목록·서빙에 함께 반영된다.
 const RESOURCES: Record<
   string,

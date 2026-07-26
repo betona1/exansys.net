@@ -99,7 +99,7 @@ export default function AppReview({ me, meLoading }: { me: Me; meLoading: boolea
         <h1 className="font-display text-3xl font-extrabold tracking-tight">앱 리뷰 분석실</h1>
         <p className="mx-auto mt-4 max-w-md text-muted">
           구글플레이·앱스토어의 앱 리뷰를 수집해 <b>별점 분포·불만/칭찬 키워드·추이</b>를 분석하고
-          엑셀로 내보내는 <b>크루 전용</b> 도구입니다.
+          엑셀로 내보내는 <b>앱튜버 전용</b> 도구입니다.
         </p>
         <div className="mt-8 rounded-2xl border border-line bg-card p-6 text-left text-sm text-muted">
           <p className="font-semibold text-ink">이용하려면</p>
@@ -107,9 +107,9 @@ export default function AppReview({ me, meLoading }: { me: Me; meLoading: boolea
             <li>우측 상단에서 소셜 계정으로 로그인해 주세요.</li>
             <li>
               <Link to="/contact" className="font-semibold text-cobalt hover:underline">개발 문의 게시판</Link>
-              에 크루 참여 희망 글을 남겨주세요.
+              에 앱튜버 참여 희망 글을 남겨주세요.
             </li>
-            <li>운영진 승인 후 크루 권한이 부여됩니다.</li>
+            <li>운영진 승인 후 앱튜버 권한이 부여됩니다.</li>
           </ol>
         </div>
       </main>
