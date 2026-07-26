@@ -546,11 +546,22 @@ export async function planAi<T>(path: string, apiKey: string): Promise<ApiResult
   }
 }
 
+/** 403 Request not allowed 처럼 원인이 여러 개일 때 붙이는 점검 목록 */
+export const PLAN_AI_FORBIDDEN_HINTS = [
+  "Console(console.anthropic.com) → Billing 에서 API 크레딧 잔액이 0인지 확인 (claude.ai Pro 구독과 별개입니다)",
+  "결제 수단이 등록되어 있는지, 조직 인증이 끝났는지 확인",
+  "키가 sk-ant-api… 로 시작하는지 확인 (sk-ant-admin… 은 관리용이라 호출 불가)",
+  "키를 만든 워크스페이스에 모델 접근이 제한돼 있지 않은지 확인",
+];
+
 export const PLAN_AI_ERROR_MESSAGE: Record<string, string> = {
   api_key_required: "API 키를 먼저 입력해 주세요.",
   invalid_api_key_format: "Anthropic API 키 형식이 아닙니다. sk-ant- 로 시작해야 합니다.",
   api_key_invalid: "API 키가 유효하지 않습니다. Anthropic 콘솔에서 다시 확인해 주세요.",
-  api_key_forbidden: "이 API 키에는 해당 모델 권한이 없습니다.",
+  api_key_forbidden: "이 API 키로는 호출이 허용되지 않습니다.",
+  admin_key_not_usable:
+    "조직 관리용 키(sk-ant-admin-)는 모델을 호출할 수 없습니다. Console → API Keys 에서 일반 API 키를 새로 만들어 주세요.",
+  no_model_available: "키는 유효하지만 사용 가능한 모델이 없습니다. 결제·권한을 확인해 주세요.",
   api_rate_limited: "요청이 몰렸습니다. 잠시 후 다시 시도해 주세요.",
   ai_refused: "AI가 이 내용의 처리를 거절했습니다. 원문을 다시 확인해 주세요.",
   ai_output_truncated: "AI 응답이 잘렸습니다. 원문을 줄여서 다시 시도해 주세요.",
