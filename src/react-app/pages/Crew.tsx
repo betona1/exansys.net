@@ -154,8 +154,8 @@ export default function Crew({ me, meLoading }: { me: Me; meLoading: boolean }) 
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="mb-2 text-[13px] font-semibold uppercase tracking-[0.18em] text-green">CREW</p>
-          <h1 className="font-display text-3xl font-extrabold tracking-tight">크루 라운지</h1>
-          <p className="mt-2 text-muted">크루가 만든 앱을 구경하고, 서로 피드백을 나누는 공간이에요.</p>
+          <h1 className="font-display text-3xl font-extrabold tracking-tight">앱튜버갤러리</h1>
+          <p className="mt-2 text-muted">앱튜버들이 만든 앱을 구경하고, 서로 피드백을 나누는 공간이에요.</p>
         </div>
         {crew && (
           <button
@@ -169,7 +169,7 @@ export default function Crew({ me, meLoading }: { me: Me; meLoading: boolean }) 
 
       {!crew && (
         <div className="mt-6 rounded-2xl border border-line bg-card p-5 text-sm text-muted">
-          누구나 크루 갤러리를 구경할 수 있어요. 직접 앱을 올리고 자료실을 이용하려면{" "}
+          누구나 앱튜버갤러리를 구경할 수 있어요. 직접 앱을 올리고 자료실을 이용하려면{" "}
           <Link to="/contact" className="font-semibold text-cobalt hover:underline">개발 문의 게시판</Link>
           에서 크루 참여를 신청해 주세요 (운영진 승인 후 크루 권한 부여).
         </div>
@@ -250,7 +250,7 @@ export default function Crew({ me, meLoading }: { me: Me; meLoading: boolean }) 
 
       <section className="mt-12">
         <div className="mb-5 flex items-baseline gap-3">
-          <h2 className="font-display text-2xl font-extrabold tracking-tight">크루 갤러리</h2>
+          <h2 className="font-display text-2xl font-extrabold tracking-tight">앱튜버갤러리</h2>
           <span className="text-sm text-muted">서로의 앱을 자랑하고, 피드백을 나눠요</span>
         </div>
 

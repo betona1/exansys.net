@@ -56,7 +56,7 @@ export default function Header({ me, logout }: { me: Me; logout: () => Promise<v
               <>
                 <li className="hidden sm:block">
                   <Link className="font-semibold text-green transition hover:text-green-deep" to="/crew">
-                    크루
+                    앱튜버갤러리
                   </Link>
                 </li>
                 <li className="hidden sm:block">
@@ -143,7 +143,7 @@ export default function Header({ me, logout }: { me: Me; logout: () => Promise<v
                             onClick={() => setOpen(false)}
                             className="block rounded-lg px-3 py-2 text-sm font-medium text-green hover:bg-paper sm:hidden"
                           >
-                            크루 갤러리
+                            앱튜버갤러리
                           </Link>
                           <Link
                             to="/appreview"
