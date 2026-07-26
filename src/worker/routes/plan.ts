@@ -577,10 +577,15 @@ async function upstreamReason(res: Response): Promise<string> {
   }
 }
 
-/** 이 키가 실제로 쓸 수 있는 모델 하나를 고른다. */
-async function pickModel(
+/** 이 키로 시도해 볼 모델을 선호 순서대로 만든다.
+ *
+ * /v1/models 에 뜬다고 다 호출할 수 있는 것은 아니다(권한 없으면 403). 또 구형 모델은
+ * adaptive thinking·structured outputs 를 지원하지 않아 400 이 난다. 그래서 하나만
+ * 고르지 않고 후보 목록을 만들어 실제 호출이 성공할 때까지 차례로 시도한다.
+ */
+async function candidateModels(
   apiKey: string,
-): Promise<{ model: string } | { errorCode: string; status: 401 | 403 | 502 }> {
+): Promise<{ models: string[] } | { errorCode: string; status: 401 | 403 | 502 }> {
   const res = await fetch(ANTHROPIC_MODELS_URL, {
     headers: { "anthropic-version": ANTHROPIC_VERSION, "x-api-key": apiKey },
   });
@@ -598,12 +603,33 @@ async function pickModel(
     return { errorCode: `ai_error_${res.status}`, status: 502 };
   }
   const body = (await res.json()) as { data?: { id: string }[] };
-  const ids = new Set((body.data ?? []).map((m) => m.id));
-  for (const m of MODEL_PREFERENCE) if (ids.has(m)) return { model: m };
-  // 선호 목록에 없으면 이 키가 가진 아무 claude 모델이라도 쓴다
-  const fallback = (body.data ?? []).find((m) => m.id.startsWith("claude"));
-  if (fallback) return { model: fallback.id };
-  return { errorCode: "no_model_available", status: 403 };
+  const available = (body.data ?? []).map((m) => m.id).filter((id) => id.startsWith("claude"));
+  const preferred = MODEL_PREFERENCE.filter((m) => available.includes(m));
+  // 선호 목록에 없는 모델도 뒤에 붙여 마지막까지 시도해 본다
+  const models = [...new Set([...preferred, ...available])];
+  if (models.length === 0) return { errorCode: "no_model_available", status: 403 };
+  return { models };
+}
+
+/** 모델을 바꾸면 통할 수 있는 실패인가 (권한 없음 / 없는 모델 / 미지원 파라미터) */
+function shouldTryNextModel(status: number, reason: string): boolean {
+  if (status === 403 || status === 404) return true;
+  if (status !== 400) return false;
+  // 구형 모델이 thinking·output_config 같은 신규 파라미터를 거부하는 경우
+  return /thinking|output_config|effort|model|not permitted|not support/i.test(reason);
+}
+
+/** 코드펜스나 앞뒤 설명이 섞여 와도 JSON 본문만 뽑아낸다 */
+function extractJson(text: string): Record<string, unknown> | null {
+  const cleaned = text.replace(/```(?:json)?/gi, "").trim();
+  const start = cleaned.indexOf("{");
+  const end = cleaned.lastIndexOf("}");
+  if (start === -1 || end <= start) return null;
+  try {
+    return JSON.parse(cleaned.slice(start, end + 1)) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
 }
 
 // 사용자 원문은 지시문과 같은 평면에 두지 않는다. 태그로 감싼 데이터로만 넘긴다.
@@ -661,29 +687,19 @@ const STRUCTURE_FIELDS = [
   "distributionChannel",
 ] as const;
 
-// additionalProperties:false — 모델이 점수 같은 걸 끼워 넣으면 검증이 실패한다.
-const STRUCTURE_JSON_SCHEMA = {
-  type: "object",
-  properties: {
-    ...Object.fromEntries(STRUCTURE_FIELDS.map((f) => [f, { type: "string" }])),
-    notes: {
-      type: "array",
-      items: {
-        type: "object",
-        properties: {
-          field: { type: "string", enum: [...STRUCTURE_FIELDS] },
-          origin: { type: "string", enum: ["FROM_RAW_TEXT", "INFERRED", "MISSING"] },
-          reason: { type: "string" },
-        },
-        required: ["field", "origin", "reason"],
-        additionalProperties: false,
-      },
-    },
-    unknowns: { type: "array", items: { type: "string" } },
-  },
-  required: [...STRUCTURE_FIELDS, "notes", "unknowns"],
-  additionalProperties: false,
-} as const;
+// 구형 모델은 structured outputs 를 지원하지 않는다. 어떤 모델이든 통하도록
+// 출력 형식은 파라미터가 아니라 프롬프트로 지시하고, 응답에서 JSON 만 뽑아 쓴다.
+const OUTPUT_FORMAT_INSTRUCTION = `
+
+출력 형식: 아래 키를 가진 JSON 객체 **하나만** 출력하십시오. 설명 문장, 코드펜스, 머리말을 붙이지 마십시오.
+
+{
+${STRUCTURE_FIELDS.map((f) => `  "${f}": "문자열 (원문에 없으면 빈 문자열)"`).join(",\n")},
+  "notes": [{ "field": "위 키 중 하나", "origin": "FROM_RAW_TEXT | INFERRED | MISSING", "reason": "한 줄" }],
+  "unknowns": ["사람이 직접 물어봐야 할 것"]
+}
+
+점수, 등급, 성공 가능성, 유지/수정/피벗 같은 판정 키를 절대 추가하지 마십시오.`;
 
 /** 원문에서 경계 태그를 제거해 데이터 구간이 조기 종료되는 것을 막는다. */
 function sanitize(text: string | null | undefined): string {
@@ -714,8 +730,32 @@ planRoutes.post("/ai/check", async (c) => {
   }
   const body = (await res.json()) as { data?: { id: string }[] };
   const models = (body.data ?? []).map((m) => m.id);
-  const picked = MODEL_PREFERENCE.find((m) => models.includes(m)) ?? models[0] ?? null;
-  return c.json(ok({ models, picked }));
+
+  // 목록에 있다고 호출까지 되는 건 아니다. 실제로 한 번 불러봐야 권한을 알 수 있다.
+  // 토큰 몇 개짜리 최소 요청이라 비용은 사실상 0이다.
+  const available = models.filter((id) => id.startsWith("claude"));
+  const candidates = [...new Set([...MODEL_PREFERENCE.filter((m) => available.includes(m)), ...available])];
+  let lastError = "";
+  for (const model of candidates.slice(0, 5)) {
+    const probe = await fetch(ANTHROPIC_URL, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "anthropic-version": ANTHROPIC_VERSION,
+        "x-api-key": apiKey,
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: 8,
+        messages: [{ role: "user", content: "OK 라고만 답하십시오." }],
+      }),
+    });
+    if (probe.ok) return c.json(ok({ models, picked: model, verified: true }));
+    const reason = await upstreamReason(probe);
+    lastError = `[HTTP ${probe.status}] ${reason || "알 수 없는 오류"}`;
+    if (!shouldTryNextModel(probe.status, reason)) break;
+  }
+  return c.json(err(`ai_upstream:${lastError || "호출 가능한 모델을 찾지 못했습니다"}`), 502);
 });
 
 planRoutes.post("/projects/:id/ai/structure", async (c) => {
@@ -754,60 +794,72 @@ planRoutes.post("/projects/:id/ai/structure", async (c) => {
     "위 데이터를 스키마에 맞춰 구조화하십시오.",
   ].join("\n");
 
-  // 이 키가 쓸 수 있는 모델을 먼저 확인한다 (모델을 고정하면 권한 없는 키에서 403)
-  const picked = await pickModel(apiKey);
-  if ("errorCode" in picked) return c.json(err(picked.errorCode), picked.status);
-  const model = picked.model;
+  // 이 키로 쓸 수 있는 모델 후보를 받아 실제로 통할 때까지 차례로 시도한다.
+  const candidates = await candidateModels(apiKey);
+  if ("errorCode" in candidates) return c.json(err(candidates.errorCode), candidates.status);
 
-  let draft: Record<string, unknown>;
-  try {
-    const upstream = await fetch(ANTHROPIC_URL, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        "anthropic-version": ANTHROPIC_VERSION,
-        "x-api-key": apiKey,
-      },
-      body: JSON.stringify({
-        model,
-        // 사고 토큰과 응답이 max_tokens 를 함께 쓴다. 8000이면 긴 원문에서 잘릴 수 있어 넉넉히 둔다.
-        max_tokens: 16000,
-        thinking: { type: "adaptive" },
-        output_config: {
-          effort: "medium",
-          // additionalProperties:false 스키마라 모델이 점수를 끼워 넣으면 응답이 실패한다
-          format: { type: "json_schema", schema: STRUCTURE_JSON_SCHEMA },
+  let draft: Record<string, unknown> | null = null;
+  let usedModel = "";
+  let lastError = "";
+
+  for (const model of candidates.models.slice(0, 5)) {
+    let upstream: Response;
+    try {
+      upstream = await fetch(ANTHROPIC_URL, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "anthropic-version": ANTHROPIC_VERSION,
+          "x-api-key": apiKey,
         },
-        system: STRUCTURE_SYSTEM,
-        messages: [{ role: "user", content: userMessage }],
-      }),
-    });
+        // thinking·output_config 는 신형 모델 전용이라 보내지 않는다.
+        // 어떤 모델에서도 동작하는 최소 파라미터만 쓴다.
+        body: JSON.stringify({
+          model,
+          max_tokens: 8000,
+          system: STRUCTURE_SYSTEM + OUTPUT_FORMAT_INSTRUCTION,
+          messages: [{ role: "user", content: userMessage }],
+        }),
+      });
+    } catch {
+      lastError = "네트워크 오류";
+      continue;
+    }
 
     if (!upstream.ok) {
-      // 크레딧 부족 같은 실제 사유를 그대로 보여준다. 코드만 주면 원인을 알 수 없다.
       const reason = await upstreamReason(upstream);
-      if (upstream.status === 429 && !reason) return c.json(err("api_rate_limited"), 429);
-      return c.json(
-        err(reason ? `ai_upstream:[HTTP ${upstream.status}] ${reason}` : `ai_error_${upstream.status}`),
-        upstream.status === 401 ? 401 : upstream.status === 403 ? 403 : 502,
-      );
+      lastError = `[HTTP ${upstream.status}] ${reason || "알 수 없는 오류"}`;
+      // 모델을 바꾸면 통할 수 있는 실패면 다음 후보로
+      if (shouldTryNextModel(upstream.status, reason)) continue;
+      if (upstream.status === 429) return c.json(err("api_rate_limited"), 429);
+      if (upstream.status === 401) return c.json(err("api_key_invalid"), 401);
+      return c.json(err(`ai_upstream:${lastError}`), 502);
     }
 
     const response = (await upstream.json()) as AnthropicMessage;
-
     // 안전 분류기가 거절하면 HTTP 200 + stop_reason:"refusal" 로 온다. content 를 먼저 읽으면 안 된다.
     if (response.stop_reason === "refusal") return c.json(err("ai_refused"), 400);
-    if (response.stop_reason === "max_tokens") return c.json(err("ai_output_truncated"), 502);
 
-    const text = response.content?.find((b) => b.type === "text")?.text;
-    if (!text) return c.json(err("ai_empty_response"), 502);
-    draft = JSON.parse(text) as Record<string, unknown>;
-  } catch {
-    return c.json(err("ai_request_failed"), 502);
+    const text = response.content?.find((b) => b.type === "text")?.text ?? "";
+    const parsed = extractJson(text);
+    if (!parsed) {
+      lastError =
+        response.stop_reason === "max_tokens"
+          ? "응답이 잘렸습니다(원문이 너무 깁니다)"
+          : "JSON 형식이 아닌 응답";
+      continue;
+    }
+    draft = parsed;
+    usedModel = model;
+    break;
+  }
+
+  if (!draft) {
+    return c.json(err(lastError ? `ai_upstream:${lastError}` : "ai_request_failed"), 502);
   }
 
   // 초안은 사용자가 승인하기 전까지 저장하지 않는다. 화면에서 확인 후 저장을 누르면 PATCH 로 반영된다.
-  return c.json(ok({ model, promptVersion: PROMPT_VERSION, draft }));
+  return c.json(ok({ model: usedModel, promptVersion: PROMPT_VERSION, draft }));
 });
 
 /** AI 초안을 채택했을 때 표기용 기록만 남긴다 (판정에는 쓰이지 않음) */
