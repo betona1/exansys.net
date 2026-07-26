@@ -567,6 +567,22 @@ type AnthropicMessage = {
   stop_reason: string | null;
 };
 
+/** Anthropic 호출 공통 헤더.
+ *
+ * anthropic-dangerous-direct-browser-access 가 없으면 브라우저에서 온 요청으로
+ * 판정돼 403 "Request not allowed" 가 난다. Cloudflare Worker 의 subrequest 도
+ * 여기에 걸리는 경우가 있어 서버 호출이지만 명시한다.
+ * (키는 서버가 헤더로만 받고 저장하지 않으므로 브라우저에 노출되지 않는다)
+ */
+function anthropicHeaders(apiKey: string): Record<string, string> {
+  return {
+    "content-type": "application/json",
+    "anthropic-version": ANTHROPIC_VERSION,
+    "anthropic-dangerous-direct-browser-access": "true",
+    "x-api-key": apiKey,
+  };
+}
+
 /** 업스트림 오류 본문에서 사람이 읽을 수 있는 사유를 뽑는다 (크레딧 부족 등) */
 async function upstreamReason(res: Response): Promise<string> {
   try {
@@ -587,7 +603,7 @@ async function candidateModels(
   apiKey: string,
 ): Promise<{ models: string[] } | { errorCode: string; status: 401 | 403 | 502 }> {
   const res = await fetch(ANTHROPIC_MODELS_URL, {
-    headers: { "anthropic-version": ANTHROPIC_VERSION, "x-api-key": apiKey },
+    headers: anthropicHeaders(apiKey),
   });
   if (!res.ok) {
     // 401/403 이라도 사유를 버리지 않는다. "권한 없음"만 보여주면 원인을 알 수 없다.
@@ -732,7 +748,7 @@ planRoutes.post("/ai/check", async (c) => {
   if (!kind.ok) return c.json(err(kind.code), 400);
 
   const res = await fetch(ANTHROPIC_MODELS_URL, {
-    headers: { "anthropic-version": ANTHROPIC_VERSION, "x-api-key": apiKey },
+    headers: anthropicHeaders(apiKey),
   });
   if (!res.ok) {
     const reason = await upstreamReason(res);
@@ -752,11 +768,7 @@ planRoutes.post("/ai/check", async (c) => {
   for (const model of candidates.slice(0, 5)) {
     const probe = await fetch(ANTHROPIC_URL, {
       method: "POST",
-      headers: {
-        "content-type": "application/json",
-        "anthropic-version": ANTHROPIC_VERSION,
-        "x-api-key": apiKey,
-      },
+      headers: anthropicHeaders(apiKey),
       body: JSON.stringify({
         model,
         max_tokens: 8,
@@ -826,11 +838,7 @@ planRoutes.post("/projects/:id/ai/structure", async (c) => {
     try {
       upstream = await fetch(ANTHROPIC_URL, {
         method: "POST",
-        headers: {
-          "content-type": "application/json",
-          "anthropic-version": ANTHROPIC_VERSION,
-          "x-api-key": apiKey,
-        },
+        headers: anthropicHeaders(apiKey),
         // thinking·output_config 는 신형 모델 전용이라 보내지 않는다.
         // 어떤 모델에서도 동작하는 최소 파라미터만 쓴다.
         body: JSON.stringify({
