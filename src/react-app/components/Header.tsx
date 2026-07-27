@@ -36,33 +36,33 @@ export default function Header({ me, logout }: { me: Me; logout: () => Promise<v
         <Link to="/" aria-label="EXANSYS 홈">
           <BrandLogo size={30} />
         </Link>
-        <nav aria-label="주 메뉴">
-          <ul className="flex items-center gap-4 text-[14px] font-medium lg:gap-5">
+        <nav aria-label="주 메뉴" className="min-w-0">
+          <ul className="flex items-center gap-4 overflow-x-auto whitespace-nowrap text-[14px] font-medium [scrollbar-width:none] lg:gap-5 [&::-webkit-scrollbar]:hidden">
             <li className="hidden sm:block">
               <Link className="text-muted transition hover:text-ink" to="/#apps">{t("nav.apps")}</Link>
             </li>
             <li className="hidden sm:block">
               <Link className="text-muted transition hover:text-ink" to="/#about">{t("nav.about")}</Link>
             </li>
-            <li className="hidden lg:block">
+            <li className="hidden xl:block">
               <Link className="text-muted transition hover:text-ink" to="/ai-edu">{t("nav.edu")}</Link>
             </li>
-            <li className="hidden lg:block">
+            <li className="hidden xl:block">
               <Link className="text-muted transition hover:text-ink" to="/techdex?tab=dex">{t("nav.terms")}</Link>
             </li>
             {me && (
-              <li className="hidden sm:block">
+              <li className="hidden md:block">
                 <Link className="text-muted transition hover:text-ink" to="/app-plan">{t("nav.plan")}</Link>
               </li>
             )}
             {me && (me.role === "crew" || me.role === "staff" || me.role === "admin") && (
               <>
-                <li className="hidden sm:block">
+                <li className="hidden md:block">
                   <Link className="font-semibold text-green transition hover:text-green-deep" to="/crew">
                     {t("nav.gallery")}
                   </Link>
                 </li>
-                <li className="hidden sm:block">
+                <li className="hidden md:block">
                   <Link className="text-muted transition hover:text-ink" to="/appreview">
                     {t("nav.review")}
                   </Link>
@@ -115,7 +115,7 @@ export default function Header({ me, logout }: { me: Me; logout: () => Promise<v
                         {me.name.slice(0, 1)}
                       </span>
                     )}
-                    <span className="max-w-24 truncate text-sm font-semibold">{me.name}</span>
+                    <span className="hidden max-w-24 truncate text-sm font-semibold sm:inline">{me.name}</span>
                   </button>
                   {open && (
                     <div className="absolute right-0 top-full mt-2 w-48 rounded-xl border border-line bg-card p-1.5 shadow-xl shadow-ink/8">
