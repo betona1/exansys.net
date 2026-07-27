@@ -116,6 +116,7 @@ export default function AppPlanDetail({ me }: { me: Me }) {
   const [aiModel, setAiModel] = useState("");
   const [aiStage, setAiStage] = useState("");
   const [aiUsage, setAiUsage] = useState<AiUsage | null>(null);
+  const [aiFast, setAiFast] = useState(false);
   const [aiNotes, setAiNotes] = useState<{ field: string; origin: string; reason: string }[]>([]);
   const [aiUnknowns, setAiUnknowns] = useState<string[]>([]);
 
@@ -247,7 +248,10 @@ export default function AppPlanDetail({ me }: { me: Me }) {
       return;
     }
 
-    const res = await structureDirect(key, prompt.data.system, prompt.data.userMessage, setAiStage);
+    const res = await structureDirect(key, prompt.data.system, prompt.data.userMessage, {
+      fast: aiFast,
+      onProgress: setAiStage,
+    });
     setAiBusy(false);
     setAiStage("");
     if (res.ok) {
@@ -263,7 +267,7 @@ export default function AppPlanDetail({ me }: { me: Me }) {
     } else {
       setAiError(res.error);
     }
-  }, [dirty, save, id]);
+  }, [dirty, save, id, aiFast]);
 
   /** AI 초안 채택 — 비어 있는 칸만 채운다. 사람이 쓴 내용을 덮어쓰지 않는다. */
   const applyAiDraft = useCallback(
@@ -465,11 +469,31 @@ export default function AppPlanDetail({ me }: { me: Me }) {
             </label>
           ))}
           <div className="rounded-2xl border border-line bg-card p-5">
-            <p className="text-sm font-semibold">AI 구조화 초안</p>
+            <p className="text-sm font-semibold">초안 만들기</p>
             <p className="mt-1 text-sm text-muted">
-              위 원문을 12칸으로 나누는 <b>초안</b>만 만듭니다. 점수·신뢰도·피벗 판정에는 관여하지
-              않으며, 원문에 없는 내용은 비워 둡니다. 본인 API 키로 동작합니다.
+              위 원문을 <b>② 구조화 12칸으로 나눠 옮겨적기</b>만 합니다. 점수·경고·피벗 판정에는
+              관여하지 않고, 원문에 없는 내용은 비워 둡니다.
+              <b className="text-ink"> 본인 API 키로 호출하므로 토큰 비용이 발생합니다</b>
+              (1회 수십~수백 원). 사용량은 결과 위에 표시됩니다.
             </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                onClick={() => setAiFast(false)}
+                className={`rounded-full border px-4 py-1.5 text-xs transition ${
+                  !aiFast ? "border-ink bg-ink text-white" : "border-line text-muted hover:border-ink"
+                }`}
+              >
+                정확하게 · 30초~1분
+              </button>
+              <button
+                onClick={() => setAiFast(true)}
+                className={`rounded-full border px-4 py-1.5 text-xs transition ${
+                  aiFast ? "border-ink bg-ink text-white" : "border-line text-muted hover:border-ink"
+                }`}
+              >
+                빠르게 · 5~10초 (저렴, 품질 낮음)
+              </button>
+            </div>
             {rawLength < 100 && (
               <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
                 지금 원문이 <b>{rawLength}자</b>입니다. AI는 <b>원문에 없는 내용을 지어내지 않도록</b>
@@ -485,7 +509,7 @@ export default function AppPlanDetail({ me }: { me: Me }) {
               {aiBusy && (
                 <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
               )}
-              {aiBusy ? "초안 만드는 중…" : "AI로 구조화 초안 만들기"}
+              {aiBusy ? "만드는 중…" : "초안 만들기"}
             </button>
             {aiBusy && (
               <div className="mt-3 rounded-xl border border-line bg-paper px-4 py-3 text-sm">
@@ -494,7 +518,9 @@ export default function AppPlanDetail({ me }: { me: Me }) {
                   <div className="h-full w-1/3 animate-pulse rounded-full bg-cobalt" />
                 </div>
                 <p className="mt-2 text-xs text-muted">
-                  생각하며 쓰는 모델은 30초~1분 걸릴 수 있습니다. 창을 닫지 마세요.
+                  {aiFast
+                    ? "빠른 모드입니다. 곧 끝납니다."
+                    : "정확 모드는 모델이 생각하는 시간이 포함돼 30초~1분 걸립니다. 창을 닫지 마세요."}
                 </p>
               </div>
             )}
