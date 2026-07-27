@@ -29,6 +29,10 @@ const EMPTY_FORM = {
   storeUrlAndroid: "",
   storeUrlIos: "",
   status: "development" as AppRow["status"],
+  // 영문 문구
+  nameEn: "",
+  taglineEn: "",
+  descriptionEn: "",
   // 갤러리용
   thumbUrl: "",
   videoUrl: "",
@@ -124,6 +128,9 @@ export default function Admin({ me, meLoading }: { me: Me; meLoading: boolean })
       storeUrlAndroid: app.storeUrlAndroid ?? "",
       storeUrlIos: app.storeUrlIos ?? "",
       status: app.status,
+      nameEn: app.nameEn ?? "",
+      taglineEn: app.taglineEn ?? "",
+      descriptionEn: app.descriptionEn ?? "",
       thumbUrl: app.thumbUrl ?? "",
       videoUrl: app.videoUrl ?? "",
       category: app.category ?? "",
@@ -238,6 +245,30 @@ export default function Admin({ me, meLoading }: { me: Me; meLoading: boolean })
                     onChange={(e) => setForm({ ...form, storeUrlIos: e.target.value })} />
                 </div>
 
+                {/* ── 영문 문구 (EN 모드에서 표시. 비우면 한글 그대로) ── */}
+                <div className="sm:col-span-2 mt-2 border-t border-line pt-4">
+                  <p className="text-sm font-semibold">영문 문구</p>
+                  <p className="mt-1 text-xs text-muted">
+                    사이트를 EN 으로 볼 때 쓰입니다. 비워 두면 한글 값이 그대로 나옵니다.
+                  </p>
+                </div>
+                <div>
+                  <label className={label}>앱 이름 (EN)</label>
+                  <input className={input} value={form.nameEn} placeholder="VibeQuest"
+                    onChange={(e) => setForm({ ...form, nameEn: e.target.value })} />
+                </div>
+                <div>
+                  <label className={label}>한 줄 소개 (EN)</label>
+                  <input className={input} value={form.taglineEn}
+                    placeholder="Learn 867 tech terms as a game."
+                    onChange={(e) => setForm({ ...form, taglineEn: e.target.value })} />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className={label}>설명 (EN)</label>
+                  <textarea className={`${input} h-28`} value={form.descriptionEn}
+                    onChange={(e) => setForm({ ...form, descriptionEn: e.target.value })} />
+                </div>
+
                 {/* ── 갤러리 (홈 카드·영상 모달) ── */}
                 <div className="sm:col-span-2 mt-2 border-t border-line pt-4">
                   <p className="text-sm font-semibold">갤러리 설정</p>
@@ -310,7 +341,7 @@ export default function Admin({ me, meLoading }: { me: Me; meLoading: boolean })
               <div key={app.id} className="flex items-center gap-4 rounded-2xl border border-line bg-card p-4">
                 <div className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-xl bg-lime/15 text-xl">
                   {/^(https?:\/\/|\/)/.test(app.iconUrl ?? "") ? (
-                    <img src={app.iconUrl} alt="" className="h-full w-full object-cover" />
+                    <img src={app.iconUrl ?? undefined} alt="" className="h-full w-full object-cover" />
                   ) : (
                     <span>{app.iconUrl || "📱"}</span>
                   )}

@@ -36,6 +36,10 @@ export const apps = sqliteTable("apps", {
     .notNull()
     .default("planning"),
   downloadCount: integer("download_count").notNull().default(0),
+  // 영문 문구 — 비어 있으면 화면에서 한글 값으로 대체한다 (한쪽만 채워도 동작)
+  nameEn: text("name_en"),
+  taglineEn: text("tagline_en"),
+  descriptionEn: text("description_en"),
   // 갤러리용 (2026 리뉴얼) — 기존 행은 전부 null 이며 화면에서 대체 처리한다
   thumbUrl: text("thumb_url"), // 16:9 카드 썸네일
   videoUrl: text("video_url"), // 홍보영상 — mp4 직링크 또는 유튜브 URL

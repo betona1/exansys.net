@@ -6,6 +6,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { STATUS_LABEL, type AppRow } from "../lib/api";
+import { pick, useLang } from "../lib/i18n";
 
 /** 유튜브 URL 이면 임베드 주소를, 아니면 null 을 준다 (mp4 등은 <video> 로 재생) */
 export function youtubeEmbed(url: string): string | null {
@@ -14,6 +15,17 @@ export function youtubeEmbed(url: string): string | null {
   );
   if (!m) return null;
   return `https://www.youtube-nocookie.com/embed/${m[1]}?autoplay=1&rel=0&modestbranding=1`;
+}
+
+/** 현재 언어의 문구. 영문이 비어 있으면 한글을 그대로 쓴다 */
+function useAppText(app: AppRow | null) {
+  const { lang } = useLang();
+  if (!app) return { name: "", tagline: "", description: "" };
+  return {
+    name: pick(lang, app.nameEn, app.name) || app.name,
+    tagline: pick(lang, app.taglineEn, app.tagline),
+    description: pick(lang, app.descriptionEn, app.description),
+  };
 }
 
 function hasVideo(app: AppRow): boolean {
@@ -157,40 +169,7 @@ export default function AppGallery({
       <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {shown.map((app) => (
           <li key={app.id}>
-            <button
-              onClick={() => openApp(app.slug)}
-              className="group block w-full overflow-hidden rounded-2xl border border-line bg-card text-left transition hover:-translate-y-1 hover:border-green/60 hover:shadow-2xl hover:shadow-green/10"
-            >
-              <div className="relative aspect-video overflow-hidden bg-paper">
-                <Thumb app={app} />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-                <div className="absolute inset-0 grid place-items-center opacity-0 transition group-hover:opacity-100">
-                  {hasVideo(app) && <PlayBadge />}
-                </div>
-                <div className="absolute left-3 top-3 flex gap-1.5">
-                  <span className="rounded-full bg-black/55 px-2.5 py-1 text-[11px] font-semibold tracking-wide text-white backdrop-blur-sm">
-                    {app.category?.trim() || STATUS_LABEL[app.status]}
-                  </span>
-                  {hasVideo(app) && (
-                    <span className="rounded-full bg-green/85 px-2.5 py-1 text-[11px] font-semibold text-white">
-                      ▶ {labels.watch}
-                    </span>
-                  )}
-                </div>
-                <p className="absolute bottom-3 left-4 right-4 truncate font-display text-lg font-extrabold text-white">
-                  {app.name}
-                </p>
-              </div>
-              <div className="p-5">
-                <p className="line-clamp-2 min-h-11 text-sm text-muted">
-                  {app.tagline || app.description || ""}
-                </p>
-                <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-green">
-                  {labels.details}
-                  <span aria-hidden="true">→</span>
-                </span>
-              </div>
-            </button>
+            <GalleryCard app={app} onOpen={() => openApp(app.slug)} labels={labels} />
           </li>
         ))}
       </ul>
@@ -220,18 +199,7 @@ export default function AppGallery({
             </div>
 
             <div className="p-6">
-              <div className="flex flex-wrap items-center gap-2">
-                <h3 className="font-display text-2xl font-extrabold">{open.name}</h3>
-                <span className="rounded-full bg-paper px-2.5 py-0.5 text-xs text-muted">
-                  {open.category?.trim() || STATUS_LABEL[open.status]}
-                </span>
-              </div>
-              {open.tagline && <p className="mt-2 text-muted">{open.tagline}</p>}
-              {open.description && (
-                <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-muted">
-                  {open.description}
-                </p>
-              )}
+              <ModalHead app={open} />
 
               <div className="mt-6 flex flex-wrap gap-2">
                 <Link
@@ -266,6 +234,74 @@ export default function AppGallery({
             </div>
           </div>
         </div>
+      )}
+    </>
+  );
+}
+
+/** 카드 — 항목마다 훅을 쓰려고 별도 컴포넌트로 뺐다 */
+function GalleryCard({
+  app,
+  onOpen,
+  labels,
+}: {
+  app: AppRow;
+  onOpen: () => void;
+  labels: { watch: string; details: string };
+}) {
+  const text = useAppText(app);
+  return (
+    <button
+      onClick={onOpen}
+      className="group block w-full overflow-hidden rounded-2xl border border-line bg-card text-left transition hover:-translate-y-1 hover:border-green/60 hover:shadow-2xl hover:shadow-green/10"
+    >
+      <div className="relative aspect-video overflow-hidden bg-paper">
+        <Thumb app={app} />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+        <div className="absolute inset-0 grid place-items-center opacity-0 transition group-hover:opacity-100">
+          {hasVideo(app) && <PlayBadge />}
+        </div>
+        <div className="absolute left-3 top-3 flex gap-1.5">
+          <span className="rounded-full bg-black/55 px-2.5 py-1 text-[11px] font-semibold tracking-wide text-white backdrop-blur-sm">
+            {app.category?.trim() || STATUS_LABEL[app.status]}
+          </span>
+          {hasVideo(app) && (
+            <span className="rounded-full bg-green/85 px-2.5 py-1 text-[11px] font-semibold text-white">
+              ▶ {labels.watch}
+            </span>
+          )}
+        </div>
+        <p className="absolute bottom-3 left-4 right-4 truncate font-display text-lg font-extrabold text-white">
+          {text.name}
+        </p>
+      </div>
+      <div className="p-5">
+        <p className="line-clamp-2 min-h-11 text-sm text-muted">{text.tagline || text.description}</p>
+        <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-green">
+          {labels.details}
+          <span aria-hidden="true">→</span>
+        </span>
+      </div>
+    </button>
+  );
+}
+
+/** 모달 상단 — 제목·분류·소개 */
+function ModalHead({ app }: { app: AppRow }) {
+  const text = useAppText(app);
+  return (
+    <>
+      <div className="flex flex-wrap items-center gap-2">
+        <h3 className="font-display text-2xl font-extrabold">{text.name}</h3>
+        <span className="rounded-full bg-paper px-2.5 py-0.5 text-xs text-muted">
+          {app.category?.trim() || STATUS_LABEL[app.status]}
+        </span>
+      </div>
+      {text.tagline && <p className="mt-2 text-muted">{text.tagline}</p>}
+      {text.description && (
+        <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-muted">
+          {text.description}
+        </p>
       )}
     </>
   );

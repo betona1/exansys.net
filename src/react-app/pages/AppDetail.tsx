@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api, STATUS_LABEL, type AppRow, type Me } from "../lib/api";
+import { pick, useLang } from "../lib/i18n";
 import CountUp from "../components/CountUp";
 import Comments from "../components/Comments";
 import { formatBytes, type BuildRow } from "../components/AppAssets";
@@ -9,6 +10,7 @@ type Screenshot = { id: number; imageUrl: string };
 
 export default function AppDetail({ me }: { me: Me }) {
   const { slug } = useParams<{ slug: string }>();
+  const { lang } = useLang();
   const [app, setApp] = useState<AppRow | null>(null);
   const [screenshots, setScreenshots] = useState<Screenshot[]>([]);
   const [betaAvailable, setBetaAvailable] = useState(false);
@@ -77,7 +79,7 @@ export default function AppDetail({ me }: { me: Me }) {
       <div className="mt-6 flex flex-wrap items-start gap-6">
         <div className="grid h-20 w-20 place-items-center overflow-hidden rounded-2xl border border-line bg-lime/15 text-4xl">
           {/^(https?:\/\/|\/)/.test(app.iconUrl ?? "") ? (
-            <img src={app.iconUrl} alt="" className="h-full w-full object-cover" />
+            <img src={app.iconUrl ?? undefined} alt="" className="h-full w-full object-cover" />
           ) : (
             <span>{app.iconUrl || "📱"}</span>
           )}
@@ -85,13 +87,15 @@ export default function AppDetail({ me }: { me: Me }) {
         <div className="min-w-60 flex-1">
           <div className="flex flex-wrap items-center gap-3">
             <h1 className="font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
-              {app.name}
+              {pick(lang, app.nameEn, app.name) || app.name}
             </h1>
             <span className="rounded-full bg-lime/25 px-3 py-1 text-xs font-semibold text-green-deep">
               {STATUS_LABEL[app.status]}
             </span>
           </div>
-          {app.tagline && <p className="mt-2 text-lg text-muted">{app.tagline}</p>}
+          {pick(lang, app.taglineEn, app.tagline) && (
+            <p className="mt-2 text-lg text-muted">{pick(lang, app.taglineEn, app.tagline)}</p>
+          )}
           <div className="mt-3 text-sm font-semibold text-muted">
             누적 다운로드 <span className="text-green"><CountUp value={count} /></span>
           </div>
@@ -100,9 +104,9 @@ export default function AppDetail({ me }: { me: Me }) {
 
       <div className="mt-10 grid gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          {app.description && (
+          {pick(lang, app.descriptionEn, app.description) && (
             <p className="whitespace-pre-line text-[15.5px] leading-relaxed text-ink/85">
-              {app.description}
+              {pick(lang, app.descriptionEn, app.description)}
             </p>
           )}
 

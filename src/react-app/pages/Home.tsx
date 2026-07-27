@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import AppGallery, { youtubeEmbed } from "../components/AppGallery";
-import { useLang } from "../lib/i18n";
+import { pick, useLang } from "../lib/i18n";
 import { Link, useLocation } from "react-router-dom";
 import BrandLogo from "../components/BrandLogo";
 import Reveal from "../components/Reveal";
@@ -76,6 +76,9 @@ export default function Home() {
   // 유튜브는 배경 자동재생에 못 쓰므로 mp4 계열만 배경으로 깐다
   const heroVideoSrc =
     heroApp?.videoUrl?.trim() && !youtubeEmbed(heroApp.videoUrl) ? heroApp.videoUrl : null;
+  // 영문이 비어 있으면 한글 값을 그대로 쓴다
+  const heroName = heroApp ? pick(lang, heroApp.nameEn, heroApp.name) || heroApp.name : null;
+  const heroTagline = heroApp ? pick(lang, heroApp.taglineEn, heroApp.tagline) : "";
   const featured = dbApps[0];
   const rest = dbApps.slice(1);
 
@@ -126,10 +129,10 @@ export default function Home() {
               </p>
             )}
             <h1 className="font-display mx-auto mt-3 max-w-3xl text-[2.5rem] font-extrabold leading-[1.12] tracking-tight sm:text-6xl">
-              {heroApp?.name ?? "EXANSYS"}
+              {heroName ?? "EXANSYS"}
             </h1>
             <p className="mx-auto mt-5 max-w-xl text-base text-muted sm:text-lg">
-              {heroApp?.tagline ?? t("hero.fallbackTagline")}
+              {heroTagline || t("hero.fallbackTagline")}
             </p>
 
             <div className="mt-8 flex flex-wrap justify-center gap-3">

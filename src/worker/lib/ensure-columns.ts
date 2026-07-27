@@ -31,6 +31,9 @@ export async function ensureColumns(
 
 /** apps 테이블 갤러리 컬럼 (2026 리뉴얼) */
 export const APPS_GALLERY_COLUMNS = [
+  { name: "name_en", ddl: "name_en text" },
+  { name: "tagline_en", ddl: "tagline_en text" },
+  { name: "description_en", ddl: "description_en text" },
   { name: "thumb_url", ddl: "thumb_url text" },
   { name: "video_url", ddl: "video_url text" },
   { name: "category", ddl: "category text" },

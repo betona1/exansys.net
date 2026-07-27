@@ -39,6 +39,9 @@ appRoutes.get("/", async (c) => {
       downloadCount: apps.downloadCount,
       storeUrlAndroid: apps.storeUrlAndroid,
       storeUrlIos: apps.storeUrlIos,
+      nameEn: apps.nameEn,
+      taglineEn: apps.taglineEn,
+      descriptionEn: apps.descriptionEn,
       // 갤러리용
       thumbUrl: apps.thumbUrl,
       videoUrl: apps.videoUrl,

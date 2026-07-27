@@ -33,6 +33,10 @@ export type AppRow = {
   storeUrlAndroid: string | null;
   storeUrlIos: string | null;
   ownerId?: number | null; // 관리자 목록(/api/admin/apps-list)에서만 채워짐
+  // 영문 문구 — 비어 있으면 한글 값으로 대체한다
+  nameEn?: string | null;
+  taglineEn?: string | null;
+  descriptionEn?: string | null;
   // 갤러리용 (2026 리뉴얼) — 기존 앱은 null 이라 화면에서 대체 처리한다
   thumbUrl?: string | null; // 16:9 카드 썸네일
   videoUrl?: string | null; // 홍보영상 — mp4 직링크 또는 유튜브 URL
