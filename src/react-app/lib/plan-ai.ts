@@ -159,22 +159,24 @@ export async function structureDirect(
   apiKey: string,
   system: string,
   userMessage: string,
-  onProgress?: (stage: string) => void,
+  opts: { fast?: boolean; onProgress?: (stage: string) => void } = {},
 ): Promise<DirectResult<{ model: string; draft: Record<string, unknown>; usage: AiUsage }>> {
+  const { fast = false, onProgress } = opts;
   onProgress?.("쓸 수 있는 모델 확인 중…");
   const candidates = await candidateModels(apiKey);
   if (!candidates.ok) return candidates;
 
   let lastError = "";
   for (const model of candidates.data.slice(0, 5)) {
-    // 신형 모델이면 사고를 켜고 한 번, 거부당하면 끄고 한 번
-    const attempts = THINKING_MODELS.has(model) ? [true, false] : [false];
+    // 신형 모델이면 사고를 켜고 한 번, 거부당하면 끄고 한 번.
+    // 빠른 모드에서는 처음부터 사고를 켜지 않는다(속도·비용 우선).
+    const attempts = !fast && THINKING_MODELS.has(model) ? [true, false] : [false];
 
     for (const withThinking of attempts) {
       onProgress?.(
         withThinking
-          ? `${model} 로 생각하며 작성 중… (30초쯤 걸립니다)`
-          : `${model} 로 작성 중…`,
+          ? `${model} 로 생각하며 작성 중… (30초~1분)`
+          : `${model} 로 작성 중… (5~10초)`,
       );
 
       const payload: Record<string, unknown> = {
