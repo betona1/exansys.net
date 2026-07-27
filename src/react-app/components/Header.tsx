@@ -32,22 +32,22 @@ export default function Header({ me, logout }: { me: Me; logout: () => Promise<v
 
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-paper/85 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-5">
         <Link to="/" aria-label="EXANSYS 홈">
           <BrandLogo size={30} />
         </Link>
         <nav aria-label="주 메뉴">
-          <ul className="flex items-center gap-6 text-[15px] font-medium">
+          <ul className="flex items-center gap-4 text-[14px] font-medium lg:gap-5">
             <li className="hidden sm:block">
               <Link className="text-muted transition hover:text-ink" to="/#apps">{t("nav.apps")}</Link>
             </li>
             <li className="hidden sm:block">
               <Link className="text-muted transition hover:text-ink" to="/#about">{t("nav.about")}</Link>
             </li>
-            <li className="hidden sm:block">
+            <li className="hidden lg:block">
               <Link className="text-muted transition hover:text-ink" to="/ai-edu">{t("nav.edu")}</Link>
             </li>
-            <li className="hidden sm:block">
+            <li className="hidden lg:block">
               <Link className="text-muted transition hover:text-ink" to="/techdex?tab=dex">{t("nav.terms")}</Link>
             </li>
             {me && (
@@ -128,44 +128,44 @@ export default function Header({ me, logout }: { me: Me; logout: () => Promise<v
                         onClick={() => setOpen(false)}
                         className="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-paper sm:hidden"
                       >
-                        앱
+                        {t("nav.apps")}
                       </Link>
                       <Link
                         to="/ai-edu"
                         onClick={() => setOpen(false)}
-                        className="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-paper sm:hidden"
+                        className="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-paper lg:hidden"
                       >
-                        AI교육
+                        {t("nav.edu")}
                       </Link>
                       <Link
                         to="/techdex?tab=dex"
                         onClick={() => setOpen(false)}
-                        className="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-paper sm:hidden"
+                        className="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-paper lg:hidden"
                       >
-                        용어검색
+                        {t("nav.terms")}
                       </Link>
                       <Link
                         to="/app-plan"
                         onClick={() => setOpen(false)}
                         className="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-paper"
                       >
-                        앱기획
+                        {t("nav.plan")}
                       </Link>
                       {(me.role === "crew" || me.role === "staff" || me.role === "admin") && (
                         <>
                           <Link
                             to="/crew"
                             onClick={() => setOpen(false)}
-                            className="block rounded-lg px-3 py-2 text-sm font-medium text-green hover:bg-paper sm:hidden"
+                            className="block rounded-lg px-3 py-2 text-sm font-medium text-green hover:bg-paper"
                           >
-                            앱튜버갤러리
+                            {t("nav.gallery")}
                           </Link>
                           <Link
                             to="/appreview"
                             onClick={() => setOpen(false)}
                             className="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-paper"
                           >
-                            앱 리뷰 분석
+                            {t("nav.review")}
                           </Link>
                         </>
                       )}
