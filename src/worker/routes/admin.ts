@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { ensureColumns, APPS_GALLERY_COLUMNS } from "../lib/ensure-columns";
 import { drizzle } from "drizzle-orm/d1";
 import { asc, eq, gte, lt, sql } from "drizzle-orm";
 import { z } from "zod";
@@ -43,6 +44,12 @@ const appSchema = z.object({
   storeUrlAndroid: z.string().url().max(500).optional().nullable().or(z.literal("")),
   storeUrlIos: z.string().url().max(500).optional().nullable().or(z.literal("")),
   status: z.enum(["planning", "development", "released"]),
+  // 갤러리용 — 썸네일 16:9, 영상은 mp4 직링크 또는 유튜브 URL
+  thumbUrl: z.string().max(500).optional().nullable().or(z.literal("")),
+  videoUrl: z.string().max(500).optional().nullable().or(z.literal("")),
+  category: z.string().max(40).optional().nullable().or(z.literal("")),
+  featured: z.boolean().optional(),
+  sort: z.number().int().min(0).max(9999).optional(),
 });
 
 const roleSchema = z.object({
@@ -68,6 +75,7 @@ adminRoutes.post("/apps", requireRole("crew"), async (c) => {
   if (!parsed.success) return c.json(err(parsed.error.issues[0]?.message ?? "invalid_input"), 400);
   const d = parsed.data;
   const db = drizzle(c.env.DB);
+  await ensureColumns(db, "apps", APPS_GALLERY_COLUMNS);
   await ensureOwnerCol(c.env.DB);
   const dup = await db.select({ id: apps.id }).from(apps).where(eq(apps.slug, d.slug)).limit(1);
   if (dup.length > 0) return c.json(err("slug_exists"), 409);
@@ -82,6 +90,11 @@ adminRoutes.post("/apps", requireRole("crew"), async (c) => {
       storeUrlAndroid: d.storeUrlAndroid || null,
       storeUrlIos: d.storeUrlIos || null,
       status: d.status,
+      thumbUrl: d.thumbUrl || null,
+      videoUrl: d.videoUrl || null,
+      category: d.category || null,
+      featured: d.featured ?? false,
+      sort: d.sort ?? 0,
       createdAt: new Date(),
     })
     .returning();
@@ -98,6 +111,7 @@ adminRoutes.put("/apps/:id", requireRole("crew"), async (c) => {
   if (!parsed.success) return c.json(err(parsed.error.issues[0]?.message ?? "invalid_input"), 400);
   const d = parsed.data;
   const db = drizzle(c.env.DB);
+  await ensureColumns(db, "apps", APPS_GALLERY_COLUMNS);
   const updated = await db
     .update(apps)
     .set({
@@ -109,6 +123,11 @@ adminRoutes.put("/apps/:id", requireRole("crew"), async (c) => {
       ...(d.storeUrlAndroid !== undefined && { storeUrlAndroid: d.storeUrlAndroid || null }),
       ...(d.storeUrlIos !== undefined && { storeUrlIos: d.storeUrlIos || null }),
       ...(d.status !== undefined && { status: d.status }),
+      ...(d.thumbUrl !== undefined && { thumbUrl: d.thumbUrl || null }),
+      ...(d.videoUrl !== undefined && { videoUrl: d.videoUrl || null }),
+      ...(d.category !== undefined && { category: d.category || null }),
+      ...(d.featured !== undefined && { featured: d.featured }),
+      ...(d.sort !== undefined && { sort: d.sort }),
     })
     .where(eq(apps.id, id))
     .returning();
@@ -171,6 +190,30 @@ const SHOT_TYPES: Record<string, { ext: string; max: number }> = {
   "image/gif": { ext: "gif", max: 5 * 1024 * 1024 },
   "video/mp4": { ext: "mp4", max: 30 * 1024 * 1024 },
 };
+
+// 갤러리 썸네일·홍보영상 업로드 — 드래그앤드롭/붙여넣기용.
+// 앱에 종속되지 않으므로 앱을 저장하기 전에도 올릴 수 있고, 돌려준 URL 을 폼에 채운다.
+const GALLERY_TYPES: Record<string, { ext: string; max: number }> = {
+  "image/jpeg": { ext: "jpg", max: 8 * 1024 * 1024 },
+  "image/png": { ext: "png", max: 8 * 1024 * 1024 },
+  "image/webp": { ext: "webp", max: 8 * 1024 * 1024 },
+  "image/gif": { ext: "gif", max: 8 * 1024 * 1024 },
+  "video/mp4": { ext: "mp4", max: 60 * 1024 * 1024 },
+  "video/webm": { ext: "webm", max: 60 * 1024 * 1024 },
+};
+
+adminRoutes.post("/gallery-asset", requireRole("crew"), async (c) => {
+  const type = (c.req.header("Content-Type") ?? "").split(";")[0].trim();
+  const spec = GALLERY_TYPES[type];
+  if (!spec) return c.json(err("unsupported_type"), 400);
+  const body = await c.req.arrayBuffer();
+  if (!body.byteLength) return c.json(err("empty_file"), 400);
+  if (body.byteLength > spec.max) return c.json(err("too_large"), 400);
+
+  const key = `shots/${crypto.randomUUID()}.${spec.ext}`;
+  await c.env.MEDIA.put(key, body, { httpMetadata: { contentType: type } });
+  return c.json(ok({ url: `/api/media/${key}` }));
+});
 
 adminRoutes.post("/apps/:id/screenshots", requireRole("crew"), async (c) => {
   const id = Number(c.req.param("id"));

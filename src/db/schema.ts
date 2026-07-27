@@ -36,6 +36,12 @@ export const apps = sqliteTable("apps", {
     .notNull()
     .default("planning"),
   downloadCount: integer("download_count").notNull().default(0),
+  // 갤러리용 (2026 리뉴얼) — 기존 행은 전부 null 이며 화면에서 대체 처리한다
+  thumbUrl: text("thumb_url"), // 16:9 카드 썸네일
+  videoUrl: text("video_url"), // 홍보영상 — mp4 직링크 또는 유튜브 URL
+  category: text("category"), // 갤러리 필터용 분류 (App/Game/Education/Tool…)
+  featured: integer("featured", { mode: "boolean" }).notNull().default(false), // 홈 상단 대표 노출
+  sort: integer("sort").notNull().default(0), // 갤러리 정렬 (작을수록 앞)
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
 });
 

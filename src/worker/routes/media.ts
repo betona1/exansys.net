@@ -8,7 +8,7 @@ export const mediaRoutes = new Hono<{ Bindings: Env }>();
 
 mediaRoutes.get("/media/shots/:file", async (c) => {
   const file = c.req.param("file") ?? "";
-  if (!/^[a-z0-9-]+\.(webp|gif|mp4)$/.test(file)) return c.json(err("not_found"), 404);
+  if (!/^[a-z0-9-]+\.(webp|gif|mp4|webm|jpg|png)$/.test(file)) return c.json(err("not_found"), 404);
   const obj = await c.env.MEDIA.get(`shots/${file}`);
   if (!obj) return c.json(err("not_found"), 404);
   return c.body(obj.body, 200, {

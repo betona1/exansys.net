@@ -33,6 +33,12 @@ export type AppRow = {
   storeUrlAndroid: string | null;
   storeUrlIos: string | null;
   ownerId?: number | null; // 관리자 목록(/api/admin/apps-list)에서만 채워짐
+  // 갤러리용 (2026 리뉴얼) — 기존 앱은 null 이라 화면에서 대체 처리한다
+  thumbUrl?: string | null; // 16:9 카드 썸네일
+  videoUrl?: string | null; // 홍보영상 — mp4 직링크 또는 유튜브 URL
+  category?: string | null; // 갤러리 필터 분류
+  featured?: boolean; // 홈 상단 대표 노출
+  sort?: number;
 };
 
 export const STATUS_LABEL: Record<AppRow["status"], string> = {

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import DropField from "../components/DropField";
 import { Link } from "react-router-dom";
 import { api, STATUS_LABEL, type AppRow, type Me } from "../lib/api";
 import AppAssets from "../components/AppAssets";
@@ -28,6 +29,12 @@ const EMPTY_FORM = {
   storeUrlAndroid: "",
   storeUrlIos: "",
   status: "development" as AppRow["status"],
+  // 갤러리용
+  thumbUrl: "",
+  videoUrl: "",
+  category: "",
+  featured: false,
+  sort: 0,
 };
 
 export default function Admin({ me, meLoading }: { me: Me; meLoading: boolean }) {
@@ -117,6 +124,11 @@ export default function Admin({ me, meLoading }: { me: Me; meLoading: boolean })
       storeUrlAndroid: app.storeUrlAndroid ?? "",
       storeUrlIos: app.storeUrlIos ?? "",
       status: app.status,
+      thumbUrl: app.thumbUrl ?? "",
+      videoUrl: app.videoUrl ?? "",
+      category: app.category ?? "",
+      featured: app.featured ?? false,
+      sort: app.sort ?? 0,
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -224,6 +236,49 @@ export default function Admin({ me, meLoading }: { me: Me; meLoading: boolean })
                   <label className={label}>App Store URL</label>
                   <input className={input} value={form.storeUrlIos} placeholder="https://apps.apple.com/..."
                     onChange={(e) => setForm({ ...form, storeUrlIos: e.target.value })} />
+                </div>
+
+                {/* ── 갤러리 (홈 카드·영상 모달) ── */}
+                <div className="sm:col-span-2 mt-2 border-t border-line pt-4">
+                  <p className="text-sm font-semibold">갤러리 설정</p>
+                  <p className="mt-1 text-xs text-muted">
+                    홈 앱 갤러리 카드에 쓰입니다. 영상은 mp4 직링크와 유튜브 주소를 모두 지원합니다.
+                  </p>
+                </div>
+                <DropField
+                  label="썸네일 (16:9 권장)"
+                  value={form.thumbUrl}
+                  onChange={(url) => setForm({ ...form, thumbUrl: url })}
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  placeholder="https://imghost.joacham.com/apps/xxx.jpg"
+                  hint="이미지 8MB까지. 외부 주소를 직접 넣어도 됩니다."
+                  preview="image"
+                />
+                <DropField
+                  label="홍보영상 (mp4 또는 유튜브 주소)"
+                  value={form.videoUrl}
+                  onChange={(url) => setForm({ ...form, videoUrl: url })}
+                  accept="video/mp4,video/webm"
+                  placeholder="https://imghost.joacham.com/apps/xxx.mp4"
+                  hint="영상 60MB까지. 큰 영상은 이미지호스트나 유튜브 주소를 넣으세요."
+                  preview="video"
+                />
+                <div>
+                  <label className={label}>분류 (갤러리 필터)</label>
+                  <input className={input} value={form.category} placeholder="App / Game / Education / Tool"
+                    onChange={(e) => setForm({ ...form, category: e.target.value })} />
+                </div>
+                <div>
+                  <label className={label}>정렬 순서 (작을수록 앞)</label>
+                  <input className={input} type="number" min={0} max={9999} value={form.sort}
+                    onChange={(e) => setForm({ ...form, sort: Number(e.target.value) || 0 })} />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="inline-flex items-center gap-2 text-sm">
+                    <input type="checkbox" checked={form.featured}
+                      onChange={(e) => setForm({ ...form, featured: e.target.checked })} />
+                    홈 상단 대표 앱으로 노출 (영상이 크게 재생됩니다)
+                  </label>
                 </div>
               </div>
               <div className="mt-5 flex items-center gap-3">

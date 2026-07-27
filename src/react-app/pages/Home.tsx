@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import AppGallery from "../components/AppGallery";
 import { Link, useLocation } from "react-router-dom";
 import BrandLogo from "../components/BrandLogo";
 import Reveal from "../components/Reveal";
@@ -172,121 +173,29 @@ export default function Home() {
       </section>
 
       {/* ---------- 챕터 1: 앱 (벤토 그리드) ---------- */}
+      {/* 앱 개발 갤러리 — 카드 클릭 시 홍보영상이 모달로 바로 재생된다 */}
       <section id="apps" className="scroll-mt-20 px-6 pb-24">
         <div className="mx-auto max-w-6xl">
           <ChapterHead
             emoji="📱"
             label="OUR APPS"
-            line1="군더더기 없이"
-            accent="확실하게 쓰이니까"
+            line1="우리가 만든 앱을"
+            accent="영상으로 보세요"
           />
-
-          <div className="grid gap-5 lg:grid-cols-2">
-            {/* 큰 카드: 대표 앱 */}
-            <Reveal className="rounded-[2rem] bg-paper-deep bg-card p-9 shadow-sm ring-1 ring-line lg:row-span-2">
-              {featured ? (
-                <>
-                  <Link to={`/apps/${featured.slug}`} className="block">
-                    <p className="mb-2 text-sm font-bold text-green">⏰ {STATUS_LABEL[featured.status]}</p>
-                    <h3 className="font-display text-2xl font-extrabold leading-snug">
-                      {featured.name}
-                    </h3>
-                    <p className="mt-3 max-w-md text-[15px] text-muted">{featured.tagline}</p>
-                    <div className="mt-8 grid h-64 place-items-center overflow-hidden rounded-2xl bg-gradient-to-b from-paper to-lime/15 text-7xl">
-                      {/^(https?:\/\/|\/)/.test(featured.iconUrl ?? "") ? (
-                        <img src={featured.iconUrl} alt="" className="h-28 w-28 rounded-3xl object-cover shadow-xl" />
-                      ) : (
-                        <span>{featured.iconUrl || "📱"}</span>
-                      )}
-                    </div>
-                  </Link>
-                  {featured.storeUrlAndroid && (
-                    <div className="mt-6 flex flex-col items-center gap-5 rounded-2xl border border-line bg-paper/60 p-5 sm:flex-row sm:justify-between">
-                      <div className="flex-1 text-center sm:text-left">
-                        <p className="font-display text-base font-extrabold">지금 설치하기</p>
-                        <p className="mt-1 text-sm text-muted">Google Play에서 받거나, 폰으로 QR을 스캔하세요.</p>
-                        <a
-                          href={featured.storeUrlAndroid}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-4 inline-block rounded-xl bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-green"
-                        >
-                          ▶ Google Play에서 받기
-                        </a>
-                      </div>
-                      <div className="text-center">
-                        <img
-                          src={`/api/apps/${featured.slug}/qr?platform=android`}
-                          alt={`${featured.name} Google Play QR 코드`}
-                          className="h-32 w-32 rounded-xl border border-line bg-white p-1.5"
-                        />
-                        <p className="mt-2 text-xs font-medium text-muted">📷 QR 스캔 설치</p>
-                      </div>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <>
-                  <p className="mb-2 text-sm font-bold text-green">⏰ 개발 중 · 2026 출시 목표</p>
-                  <h3 className="font-display text-2xl font-extrabold leading-snug">
-                    눈이 저절로 가는
-                    <br />
-                    데일리 생산성 컴패니언
-                  </h3>
-                  <p className="mt-3 max-w-md text-[15px] text-muted">
-                    오프라인 우선, 광고 없음, 다크 패턴 없음. 홈 화면 첫 줄에 남는
-                    것이 목표입니다.
-                  </p>
-                  <div className="mt-8 grid grid-cols-4 gap-3">
-                    {[
-                      ["✅", "할 일"],
-                      ["⏱️", "루틴"],
-                      ["📊", "리포트"],
-                      ["🔔", "리마인더"],
-                      ["📆", "일정"],
-                      ["🌙", "집중"],
-                      ["📝", "메모"],
-                      ["☁️", "동기화"],
-                    ].map(([icon, name]) => (
-                      <div key={name} className="text-center">
-                        <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-paper text-2xl shadow-sm ring-1 ring-line">
-                          {icon}
-                        </div>
-                        <div className="mt-1.5 text-xs font-medium text-muted">{name}</div>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
-            </Reveal>
-
-            {/* 작은 카드들 */}
-            {rest.length > 0 ? (
-              rest.slice(0, 2).map((app) => (
-                <Reveal key={app.id} className="rounded-[2rem] bg-card p-8 shadow-sm ring-1 ring-line">
-                  <Link to={`/apps/${app.slug}`} className="block">
-                    <span className={`mb-3 inline-block rounded-full px-3 py-1 text-xs font-semibold ${statusStyle[app.status]}`}>
-                      {STATUS_LABEL[app.status]}
-                    </span>
-                    <h3 className="font-display text-xl font-extrabold">{app.name}</h3>
-                    <p className="mt-2 text-[15px] text-muted">{app.tagline}</p>
-                  </Link>
-                </Reveal>
-              ))
-            ) : (
-              APPS.slice(1).map((app) => (
-                <Reveal key={app.name} className="rounded-[2rem] bg-card p-8 shadow-sm ring-1 ring-line">
-                  <span className={`mb-3 inline-block rounded-full px-3 py-1 text-xs font-semibold ${statusStyle[app.status]}`}>
-                    {app.statusLabel}
-                  </span>
-                  <h3 className="font-display text-xl font-extrabold">
-                    {app.emoji} {app.name}
-                  </h3>
-                  <p className="mt-2 text-[15px] text-muted">{app.description}</p>
-                </Reveal>
-              ))
-            )}
-          </div>
+          <AppGallery
+            apps={dbApps}
+            labels={{
+              all: "전체",
+              watch: "영상",
+              details: "자세히 보기",
+              visitStore: "스토어에서 보기",
+              copyLink: "공유 링크 복사",
+              copied: "복사됨 ✓",
+              inquiry: "협업 문의하기",
+              noVideo: "홍보영상 준비 중",
+              empty: "아직 등록된 앱이 없습니다.",
+            }}
+          />
         </div>
       </section>
 

@@ -5,6 +5,7 @@ import QRCode from "qrcode/lib/browser";
 import { apps, appBuilds, appScreenshots, downloadLogs } from "../../db/schema";
 import type { Env } from "../types";
 import { ok, err } from "../types";
+import { ensureColumns, APPS_GALLERY_COLUMNS } from "../lib/ensure-columns";
 import { requireRole } from "../middleware";
 import { readSession } from "../auth/session";
 
@@ -25,20 +26,28 @@ export const appRoutes = new Hono<{ Bindings: Env }>();
 
 appRoutes.get("/", async (c) => {
   const db = drizzle(c.env.DB);
+  await ensureColumns(db, "apps", APPS_GALLERY_COLUMNS);
   const rows = await db
     .select({
       id: apps.id,
       slug: apps.slug,
       name: apps.name,
       tagline: apps.tagline,
+      description: apps.description,
       iconUrl: apps.iconUrl,
       status: apps.status,
       downloadCount: apps.downloadCount,
       storeUrlAndroid: apps.storeUrlAndroid,
       storeUrlIos: apps.storeUrlIos,
+      // 갤러리용
+      thumbUrl: apps.thumbUrl,
+      videoUrl: apps.videoUrl,
+      category: apps.category,
+      featured: apps.featured,
+      sort: apps.sort,
     })
     .from(apps)
-    .orderBy(asc(apps.id));
+    .orderBy(asc(apps.sort), asc(apps.id));
   return c.json(ok({ apps: rows }));
 });
 
@@ -58,6 +67,7 @@ appRoutes.post("/crdl/seed-store", async (c) => {
 
 appRoutes.get("/:slug", async (c) => {
   const db = drizzle(c.env.DB);
+  await ensureColumns(db, "apps", APPS_GALLERY_COLUMNS);
   const rows = await db.select().from(apps).where(eq(apps.slug, c.req.param("slug"))).limit(1);
   if (rows.length === 0) return c.json(err("not_found"), 404);
   const shots = await db
