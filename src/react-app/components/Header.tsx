@@ -1,10 +1,51 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import BrandLogo from "./BrandLogo";
 import { type Me } from "../lib/api";
 import { useLang } from "../lib/i18n";
 
+/** 지금 보고 있는 메뉴에 밑줄을 그어 어디에 있는지 알려준다.
+ *  해시 링크(/#apps)는 홈에 있을 때만, 경로 링크는 그 경로로 들어갔을 때 활성이다. */
+function NavItem({
+  to,
+  label,
+  active,
+  accent = false,
+}: {
+  to: string;
+  label: string;
+  active: boolean;
+  accent?: boolean;
+}) {
+  return (
+    <Link
+      to={to}
+      aria-current={active ? "page" : undefined}
+      className={`relative py-1 transition after:absolute after:-bottom-0.5 after:left-0 after:h-0.5 after:rounded-full after:bg-green after:transition-all after:content-[''] ${
+        active
+          ? "font-semibold text-ink after:w-full"
+          : `after:w-0 hover:after:w-full ${accent ? "font-semibold text-green hover:text-green-deep" : "text-muted hover:text-ink"}`
+      }`}
+    >
+      {label}
+    </Link>
+  );
+}
+
+/** 드롭다운 항목 — 현재 위치면 배경과 왼쪽 막대로 표시한다 */
+function dropClass(active: boolean, accent = false): string {
+  const base = "block rounded-lg px-3 py-2 text-sm font-medium transition";
+  if (active) return `${base} border-l-2 border-green bg-green/10 font-semibold text-ink`;
+  return `${base} hover:bg-paper ${accent ? "text-green" : ""}`;
+}
+
 export default function Header({ me, logout }: { me: Me; logout: () => Promise<void> }) {
+  const { pathname, hash } = useLocation();
+  const onHome = pathname === "/";
+  /** 경로 링크: 해당 경로로 들어와 있으면 활성 */
+  const at = (p: string) => pathname === p || pathname.startsWith(p + "/");
+  /** 해시 링크: 홈에서 그 섹션을 보고 있을 때 활성 */
+  const atHash = (h: string) => onHome && hash === h;
   const [open, setOpen] = useState(false);
   // 기본이 다크다. 라이트를 고른 경우에만 html 에 light 클래스가 붙는다.
   const [dark, setDark] = useState(() => !document.documentElement.classList.contains("light"));
@@ -39,39 +80,40 @@ export default function Header({ me, logout }: { me: Me; logout: () => Promise<v
         <nav aria-label="주 메뉴" className="min-w-0">
           <ul className="flex items-center gap-4 overflow-x-auto whitespace-nowrap text-[14px] font-medium [scrollbar-width:none] lg:gap-5 [&::-webkit-scrollbar]:hidden">
             <li className="hidden sm:block">
-              <Link className="text-muted transition hover:text-ink" to="/#apps">{t("nav.apps")}</Link>
+              <NavItem to="/#apps" label={t("nav.apps")} active={atHash("#apps")} />
             </li>
             <li className="hidden sm:block">
-              <Link className="text-muted transition hover:text-ink" to="/#about">{t("nav.about")}</Link>
+              <NavItem to="/#about" label={t("nav.about")} active={atHash("#about")} />
             </li>
             <li className="hidden xl:block">
-              <Link className="text-muted transition hover:text-ink" to="/ai-edu">{t("nav.edu")}</Link>
+              <NavItem to="/ai-edu" label={t("nav.edu")} active={at("/ai-edu")} />
             </li>
             <li className="hidden xl:block">
-              <Link className="text-muted transition hover:text-ink" to="/techdex?tab=dex">{t("nav.terms")}</Link>
+              <NavItem to="/techdex?tab=dex" label={t("nav.terms")} active={at("/techdex")} />
             </li>
             {me && (
               <li className="hidden md:block">
-                <Link className="text-muted transition hover:text-ink" to="/app-plan">{t("nav.plan")}</Link>
+                <NavItem to="/app-plan" label={t("nav.plan")} active={at("/app-plan")} />
               </li>
             )}
             {me && (me.role === "crew" || me.role === "staff" || me.role === "admin") && (
               <>
                 <li className="hidden md:block">
-                  <Link className="font-semibold text-green transition hover:text-green-deep" to="/crew">
-                    {t("nav.gallery")}
-                  </Link>
+                  <NavItem to="/crew" label={t("nav.gallery")} active={at("/crew")} accent />
                 </li>
                 <li className="hidden md:block">
-                  <Link className="text-muted transition hover:text-ink" to="/appreview">
-                    {t("nav.review")}
-                  </Link>
+                  <NavItem to="/appreview" label={t("nav.review")} active={at("/appreview")} />
                 </li>
               </>
             )}
             <li className="hidden sm:block">
               <Link
-                className="rounded-full bg-ink px-4.5 py-2 font-semibold text-white transition hover:bg-green"
+                aria-current={at("/contact") ? "page" : undefined}
+                className={`rounded-full px-4.5 py-2 font-semibold transition ${
+                  at("/contact")
+                    ? "bg-green text-white ring-2 ring-green/40 ring-offset-2 ring-offset-paper"
+                    : "bg-ink text-white hover:bg-green"
+                }`}
                 to="/contact"
               >
                 {t("nav.contact")}
@@ -133,21 +175,21 @@ export default function Header({ me, logout }: { me: Me; logout: () => Promise<v
                       <Link
                         to="/ai-edu"
                         onClick={() => setOpen(false)}
-                        className="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-paper lg:hidden"
+                        className={`${dropClass(at("/ai-edu"))} xl:hidden`}
                       >
                         {t("nav.edu")}
                       </Link>
                       <Link
                         to="/techdex?tab=dex"
                         onClick={() => setOpen(false)}
-                        className="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-paper lg:hidden"
+                        className={`${dropClass(at("/techdex"))} xl:hidden`}
                       >
                         {t("nav.terms")}
                       </Link>
                       <Link
                         to="/app-plan"
                         onClick={() => setOpen(false)}
-                        className="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-paper"
+                        className={dropClass(at("/app-plan"))}
                       >
                         {t("nav.plan")}
                       </Link>
@@ -156,14 +198,14 @@ export default function Header({ me, logout }: { me: Me; logout: () => Promise<v
                           <Link
                             to="/crew"
                             onClick={() => setOpen(false)}
-                            className="block rounded-lg px-3 py-2 text-sm font-medium text-green hover:bg-paper"
+                            className={dropClass(at("/crew"), true)}
                           >
                             {t("nav.gallery")}
                           </Link>
                           <Link
                             to="/appreview"
                             onClick={() => setOpen(false)}
-                            className="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-paper"
+                            className={dropClass(at("/appreview"))}
                           >
                             {t("nav.review")}
                           </Link>
