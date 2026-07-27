@@ -5,13 +5,14 @@ import { type Me } from "../lib/api";
 
 export default function Header({ me, logout }: { me: Me; logout: () => Promise<void> }) {
   const [open, setOpen] = useState(false);
-  const [dark, setDark] = useState(() => document.documentElement.classList.contains("dark"));
+  // 기본이 다크다. 라이트를 고른 경우에만 html 에 light 클래스가 붙는다.
+  const [dark, setDark] = useState(() => !document.documentElement.classList.contains("light"));
   const menuRef = useRef<HTMLLIElement>(null);
 
   const toggleTheme = () => {
     const next = !dark;
     setDark(next);
-    document.documentElement.classList.toggle("dark", next);
+    document.documentElement.classList.toggle("light", !next);
     try {
       localStorage.setItem("theme", next ? "dark" : "light");
     } catch {
