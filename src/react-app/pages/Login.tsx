@@ -1,7 +1,7 @@
 // 로그인 페이지 — 소셜 간편로그인 + 이메일 인증코드(패스워드리스)
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import SnakeLogo from "../components/SnakeLogo";
+import BrandLogo from "../components/BrandLogo";
 import Turnstile from "../components/Turnstile";
 import { api, type Me } from "../lib/api";
 
@@ -113,7 +113,7 @@ export default function Login({ me, refresh }: { me: Me; refresh: () => Promise<
       <div className="rounded-[2rem] border border-line bg-card p-8 shadow-sm">
         <div className="mb-6 flex justify-center">
           <Link to="/">
-            <SnakeLogo size={56} wordmark={false} />
+            <BrandLogo variant="full" size={96} />
           </Link>
         </div>
         <h1 className="font-display text-center text-2xl font-extrabold tracking-tight">

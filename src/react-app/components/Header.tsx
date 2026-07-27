@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import SnakeLogo from "./SnakeLogo";
+import BrandLogo from "./BrandLogo";
 import { type Me } from "../lib/api";
 
 export default function Header({ me, logout }: { me: Me; logout: () => Promise<void> }) {
@@ -31,7 +31,7 @@ export default function Header({ me, logout }: { me: Me; logout: () => Promise<v
     <header className="sticky top-0 z-50 border-b border-line bg-paper/85 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
         <Link to="/" aria-label="EXANSYS 홈">
-          <SnakeLogo size={34} />
+          <BrandLogo size={30} />
         </Link>
         <nav aria-label="주 메뉴">
           <ul className="flex items-center gap-6 text-[15px] font-medium">

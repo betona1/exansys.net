@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import SnakeLogo from "../components/SnakeLogo";
+import BrandLogo from "../components/BrandLogo";
 import Reveal from "../components/Reveal";
 import CountUp from "../components/CountUp";
 import Faq from "../components/Faq";
@@ -74,7 +74,7 @@ export default function Home() {
       <section className="px-3 pt-6 sm:px-6">
         <div className="hero-panel relative mx-auto max-w-[1400px] overflow-hidden rounded-[2.5rem] px-6 pt-16 text-center sm:pt-24">
           <div className="mb-7 flex justify-center">
-            <SnakeLogo size={72} animated wordmark={false} />
+            <BrandLogo variant="full" size={190} animated />
           </div>
           <h1 className="font-display mx-auto max-w-3xl text-[2.5rem] font-extrabold leading-[1.12] tracking-tight sm:text-6xl">
             매일 열게 되는
@@ -392,7 +392,7 @@ export default function Home() {
         <div className="cta-panel mx-auto max-w-[1400px] rounded-[2.5rem] px-6 py-24 text-center">
           <Reveal>
             <div className="mb-6 flex justify-center">
-              <SnakeLogo size={64} wordmark={false} />
+              <BrandLogo variant="full" size={110} />
             </div>
             <h2 className="font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
               함께 만들 앱이 있나요?

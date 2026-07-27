@@ -1,4 +1,4 @@
-import SnakeLogo from "./SnakeLogo";
+import BrandLogo from "./BrandLogo";
 import { COMPANY } from "../data/site";
 
 export default function Footer() {
@@ -7,7 +7,7 @@ export default function Footer() {
       <div className="mx-auto flex max-w-6xl flex-wrap justify-between gap-5 px-6">
         <div>
           <div className="mb-2">
-            <SnakeLogo size={26} className="[&_span]:!text-white" />
+            <BrandLogo size={26} />
           </div>
           <span className="block">
             {COMPANY.nameEn} ({COMPANY.nameKo})

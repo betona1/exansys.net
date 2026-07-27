@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="ko">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>EXANSYS — Mobile App Studio</title>
+    <title>EXANSYS — THINK AT EXA SCALE.</title>
     <meta
       name="description"
       content="엑사엔시스(EXANSYS)는 서울에 있는 모바일 앱 전문 개발사입니다. 10년의 IT 인프라 경험을 바탕으로, 매일 열게 되는 작고 단단한 앱을 만듭니다."
@@ -11,22 +11,20 @@
     <link rel="canonical" href="https://exansys.net/" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="EXANSYS" />
-    <meta property="og:title" content="EXANSYS — Mobile App Studio" />
+    <meta property="og:title" content="EXANSYS — THINK AT EXA SCALE." />
     <meta
       property="og:description"
       content="Apps built to be opened every day. 서울의 모바일 앱 전문 개발사 엑사엔시스입니다."
     />
     <meta property="og:url" content="https://exansys.net/" />
-    <meta name="theme-color" content="#0E5741" />
+    <meta name="theme-color" content="#0D1117" />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="TechDex" />
-    <link
-      rel="icon"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%230E5741'/%3E%3Cstop offset='1' stop-color='%239BE15D'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Ctext x='32' y='44' font-family='Arial Black,Arial' font-size='34' font-weight='900' fill='white' text-anchor='middle'%3EX%3C/text%3E%3C/svg%3E"
-    />
+    <link rel="icon" type="image/png" href="/brand/favicon.png" />
+    <link rel="icon" sizes="64x64" type="image/png" href="/brand/favicon-64.png" />
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
@@ -57,12 +55,14 @@
   </head>
   <body>
     <script>
-      // 다크 모드 FOUC 방지 — 기본은 라이트 모드, 사용자가 토글로 선택한 경우에만 다크
+      // FOUC 방지 — 기본은 다크(로고가 다크 기준), 사용자가 고른 경우에만 라이트
       (function () {
         try {
-          if (localStorage.getItem("theme") === "dark") {
-            document.documentElement.classList.add("dark");
+          if (localStorage.getItem("theme") === "light") {
+            document.documentElement.classList.add("light");
           }
+          var lang = localStorage.getItem("lang");
+          document.documentElement.lang = lang === "ko" ? "ko" : "en";
         } catch (e) {}
       })();
     </script>
