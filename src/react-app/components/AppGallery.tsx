@@ -9,6 +9,9 @@ import { STATUS_LABEL, type AppRow } from "../lib/api";
 import { pick, useLang } from "../lib/i18n";
 import Mascot from "./Mascot";
 
+/** 한 번에 보여주는 앱 개수 (더보기로 이만큼씩 추가) */
+const PAGE = 30;
+
 /** 유튜브 URL 이면 임베드 주소를, 아니면 null 을 준다 (mp4 등은 <video> 로 재생) */
 export function youtubeEmbed(url: string): string | null {
   const m = url.match(
@@ -80,10 +83,13 @@ export default function AppGallery({
     inquiry: string;
     noVideo: string;
     empty: string;
+    more: string;
   };
 }) {
   const [params, setParams] = useSearchParams();
   const [cat, setCat] = useState<string>("ALL");
+  /** 한 번에 보여줄 개수. 더보기를 누르면 이만큼씩 늘어난다 */
+  const [limit, setLimit] = useState(PAGE);
   const [copied, setCopied] = useState(false);
 
   const openSlug = params.get("app");
@@ -99,10 +105,16 @@ export default function AppGallery({
     return [...counts.entries()].sort((a, b) => b[1] - a[1]);
   }, [apps]);
 
-  const shown = useMemo(
+  const filtered = useMemo(
     () => (cat === "ALL" ? apps : apps.filter((a) => (a.category?.trim() || "Etc") === cat)),
     [apps, cat],
   );
+  const shown = useMemo(() => filtered.slice(0, limit), [filtered, limit]);
+  const remaining = filtered.length - shown.length;
+
+  useEffect(() => {
+    setLimit(PAGE);
+  }, [cat]);
 
   const openApp = useCallback(
     (slug: string) => {
@@ -168,13 +180,27 @@ export default function AppGallery({
         </div>
       )}
 
-      <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {shown.map((app) => (
           <li key={app.id}>
             <GalleryCard app={app} onOpen={() => openApp(app.slug)} labels={labels} />
           </li>
         ))}
       </ul>
+
+      {remaining > 0 && (
+        <div className="mt-10 text-center">
+          <button
+            onClick={() => setLimit((n) => n + PAGE)}
+            className="rounded-full border border-line px-8 py-3 text-sm font-semibold transition hover:border-ink hover:bg-card"
+          >
+            {labels.more} <span className="text-muted">+{Math.min(remaining, PAGE)}</span>
+          </button>
+          <p className="mt-2 text-xs text-muted">
+            {shown.length} / {filtered.length}
+          </p>
+        </div>
+      )}
 
       {/* 상세 모달 — 영상이 있으면 열자마자 재생 */}
       {open && (
@@ -241,7 +267,9 @@ export default function AppGallery({
   );
 }
 
-/** 카드 — 항목마다 훅을 쓰려고 별도 컴포넌트로 뺐다 */
+/** 카드 — 마우스를 올리면 그 자리에서 커지며 홍보영상이 소리 없이 재생된다.
+ *  모달을 띄우지 않는 이유: 스쳐도 창이 뜨면 성가시고, 모바일에는 hover 가 없다.
+ *  자세히 보려면 눌러서 모달을 연다. */
 function GalleryCard({
   app,
   onOpen,
@@ -252,15 +280,76 @@ function GalleryCard({
   labels: { watch: string; details: string };
 }) {
   const text = useAppText(app);
+  const [preview, setPreview] = useState(false);
+  const timer = useRef<number | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const url = app.videoUrl?.trim() ?? "";
+  const isYoutube = url ? Boolean(youtubeEmbed(url)) : false;
+  const canPreview = Boolean(url) && !isYoutube; // 유튜브는 인라인 미리보기가 무거워 제외
+
+  // 스쳐 지나갈 때 재생되지 않도록 잠깐 머문 뒤에 시작한다
+  const enter = useCallback(() => {
+    if (!canPreview) return;
+    timer.current = window.setTimeout(() => setPreview(true), 420);
+  }, [canPreview]);
+
+  const leave = useCallback(() => {
+    if (timer.current) window.clearTimeout(timer.current);
+    timer.current = null;
+    setPreview(false);
+  }, []);
+
+  useEffect(() => () => {
+    if (timer.current) window.clearTimeout(timer.current);
+  }, []);
+
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    if (preview) {
+      v.currentTime = 0;
+      void v.play().catch(() => {});
+    } else {
+      v.pause();
+    }
+  }, [preview]);
+
   return (
     <button
       onClick={onOpen}
-      className="group block w-full overflow-hidden rounded-2xl border border-line bg-card text-left transition hover:-translate-y-1 hover:border-green/60 hover:shadow-2xl hover:shadow-green/10"
+      onMouseEnter={enter}
+      onMouseLeave={leave}
+      onFocus={enter}
+      onBlur={leave}
+      className={`group relative block w-full overflow-hidden rounded-2xl border bg-card text-left transition duration-300 ${
+        preview
+          ? "z-20 scale-[1.06] border-green/70 shadow-2xl shadow-green/20"
+          : "z-0 border-line hover:-translate-y-1 hover:border-green/60 hover:shadow-2xl hover:shadow-green/10"
+      }`}
     >
       <div className="relative aspect-video overflow-hidden bg-paper">
         <Thumb app={app} />
+        {canPreview && (
+          <video
+            ref={videoRef}
+            src={url}
+            muted
+            loop
+            playsInline
+            preload="none"
+            aria-hidden="true"
+            className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${
+              preview ? "opacity-100" : "opacity-0"
+            }`}
+          />
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-        <div className="absolute inset-0 grid place-items-center opacity-0 transition group-hover:opacity-100">
+        <div
+          className={`absolute inset-0 grid place-items-center transition ${
+            preview ? "opacity-0" : "opacity-0 group-hover:opacity-100"
+          }`}
+        >
           {hasVideo(app) && <PlayBadge />}
         </div>
         <div className="absolute left-3 top-3 flex gap-1.5">

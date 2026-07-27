@@ -195,6 +195,7 @@ export default function Home() {
               inquiry: t("gallery.inquiry"),
               noVideo: t("gallery.noVideo"),
               empty: t("gallery.empty"),
+              more: t("gallery.more"),
             }}
           />
         </div>

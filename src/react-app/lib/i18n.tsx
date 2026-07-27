@@ -54,6 +54,7 @@ const DICT = {
   "gallery.copied": ["Copied ✓", "복사됨 ✓"],
   "gallery.inquiry": ["Work with us", "협업 문의하기"],
   "gallery.noVideo": ["Film coming soon", "홍보영상 준비 중"],
+  "gallery.more": ["Load more", "더보기"],
   "gallery.empty": ["No apps published yet.", "아직 등록된 앱이 없습니다."],
 
   // ── 소개 ──
