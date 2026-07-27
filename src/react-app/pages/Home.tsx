@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import AppGallery from "../components/AppGallery";
+import AppGallery, { youtubeEmbed } from "../components/AppGallery";
+import { useLang } from "../lib/i18n";
 import { Link, useLocation } from "react-router-dom";
 import BrandLogo from "../components/BrandLogo";
 import Reveal from "../components/Reveal";
 import CountUp from "../components/CountUp";
 import Faq from "../components/Faq";
-import PhoneScene from "../components/PhoneScene";
 import { APPS, NOTICES, STATS, COMPANY } from "../data/site";
 import { api, STATUS_LABEL, type AppRow } from "../lib/api";
 
@@ -50,7 +50,11 @@ function ChapterHead({
   );
 }
 
+/** 지표 라벨 — 순서대로 창립·경력·프로젝트 */
+const STAT_KEYS = ["stats.founded", "stats.experience", "stats.projects"] as const;
+
 export default function Home() {
+  const { t, lang } = useLang();
   const [dbApps, setDbApps] = useState<AppRow[]>([]);
   const location = useLocation();
 
@@ -66,44 +70,122 @@ export default function Home() {
     }
   }, [location.hash]);
 
+  // 히어로에 세울 앱: featured 지정 > 영상 있는 앱 > 첫 앱
+  const heroApp =
+    dbApps.find((a) => a.featured) ?? dbApps.find((a) => a.videoUrl?.trim()) ?? dbApps[0];
+  // 유튜브는 배경 자동재생에 못 쓰므로 mp4 계열만 배경으로 깐다
+  const heroVideoSrc =
+    heroApp?.videoUrl?.trim() && !youtubeEmbed(heroApp.videoUrl) ? heroApp.videoUrl : null;
   const featured = dbApps[0];
   const rest = dbApps.slice(1);
 
   return (
     <main id="top">
-      {/* ---------- 히어로 (대형 헤드라인 + 폰 목업 패널) ---------- */}
-      <section className="px-3 pt-6 sm:px-6">
-        <div className="hero-panel relative mx-auto max-w-[1400px] overflow-hidden rounded-[2.5rem] px-6 pt-16 text-center sm:pt-24">
-          <div className="mb-7 flex justify-center">
-            <BrandLogo variant="full" size={190} animated />
-          </div>
-          <h1 className="font-display mx-auto max-w-3xl text-[2.5rem] font-extrabold leading-[1.12] tracking-tight sm:text-6xl">
-            매일 열게 되는
-            <br />단 하나의 앱
-          </h1>
-          <p className="mx-auto mt-5 max-w-xl text-base text-muted sm:text-lg">
-            한국에서 만들고 매일 쓰이는 — Apps built to be opened every day.
-          </p>
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <a
-              href="#apps"
-              className="rounded-xl bg-ink px-6 py-3.5 text-[15px] font-semibold text-white transition hover:bg-green"
-            >
-              우리 앱 보기
-            </a>
-            <a
-              href="#contact"
-              className="rounded-xl border border-ink/15 bg-white/70 px-6 py-3.5 text-[15px] font-semibold backdrop-blur transition hover:border-ink"
-            >
-              개발 문의하기
-            </a>
-          </div>
+      {/* ---------- 히어로 — 대표 앱 홍보영상이 주인공 ---------- */}
+      <section className="px-3 pt-4 sm:px-6">
+        <div className="hero-panel relative mx-auto max-w-[1400px] overflow-hidden rounded-[2.5rem]">
+          {/* 배경 영상 — 소리 없이 반복 재생. 없으면 썸네일, 그것도 없으면 그라디언트만 */}
+          {heroVideoSrc ? (
+            <video
+              src={heroVideoSrc}
+              poster={heroApp?.thumbUrl ?? undefined}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-40"
+            />
+          ) : heroApp?.thumbUrl ? (
+            <img
+              src={heroApp.thumbUrl}
+              alt=""
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-30"
+            />
+          ) : null}
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-paper/70 via-paper/55 to-paper" />
 
-          <PhoneScene />
+          <div className="relative px-6 py-16 text-center sm:py-24">
+            <div className="mb-6 flex justify-center">
+              <BrandLogo variant="full" size={170} animated />
+            </div>
+
+            {/* 슬로건 — 브랜드의 한 줄. 로고 바로 아래에 크게 세운다 */}
+            <p className="font-display bg-gradient-to-r from-lime via-green to-cobalt bg-clip-text text-lg font-extrabold tracking-[0.3em] text-transparent sm:text-2xl">
+              {t("slogan.main")}
+            </p>
+            <p className="mt-2 text-sm text-muted">{t("slogan.sub")}</p>
+
+            <div className="mx-auto my-8 h-px w-24 bg-gradient-to-r from-transparent via-green to-transparent" />
+
+            {heroApp && (
+              <p className="font-display text-sm font-bold tracking-[0.28em] text-green">
+                {(heroApp.category ?? t("hero.featured")).toUpperCase()}
+              </p>
+            )}
+            <h1 className="font-display mx-auto mt-3 max-w-3xl text-[2.5rem] font-extrabold leading-[1.12] tracking-tight sm:text-6xl">
+              {heroApp?.name ?? "EXANSYS"}
+            </h1>
+            <p className="mx-auto mt-5 max-w-xl text-base text-muted sm:text-lg">
+              {heroApp?.tagline ?? t("hero.fallbackTagline")}
+            </p>
+
+            <div className="mt-8 flex flex-wrap justify-center gap-3">
+              <a
+                href="#apps"
+                className="rounded-xl bg-ink px-6 py-3.5 text-[15px] font-semibold text-white transition hover:bg-green"
+              >
+                {t("hero.viewApps")}
+              </a>
+              {heroApp && heroVideoSrc && (
+                <Link
+                  to={`/?app=${heroApp.slug}#apps`}
+                  className="rounded-xl border border-green/40 bg-green/10 px-6 py-3.5 text-[15px] font-semibold text-green transition hover:bg-green/20"
+                >
+                  ▶ {t("hero.playVideo")}
+                </Link>
+              )}
+              <a
+                href="#contact"
+                className="rounded-xl border border-ink/15 bg-white/70 px-6 py-3.5 text-[15px] font-semibold backdrop-blur transition hover:border-ink"
+              >
+                {t("hero.contact")}
+              </a>
+            </div>
+          </div>
         </div>
         <p className="mt-6 text-center text-[11px] font-bold tracking-[0.2em] text-muted">
-          SCROLL DOWN ↓
+          {t("hero.scroll")}
         </p>
+      </section>
+
+
+      {/* 앱 개발 갤러리 — 카드 클릭 시 홍보영상이 모달로 바로 재생된다 */}
+      <section id="apps" className="scroll-mt-20 px-6 pb-24">
+        <div className="mx-auto max-w-6xl">
+          <ChapterHead
+            emoji="📱"
+            label={t("gallery.label")}
+            line1={t("gallery.line1")}
+            accent={t("gallery.accent")}
+          />
+          <AppGallery
+            apps={dbApps}
+            labels={{
+              all: t("gallery.all"),
+              watch: t("gallery.watch"),
+              details: t("gallery.details"),
+              visitStore: t("gallery.visitStore"),
+              copyLink: t("gallery.copyLink"),
+              copied: t("gallery.copied"),
+              inquiry: t("gallery.inquiry"),
+              noVideo: t("gallery.noVideo"),
+              empty: t("gallery.empty"),
+            }}
+          />
+        </div>
       </section>
 
       {/* ---------- 출시 앱 설치 배너 (Play + QR, 데스크톱에서 크게) ---------- */}
@@ -119,7 +201,7 @@ export default function Home() {
                 )}
               </div>
               <div>
-                <span className="inline-block rounded-full bg-green px-3 py-1 text-xs font-bold text-white">🎉 새 앱 출시</span>
+                <span className="inline-block rounded-full bg-green px-3 py-1 text-xs font-bold text-white">{t("banner.new")}</span>
                 <h2 className="font-display mt-3 text-3xl font-extrabold tracking-tight sm:text-5xl">{featured.name}</h2>
                 <p className="mt-2 max-w-md text-[15px] text-muted sm:text-lg">{featured.tagline}</p>
                 <a
@@ -128,17 +210,17 @@ export default function Home() {
                   rel="noopener noreferrer"
                   className="mt-5 inline-block rounded-2xl bg-ink px-7 py-4 text-base font-semibold text-white transition hover:bg-green sm:text-lg"
                 >
-                  ▶ Google Play에서 받기
+                  ▶ {t("banner.getPlay")}
                 </a>
               </div>
             </div>
             <div className="shrink-0 text-center">
               <img
                 src={`/api/apps/${featured.slug}/qr?platform=android`}
-                alt={`${featured.name} Google Play 설치 QR 코드`}
+                alt={`${featured.name} — ${t("banner.qrAlt")}`}
                 className="h-44 w-44 rounded-2xl border border-line bg-white p-2 shadow-md sm:h-56 sm:w-56"
               />
-              <p className="mt-3 text-sm font-semibold text-green-deep">📷 폰으로 스캔하면 바로 설치</p>
+              <p className="mt-3 text-sm font-semibold text-green-deep">{t("banner.scan")}</p>
             </div>
           </Reveal>
         </section>
@@ -148,83 +230,61 @@ export default function Home() {
       <section className="px-6 py-24 text-center sm:py-32">
         <Reveal className="mx-auto max-w-3xl">
           <h2 className="font-display text-3xl font-extrabold leading-[1.25] tracking-tight sm:text-[2.6rem]">
-            2016년부터 시스템을 지켜온 팀이 만드는
+            {t("about.headline1")}
             <br />
             <span className="bg-gradient-to-r from-green to-lime bg-clip-text text-transparent">
-              신뢰할 수 있는 앱
+              {t("about.headline2")}
             </span>
           </h2>
           <p className="mt-5 text-muted">
-            하루의 시작과 끝에 함께할 앱을 준비하고 있습니다.
-            <br />
-            10년의 IT 인프라 운영 규율을 그대로 모바일에 담습니다.
+            {t("about.body").split("\n").map((line, i) => (
+              <span key={i}>
+                {i > 0 && <br />}
+                {line}
+              </span>
+            ))}
           </p>
         </Reveal>
         <div className="mx-auto mt-14 grid max-w-4xl grid-cols-1 gap-4 sm:grid-cols-3">
-          {STATS.map((s) => (
+          {STATS.map((s, i) => (
             <Reveal key={s.label} className="rounded-3xl border border-line bg-card px-6 py-9">
               <div className="font-display text-4xl font-extrabold text-green">
                 {s.plain ? s.value : <CountUp value={s.value} suffix={s.suffix ?? ""} />}
               </div>
-              <div className="mt-1.5 text-sm text-muted">{s.label}</div>
+              <div className="mt-1.5 text-sm text-muted">{t(STAT_KEYS[i] ?? "stats.projects")}</div>
             </Reveal>
           ))}
         </div>
       </section>
 
       {/* ---------- 챕터 1: 앱 (벤토 그리드) ---------- */}
-      {/* 앱 개발 갤러리 — 카드 클릭 시 홍보영상이 모달로 바로 재생된다 */}
-      <section id="apps" className="scroll-mt-20 px-6 pb-24">
-        <div className="mx-auto max-w-6xl">
-          <ChapterHead
-            emoji="📱"
-            label="OUR APPS"
-            line1="우리가 만든 앱을"
-            accent="영상으로 보세요"
-          />
-          <AppGallery
-            apps={dbApps}
-            labels={{
-              all: "전체",
-              watch: "영상",
-              details: "자세히 보기",
-              visitStore: "스토어에서 보기",
-              copyLink: "공유 링크 복사",
-              copied: "복사됨 ✓",
-              inquiry: "협업 문의하기",
-              noVideo: "홍보영상 준비 중",
-              empty: "아직 등록된 앱이 없습니다.",
-            }}
-          />
-        </div>
-      </section>
 
       {/* ---------- 챕터 2: 원칙 (다크 섹션) ---------- */}
       <section id="about" className="scroll-mt-20 bg-ink px-6 py-24 sm:py-28">
         <div className="mx-auto max-w-6xl">
           <ChapterHead
             emoji="🌙"
-            label="OUR CRAFT"
-            line1="오래 쓰여야"
-            accent="좋은 앱이니까"
+            label={t("craft.label")}
+            line1={t("craft.line1")}
+            accent={t("craft.accent")}
             dark
           />
           <div className="grid gap-5 sm:grid-cols-3">
             {[
               {
                 icon: "🚫",
-                title: "광고 없음, 영원히",
-                body: "광고와 다크 패턴 없이 정직한 가격으로만 운영합니다. 사용자의 아침을 광고로 시작하게 하지 않습니다.",
+                title: t("craft.1.title"),
+                body: t("craft.1.body"),
               },
               {
                 icon: "⚡",
-                title: "오프라인 우선",
-                body: "네트워크가 없어도 바로 열리고 바로 쓰입니다. 빠른 실행 속도는 협상하지 않습니다.",
+                title: t("craft.2.title"),
+                body: t("craft.2.body"),
               },
               {
                 icon: "🔧",
-                title: "출시 후가 진짜",
-                body: "10년간 인프라를 지켜온 규율로, 출시한 앱은 꾸준히 업데이트하고 관리합니다.",
+                title: t("craft.3.title"),
+                body: t("craft.3.body"),
               },
             ].map((p) => (
               <Reveal key={p.title} className="rounded-[2rem] bg-white/[0.06] p-8 ring-1 ring-white/10">
@@ -241,10 +301,10 @@ export default function Home() {
       <section className="px-6 py-20">
         <div className="mx-auto grid max-w-6xl gap-5 sm:grid-cols-2">
           <Reveal className="rounded-[2rem] border border-line bg-card p-8">
-            <h3 className="font-display mb-4 text-lg font-bold">공지</h3>
+            <h3 className="font-display mb-4 text-lg font-bold">{t("notice.title")}</h3>
             <ul className="space-y-3.5">
               {NOTICES.map((n) => (
-                <li key={n.text} className="flex gap-3 text-sm">
+                <li key={lang === "ko" ? n.text : (n.textEn ?? n.text)} className="flex gap-3 text-sm">
                   <span className="shrink-0 font-semibold text-green">{n.date}</span>
                   <span className="text-muted">{n.text}</span>
                 </li>
@@ -252,14 +312,13 @@ export default function Home() {
             </ul>
           </Reveal>
           <Reveal className="rounded-[2rem] border border-line bg-card p-8">
-            <h3 className="font-display mb-2 text-lg font-bold">개발 문의게시판</h3>
+            <h3 className="font-display mb-2 text-lg font-bold">{t("board.title")}</h3>
             <p className="text-sm text-muted">
-              앱 외주 개발·파트너십 문의를 게시판으로 받습니다. 비공개 글도 지원하며,
-              모든 문의에 답변합니다.
+              {t("board.body")}
             </p>
             <Link to="/contact"
               className="mt-4 inline-block rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-green">
-              문의 게시판 가기 →
+              {t("contact.board")}
             </Link>
           </Reveal>
         </div>
@@ -268,28 +327,28 @@ export default function Home() {
       {/* ---------- FAQ ---------- */}
       <section className="px-6 pb-24">
         <div className="mx-auto max-w-3xl">
-          <ChapterHead emoji="💬" label="FAQ" line1="자주 묻는" accent="질문들" />
+          <ChapterHead emoji="💬" label="FAQ" line1={t("faq.line1")} accent={t("faq.accent")} />
           <Faq
             items={[
               {
-                q: "EXANSYS는 어떤 회사인가요?",
-                a: "2016년 서울에서 창립한 모바일 앱 전문 개발사입니다. 10년간 컴퓨터 시스템 유지보수와 통신망 구축 등 IT 인프라를 다뤄왔고, 지금은 그 신뢰성의 감각으로 모바일 앱을 만드는 데 집중하고 있습니다.",
+                q: t("faq.q1"),
+                a: t("faq.a1"),
               },
               {
-                q: "첫 앱은 언제 출시되나요?",
-                a: "데일리 생산성 컴패니언 앱을 2026년 출시 목표로 개발하고 있습니다. 출시 소식은 이 홈페이지 공지에서 가장 먼저 알려드립니다.",
+                q: t("faq.q2"),
+                a: t("faq.a2"),
               },
               {
-                q: "앱 외주 개발도 하나요?",
-                a: "네. 아이디어 정리부터 기획·디자인·개발·스토어 출시까지 전 과정을 함께합니다. 아래 이메일로 만들고 싶은 앱을 알려주세요.",
+                q: t("faq.q3"),
+                a: t("faq.a3"),
               },
               {
-                q: "앱은 정말 광고가 없나요?",
-                a: "네. 저희가 직접 만드는 앱에는 광고와 다크 패턴을 넣지 않습니다. 필요한 경우 정직한 구독/구매 모델로만 운영합니다.",
+                q: t("faq.q4"),
+                a: t("faq.a4"),
               },
               {
-                q: "출시된 앱의 개인정보처리방침은 어디서 보나요?",
-                a: "각 앱 상세 페이지에서 공개 문서로 제공할 예정입니다 (Phase 3). Google Play·App Store 등록 정보에서도 같은 링크를 확인할 수 있게 됩니다.",
+                q: t("faq.q5"),
+                a: t("faq.a5"),
               },
             ]}
           />
@@ -304,10 +363,10 @@ export default function Home() {
               <BrandLogo variant="full" size={110} />
             </div>
             <h2 className="font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
-              함께 만들 앱이 있나요?
+              {t("contact.title")}
             </h2>
             <p className="mx-auto mt-4 max-w-md text-muted">
-              앱에 대한 질문, 파트너십, 만들고 싶은 프로젝트 — 모든 메일에 답장합니다.
+              {t("contact.body")}
             </p>
             <div className="mt-8">
               <a

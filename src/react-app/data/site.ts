@@ -39,10 +39,22 @@ export const APPS: {
   },
 ];
 
-export const NOTICES = [
-  { date: "2026-07", text: "exansys.net 홈페이지 리뉴얼을 진행하고 있습니다." },
-  { date: "2026-07", text: "앱 쇼케이스·문의게시판 기능을 준비 중입니다." },
-  { date: "2026", text: "첫 자체 앱을 2026년 출시 목표로 개발하고 있습니다." },
+export const NOTICES: { date: string; text: string; textEn?: string }[] = [
+  {
+    date: "2026-07",
+    text: "exansys.net 홈페이지를 새 브랜드로 리뉴얼했습니다.",
+    textEn: "exansys.net has been rebuilt around our new brand.",
+  },
+  {
+    date: "2026-07",
+    text: "앱 갤러리에서 각 앱의 홍보영상을 바로 볼 수 있습니다.",
+    textEn: "You can now watch each app's film straight from the gallery.",
+  },
+  {
+    date: "2026",
+    text: "첫 자체 앱을 2026년 출시 목표로 개발하고 있습니다.",
+    textEn: "Our first in-house app is targeting a 2026 release.",
+  },
 ];
 
 export const STATS = [

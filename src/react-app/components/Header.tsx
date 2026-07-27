@@ -2,12 +2,14 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import BrandLogo from "./BrandLogo";
 import { type Me } from "../lib/api";
+import { useLang } from "../lib/i18n";
 
 export default function Header({ me, logout }: { me: Me; logout: () => Promise<void> }) {
   const [open, setOpen] = useState(false);
   // 기본이 다크다. 라이트를 고른 경우에만 html 에 light 클래스가 붙는다.
   const [dark, setDark] = useState(() => !document.documentElement.classList.contains("light"));
   const menuRef = useRef<HTMLLIElement>(null);
+  const { lang, setLang, t } = useLang();
 
   const toggleTheme = () => {
     const next = !dark;
@@ -37,32 +39,32 @@ export default function Header({ me, logout }: { me: Me; logout: () => Promise<v
         <nav aria-label="주 메뉴">
           <ul className="flex items-center gap-6 text-[15px] font-medium">
             <li className="hidden sm:block">
-              <Link className="text-muted transition hover:text-ink" to="/#apps">앱</Link>
+              <Link className="text-muted transition hover:text-ink" to="/#apps">{t("nav.apps")}</Link>
             </li>
             <li className="hidden sm:block">
-              <Link className="text-muted transition hover:text-ink" to="/#about">소개</Link>
+              <Link className="text-muted transition hover:text-ink" to="/#about">{t("nav.about")}</Link>
             </li>
             <li className="hidden sm:block">
-              <Link className="text-muted transition hover:text-ink" to="/ai-edu">AI교육</Link>
+              <Link className="text-muted transition hover:text-ink" to="/ai-edu">{t("nav.edu")}</Link>
             </li>
             <li className="hidden sm:block">
-              <Link className="text-muted transition hover:text-ink" to="/techdex?tab=dex">용어검색</Link>
+              <Link className="text-muted transition hover:text-ink" to="/techdex?tab=dex">{t("nav.terms")}</Link>
             </li>
             {me && (
               <li className="hidden sm:block">
-                <Link className="text-muted transition hover:text-ink" to="/app-plan">앱기획</Link>
+                <Link className="text-muted transition hover:text-ink" to="/app-plan">{t("nav.plan")}</Link>
               </li>
             )}
             {me && (me.role === "crew" || me.role === "staff" || me.role === "admin") && (
               <>
                 <li className="hidden sm:block">
                   <Link className="font-semibold text-green transition hover:text-green-deep" to="/crew">
-                    앱튜버갤러리
+                    {t("nav.gallery")}
                   </Link>
                 </li>
                 <li className="hidden sm:block">
                   <Link className="text-muted transition hover:text-ink" to="/appreview">
-                    앱리뷰
+                    {t("nav.review")}
                   </Link>
                 </li>
               </>
@@ -72,8 +74,20 @@ export default function Header({ me, logout }: { me: Me; logout: () => Promise<v
                 className="rounded-full bg-ink px-4.5 py-2 font-semibold text-white transition hover:bg-green"
                 to="/contact"
               >
-                개발 문의
+                {t("nav.contact")}
               </Link>
+            </li>
+            <li>
+              <button
+                onClick={() => setLang(lang === "ko" ? "en" : "ko")}
+                title={t("lang.toggle")}
+                aria-label={t("lang.toggle")}
+                className="rounded-full border border-line bg-card px-3 py-1.5 text-xs font-bold tracking-wide transition hover:border-ink"
+              >
+                <span className={lang === "en" ? "text-ink" : "text-muted"}>EN</span>
+                <span className="mx-1 text-muted">|</span>
+                <span className={lang === "ko" ? "text-ink" : "text-muted"}>KO</span>
+              </button>
             </li>
             <li>
               <button
@@ -168,7 +182,7 @@ export default function Header({ me, logout }: { me: Me; logout: () => Promise<v
                           onClick={() => setOpen(false)}
                           className="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-paper"
                         >
-                          관리자 페이지
+                          {t("nav.admin")}
                         </Link>
                       )}
                       <button
@@ -178,7 +192,7 @@ export default function Header({ me, logout }: { me: Me; logout: () => Promise<v
                         }}
                         className="block w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-red-600 hover:bg-paper"
                       >
-                        로그아웃
+                        {t("nav.logout")}
                       </button>
                     </div>
                   )}
@@ -188,7 +202,7 @@ export default function Header({ me, logout }: { me: Me; logout: () => Promise<v
                   to="/login"
                   className="rounded-full border border-line bg-card px-4.5 py-2 text-sm font-semibold transition hover:border-ink"
                 >
-                  로그인
+                  {t("nav.login")}
                 </Link>
               )}
             </li>

@@ -20,6 +20,7 @@ import VqReports from "./pages/VqReports";
 import VqPrivacy from "./pages/VqPrivacy";
 import Login from "./pages/Login";
 import { useMe } from "./lib/useMe";
+import { LangProvider } from "./lib/i18n";
 
 // 페이지 로드당 1회만 방문 집계 (StrictMode 이중 실행 방지용 모듈 플래그)
 let visitTracked = false;
@@ -48,7 +49,7 @@ export default function App() {
   }, []);
 
   return (
-    <>
+    <LangProvider>
       <Header me={me} logout={logout} />
       <Routes>
         <Route path="/" element={techdexHost ? <TechDex me={me} /> : <Home />} />
@@ -70,6 +71,6 @@ export default function App() {
         <Route path="/admin" element={<Admin me={me} meLoading={loading} />} />
       </Routes>
       <Footer />
-    </>
+    </LangProvider>
   );
 }
