@@ -3,6 +3,7 @@ import AppGallery, { youtubeEmbed } from "../components/AppGallery";
 import { pick, useLang } from "../lib/i18n";
 import { Link, useLocation } from "react-router-dom";
 import BrandLogo from "../components/BrandLogo";
+import Mascot from "../components/Mascot";
 import Reveal from "../components/Reveal";
 import CountUp from "../components/CountUp";
 import Faq from "../components/Faq";
@@ -109,6 +110,14 @@ export default function Home() {
             />
           ) : null}
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-paper/70 via-paper/55 to-paper" />
+
+          {/* 바브바브 — 히어로 오른쪽에서 슬쩍 올려다본다 */}
+          <Mascot
+            variant="full"
+            size={230}
+            float
+            className="pointer-events-none absolute bottom-0 right-6 z-10 hidden opacity-95 lg:block xl:right-16"
+          />
 
           <div className="relative px-6 py-16 text-center sm:py-24">
             <div className="mb-6 flex justify-center">
@@ -330,6 +339,9 @@ export default function Home() {
       {/* ---------- FAQ ---------- */}
       <section className="px-6 pb-24">
         <div className="mx-auto max-w-3xl">
+          <div className="mb-2 flex justify-center">
+            <Mascot variant="bust" size={130} float />
+          </div>
           <ChapterHead emoji="💬" label="FAQ" line1={t("faq.line1")} accent={t("faq.accent")} />
           <Faq
             items={[
@@ -362,8 +374,10 @@ export default function Home() {
       <section id="contact" className="scroll-mt-20 px-3 pb-8 sm:px-6">
         <div className="cta-panel mx-auto max-w-[1400px] rounded-[2.5rem] px-6 py-24 text-center">
           <Reveal>
-            <div className="mb-6 flex justify-center">
+            {/* 로고 옆에서 바브바브가 같이 손짓한다 */}
+            <div className="mb-6 flex items-end justify-center gap-4">
               <BrandLogo variant="full" size={110} />
+              <Mascot variant="full" size={150} float className="hidden sm:block" />
             </div>
             <h2 className="font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
               {t("contact.title")}

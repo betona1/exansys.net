@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import BrandLogo from "../components/BrandLogo";
+import Mascot from "../components/Mascot";
 import Turnstile from "../components/Turnstile";
 import { api, type Me } from "../lib/api";
 
@@ -113,7 +114,10 @@ export default function Login({ me, refresh }: { me: Me; refresh: () => Promise<
       <div className="rounded-[2rem] border border-line bg-card p-8 shadow-sm">
         <div className="mb-6 flex justify-center">
           <Link to="/">
-            <BrandLogo variant="full" size={96} />
+            <span className="inline-flex items-end gap-3">
+              <BrandLogo variant="full" size={96} />
+              <Mascot variant="full" size={120} float />
+            </span>
           </Link>
         </div>
         <h1 className="font-display text-center text-2xl font-extrabold tracking-tight">

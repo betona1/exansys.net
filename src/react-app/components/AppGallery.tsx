@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { STATUS_LABEL, type AppRow } from "../lib/api";
 import { pick, useLang } from "../lib/i18n";
+import Mascot from "./Mascot";
 
 /** 유튜브 URL 이면 임베드 주소를, 아니면 null 을 준다 (mp4 등은 <video> 로 재생) */
 export function youtubeEmbed(url: string): string | null {
@@ -148,9 +149,10 @@ export default function AppGallery({
 
   if (apps.length === 0) {
     return (
-      <p className="rounded-2xl border border-dashed border-line py-16 text-center text-muted">
-        {labels.empty}
-      </p>
+      <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-line py-14 text-center">
+        <Mascot variant="bust" size={120} float />
+        <p className="text-muted">{labels.empty}</p>
+      </div>
     );
   }
 

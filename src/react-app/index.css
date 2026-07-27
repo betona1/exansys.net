@@ -178,6 +178,33 @@ body {
   }
 }
 
+/* 마스코트(바브바브) — 천천히 떠다니는 움직임 */
+.mascot-float {
+  animation: mascot-float 5.5s ease-in-out infinite;
+}
+@keyframes mascot-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+/* 반전된 마스코트는 transform 이 겹치므로 따로 정의한다 */
+.mascot-float.-scale-x-100 {
+  animation: mascot-float-flip 5.5s ease-in-out infinite;
+}
+@keyframes mascot-float-flip {
+  0%,
+  100% {
+    transform: scaleX(-1) translateY(0);
+  }
+  50% {
+    transform: scaleX(-1) translateY(-12px);
+  }
+}
+
 /* 스크롤 진입 애니메이션 */
 .reveal {
   opacity: 0;
@@ -334,5 +361,9 @@ body {
   .reveal {
     opacity: 1;
     transform: none;
+  }
+  .mascot-float,
+  .mascot-float.-scale-x-100 {
+    animation: none;
   }
 }
