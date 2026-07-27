@@ -26,8 +26,8 @@ import { structureDirect, type AiUsage } from "../lib/plan-ai";
 type Tab = "raw" | "structure" | "evidence" | "diagnosis" | "plan";
 
 const TABS: { key: Tab; label: string; hint: string }[] = [
-  { key: "raw", label: "1. 아이디어 원문", hint: "떠오른 그대로. 이후 단계에서 덮어쓰지 않습니다." },
-  { key: "structure", label: "2. 구조화", hint: "12칸으로 나눠 적으면 빈칸이 곧 위험 신호입니다." },
+  { key: "raw", label: "1. 아이디어 원문", hint: "떠오른 그대로 적어두는 칸입니다. 채점에는 쓰이지 않으니 편하게 쓰세요." },
+  { key: "structure", label: "2. 구조화", hint: "★ 진단은 이 12칸만 읽습니다. 빈칸이 곧 위험 신호입니다." },
   { key: "evidence", label: "3. 근거", hint: "근거가 없으면 모든 항목의 신뢰도가 상한에 묶입니다." },
   { key: "diagnosis", label: "4. 진단", hint: "규칙 엔진이 10개 항목을 채점하고 피벗을 판단합니다." },
   { key: "plan", label: "5. 타깃·MVP", hint: "검증할 타깃 후보와 MVP 범위를 확인합니다." },
@@ -117,6 +117,7 @@ export default function AppPlanDetail({ me }: { me: Me }) {
   const [aiStage, setAiStage] = useState("");
   const [aiUsage, setAiUsage] = useState<AiUsage | null>(null);
   const [aiFast, setAiFast] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
   const [aiNotes, setAiNotes] = useState<{ field: string; origin: string; reason: string }[]>([]);
   const [aiUnknowns, setAiUnknowns] = useState<string[]>([]);
 
@@ -456,6 +457,10 @@ export default function AppPlanDetail({ me }: { me: Me }) {
       {/* 1. 원문 */}
       {tab === "raw" && (
         <section className="grid gap-5">
+          <p className="rounded-xl border border-line bg-paper px-4 py-3 text-sm text-muted">
+            여기는 <b>메모장</b>입니다. 채점에는 쓰이지 않고, ② 구조화 12칸을 채울 때 참고합니다.
+            12칸은 직접 적으시면 되고, 원문이 길어 옮겨적기 귀찮을 때만 아래 초안 기능을 쓰세요.
+          </p>
           {RAW_FIELDS.map((f) => (
             <label key={f.key} className="grid gap-1.5">
               <span className="text-sm font-semibold">{f.label}</span>
@@ -469,8 +474,22 @@ export default function AppPlanDetail({ me }: { me: Me }) {
             </label>
           ))}
           <div className="rounded-2xl border border-line bg-card p-5">
-            <p className="text-sm font-semibold">초안 만들기</p>
-            <p className="mt-1 text-sm text-muted">
+            <button
+              onClick={() => setAiOpen(!aiOpen)}
+              className="flex w-full items-center justify-between text-left"
+            >
+              <span className="text-sm font-semibold">
+                초안 만들기 <span className="font-normal text-muted">· 선택 기능 (AI·유료)</span>
+              </span>
+              <span className="text-muted">{aiOpen ? "▲" : "▼"}</span>
+            </button>
+            {!aiOpen && (
+              <p className="mt-1 text-xs text-muted">
+                원문을 ② 구조화 12칸으로 옮겨적는 것만 대신합니다. 안 쓰셔도 진단 결과는 같습니다.
+              </p>
+            )}
+            <div className={aiOpen ? "mt-4 border-t border-line pt-4" : "hidden"}>
+            <p className="text-sm text-muted">
               위 원문을 <b>② 구조화 12칸으로 나눠 옮겨적기</b>만 합니다. 점수·경고·피벗 판정에는
               관여하지 않고, 원문에 없는 내용은 비워 둡니다.
               <b className="text-ink"> 본인 API 키로 호출하므로 토큰 비용이 발생합니다</b>
@@ -534,6 +553,7 @@ export default function AppPlanDetail({ me }: { me: Me }) {
                 </p>
               </div>
             )}
+            </div>
           </div>
 
           {/* AI 초안 검토 */}
