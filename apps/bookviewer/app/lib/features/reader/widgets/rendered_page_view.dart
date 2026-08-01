@@ -31,6 +31,7 @@ class RenderedPageView extends StatefulWidget {
     required this.onViewChanged,
     required this.cropFor,
     required this.settings,
+    required this.onSlice,
     this.split = false,
     this.rightToLeft = false,
   });
@@ -51,6 +52,9 @@ class RenderedPageView extends StatefulWidget {
 
   /// 오른쪽 반쪽을 먼저 읽는 책(세로쓰기 등)
   final bool rightToLeft;
+
+  /// 지금 보이는 조각의 좌표 정보. 캡처가 화면 좌표를 쪽 좌표로 옮기는 데 쓴다
+  final ValueChanged<SliceMapper> onSlice;
 
   @override
   State<RenderedPageView> createState() => RenderedPageViewState();
@@ -126,6 +130,7 @@ class RenderedPageViewState extends State<RenderedPageView> {
           onZoomChanged: (z) {
             if (z != _zoomed && mounted) setState(() => _zoomed = z);
           },
+          onSlice: widget.onSlice,
         );
       },
     );
@@ -140,6 +145,7 @@ class _PageSlice extends StatefulWidget {
     required this.crop,
     required this.settings,
     required this.onZoomChanged,
+    required this.onSlice,
     this.half,
   });
 
@@ -149,6 +155,9 @@ class _PageSlice extends StatefulWidget {
 
   /// 확대 여부가 바뀌면 알려 준다 (부모가 쪽 넘김을 막는다)
   final ValueChanged<bool> onZoomChanged;
+
+  /// 이 조각의 좌표 정보를 위로 올린다
+  final ValueChanged<SliceMapper> onSlice;
 
   /// null 이면 통째로, 0 이면 왼쪽 반, 1 이면 오른쪽 반
   final int? half;
@@ -182,7 +191,34 @@ class _PageSliceState extends State<_PageSlice> {
   void _onTransform() {
     // 배율이 1 보다 크면 확대 중으로 본다
     widget.onZoomChanged(_transform.value.getMaxScaleOnAxis() > 1.01);
+    _publishSlice();
   }
+
+  /// 지금 그려 놓은 조각이 쪽의 어디인지, 화면 어디에 놓였는지 알린다.
+  /// 캡처는 이 정보로 화면에서 고른 사각형을 쪽 좌표로 되돌린다.
+  void _publishSlice() {
+    final img = _image;
+    final area = _sliceArea;
+    final box = _renderedFor;
+    if (img == null || area == null || box == null) return;
+
+    // FittedBox(fitHeight) 로 그리므로 세로는 화면을 꽉 채우고 가로는 비율만큼
+    final drawnHeight = box.height;
+    final drawnWidth = drawnHeight * img.width / img.height;
+    final left = (box.width - drawnWidth) / 2;
+
+    widget.onSlice(
+      SliceMapper(
+        pageNumber: widget.page.pageNumber,
+        pageRect: area,
+        imageRect: Rect.fromLTWH(left, 0, drawnWidth, drawnHeight),
+        transform: _transform.value.clone(),
+      ),
+    );
+  }
+
+  /// 지금 그린 영역이 쪽의 어디인지 (PDF 포인트)
+  Rect? _sliceArea;
 
   /// 두 번 두드리면 확대/원래대로. 폰에서 핀치보다 빠르다
   void _toggleZoom(TapDownDetails d) {
@@ -225,6 +261,7 @@ class _PageSliceState extends State<_PageSlice> {
       }
       final y = area.y;
       final h = area.h;
+      _sliceArea = Rect.fromLTWH(x, y, w, h);
 
       // **세로를 화면에 꽉 맞춘다.** 책은 한 쪽이 통째로 보여야 읽힌다
       final scale = (target.height / h) * dpr;
@@ -276,6 +313,7 @@ class _PageSliceState extends State<_PageSlice> {
           _renderedFor = target;
           _error = null;
         });
+        _publishSlice();
       } finally {
         img.dispose();
       }
@@ -326,6 +364,59 @@ class _PageSliceState extends State<_PageSlice> {
           ),
         );
       },
+    );
+  }
+}
+
+
+/// 화면에서 고른 사각형을 쪽 좌표로 되돌리는 데 필요한 정보.
+///
+/// 직접 그리는 뷰어에는 pdfrx 의 `globalToDocument` 같은 것이 없다.
+/// 지금 보이는 조각이 쪽의 어느 부분인지(pageRect), 그것이 화면 어디에 어떤 크기로
+/// 놓였는지(imageRect + transform)를 알면 되돌릴 수 있다.
+class SliceMapper {
+  const SliceMapper({
+    required this.pageNumber,
+    required this.pageRect,
+    required this.imageRect,
+    required this.transform,
+  });
+
+  /// 1부터
+  final int pageNumber;
+
+  /// 이 조각이 차지하는 쪽 안의 영역 (PDF 포인트)
+  final Rect pageRect;
+
+  /// 변환 전 화면에 그려진 자리
+  final Rect imageRect;
+
+  /// 확대·이동 변환
+  final Matrix4 transform;
+
+  /// 화면(조각 로컬) 좌표의 사각형 → 쪽 좌표. 조각 밖이면 잘라 낸다
+  Rect? toPageRect(Rect local) {
+    final inv = Matrix4.tryInvert(transform);
+    if (inv == null) return null;
+
+    // Matrix4 의 2차원 점 변환. vector_math 를 직접 의존하지 않으려고 손으로 푼다
+    Offset back(Offset p) => MatrixUtils.transformPoint(inv, p);
+
+    final a = back(local.topLeft);
+    final b = back(local.bottomRight);
+    final drawn = Rect.fromPoints(a, b).intersect(imageRect);
+    if (drawn.width <= 0 || drawn.height <= 0) return null;
+
+    final fx = (drawn.left - imageRect.left) / imageRect.width;
+    final fy = (drawn.top - imageRect.top) / imageRect.height;
+    final fw = drawn.width / imageRect.width;
+    final fh = drawn.height / imageRect.height;
+
+    return Rect.fromLTWH(
+      pageRect.left + fx * pageRect.width,
+      pageRect.top + fy * pageRect.height,
+      fw * pageRect.width,
+      fh * pageRect.height,
     );
   }
 }

@@ -30,52 +30,26 @@ class CaptureController {
   final Ref _ref;
   static const _uuid = Uuid();
 
-  Future<Result<CaptureResult>> capture({
-    required PdfDocument doc,
-    required PdfViewerController controller,
-    required RenderBox viewerBox,
-    required Rect localRect,
+  /// 쪽 좌표로 이미 옮겨진 사각형을 잘라 낸다.
+  ///
+  /// 화면 좌표 → 쪽 좌표 변환은 그리는 쪽(`SliceMapper`)이 안다.
+  /// 여기서는 자르고 저장하고 출처를 남기는 일만 한다.
+  Future<Result<CaptureResult>> captureRect({
+    required PdfPage page,
+    required Rect rect,
     required Book book,
     bool includeSource = true,
   }) async {
     final busy = _ref.read(captureBusyProvider.notifier);
     busy.state = true;
     try {
-      // 화면 좌표 → 문서 좌표
-      final topLeft = controller.globalToDocument(viewerBox.localToGlobal(localRect.topLeft));
-      final bottomRight = controller.globalToDocument(viewerBox.localToGlobal(localRect.bottomRight));
-      if (topLeft == null || bottomRight == null) {
-        return const Result.failed('화면 위치를 문서 좌표로 옮기지 못했습니다');
-      }
-      final docRect = Rect.fromPoints(topLeft, bottomRight);
-
-      // 걸친 쪽 가운데 가장 많이 겹치는 쪽 하나를 고른다.
-      // 두 쪽에 걸친 캡처는 아직 범위 밖이다
-      final layouts = controller.layout.pageLayouts;
-      var bestIndex = -1;
-      var bestArea = 0.0;
-      for (var i = 0; i < layouts.length; i++) {
-        final inter = layouts[i].intersect(docRect);
-        final area = (inter.width <= 0 || inter.height <= 0) ? 0.0 : inter.width * inter.height;
-        if (area > bestArea) {
-          bestArea = area;
-          bestIndex = i;
-        }
-      }
-      if (bestIndex < 0) return const Result.failed('쪽 바깥은 잘라 낼 수 없습니다');
-
-      final pageRect = layouts[bestIndex];
-      final page = doc.pages[bestIndex];
-      final local = docRect.intersect(pageRect).shift(-pageRect.topLeft);
-
       final result = await CaptureService.capture(
         page: page,
-        rect: local,
+        rect: rect,
         bookTitle: book.title,
         sourceLabel: includeSource ? '${book.title} · ${page.pageNumber}쪽' : null,
       );
-
-      await _saveSource(book: book, page: page.pageNumber, rect: local, result: result);
+      await _saveSource(book: book, page: page.pageNumber, rect: rect, result: result);
       return Result.ok(result);
     } on CaptureTooSmall {
       return const Result.failed('영역이 너무 작습니다. 조금 더 크게 드래그해 주세요');
