@@ -11,6 +11,7 @@ import '../../core/router.dart';
 import '../../core/tokens.dart';
 import '../../domain/entities/book.dart';
 import '../../domain/entities/crop_rect.dart';
+import '../../domain/entities/fit_mode.dart';
 import '../../domain/entities/reader_settings.dart';
 import '../../domain/entities/reading_theme.dart';
 import '../capture/capture_controller.dart';
@@ -169,7 +170,14 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
 
     if (!hasText) _notifyScanned();
     _maybeSuggestSplit(doc);
-    if (_settings.splitPrompted || _settings.splitPages) await _maybeSuggestCrop(doc);
+    if (_settings.splitPrompted || _settings.splitPages) {
+      await _maybeSuggestCrop(doc);
+      if (mounted) _maybeSuggestFitWidth();
+    }
+    // 배너가 겹치지 않게 살짝 뒤에
+    Future<void>.delayed(const Duration(seconds: 2), () {
+      if (mounted) _maybeHintLandscape();
+    });
 
     if (_selfTest == 'split') unawaited(_runSelfTest());
   }
@@ -284,6 +292,8 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
       showModalBottomSheet<void>(
         context: context,
         builder: (_) => ViewSheet(
+          fitMode: _settings.fitMode,
+          onFitMode: (m) => unawaited(_saveSettings(_settings.copyWith(fitMode: m))),
           splitOn: _settings.splitPages,
           cropOn: _settings.cropEnabled,
           darkOn: _settings.theme == ReadingTheme.dark,
@@ -394,6 +404,68 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
           ],
         ),
       );
+  }
+
+  /// 좌우가 잘려 보이면 폭 맞춤을 권한다.
+  ///
+  /// 폰 세로 화면에서 가로로 긴 쪽을 세로 맞춤으로 보면 좌우가 통째로 잘린다.
+  /// 잘린 줄 모르고 "화면이 이상하다"고 느끼는 게 제일 나쁘다.
+  void _maybeSuggestFitWidth() {
+    if (!mounted || _settings.fitMode == FitMode.width) return;
+    final box = _viewerKey.currentContext?.size;
+    final doc = _doc;
+    if (box == null || doc == null) return;
+
+    final page = doc.pages[(_page - 1).clamp(0, doc.pages.length - 1)];
+    final crop = _settings.cropFor(page.pageNumber);
+    final area = crop.toPageRect(page.width, page.height);
+    final sliceWidth = _settings.splitPages ? area.w / 2 : area.w;
+
+    // 세로에 맞췄을 때 가로가 화면을 넘는가
+    final widthAtFitHeight = sliceWidth * (box.height / area.h);
+    if (widthAtFitHeight <= box.width * 1.02) return;
+
+    ScaffoldMessenger.of(context)
+      ..clearMaterialBanners()
+      ..showMaterialBanner(
+        MaterialBanner(
+          content: const Text('좌우가 화면을 넘어 잘려 보입니다.\n폭에 맞춰 볼까요?'),
+          actions: [
+            TextButton(
+              onPressed: () => ScaffoldMessenger.of(context).clearMaterialBanners(),
+              child: const Text('그대로'),
+            ),
+            FilledButton(
+              onPressed: () {
+                ScaffoldMessenger.of(context).clearMaterialBanners();
+                unawaited(_saveSettings(_settings.copyWith(fitMode: FitMode.width)));
+              },
+              child: const Text('폭 맞춤'),
+            ),
+          ],
+        ),
+      );
+  }
+
+  /// 가로로 들면 훨씬 잘 보인다는 것을 한 번 알려 준다.
+  ///
+  /// 스캔 책은 쪽이 가로로 길어 폰 세로로는 글자가 작아진다.
+  /// 한 번만 알리고 다시 띄우지 않는다.
+  void _maybeHintLandscape() {
+    if (!mounted || _settings.landscapeHintShown) return;
+    final media = MediaQuery.of(context);
+    if (media.size.width >= media.size.height) return; // 이미 가로다
+    final doc = _doc;
+    if (doc == null) return;
+
+    final page = doc.pages.first;
+    final sliceIsWide = _settings.splitPages
+        ? (page.width / 2) > page.height * 0.8
+        : page.width > page.height;
+    if (!sliceIsWide) return;
+
+    _toast('책은 폰을 가로로 들면 훨씬 잘 보입니다');
+    unawaited(_saveSettings(_settings.copyWith(landscapeHintShown: true)));
   }
 
   Future<void> _maybeSuggestCrop(PdfDocument doc) async {

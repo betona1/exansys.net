@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/tokens.dart';
+import '../../../domain/entities/fit_mode.dart';
 
 /// 보기 설정 시트 — 읽기와 상관없는 버튼을 도구막대에서 걷어 내고 한곳에 모은다.
 ///
@@ -9,6 +10,8 @@ import '../../../core/tokens.dart';
 class ViewSheet extends StatelessWidget {
   const ViewSheet({
     super.key,
+    required this.fitMode,
+    required this.onFitMode,
     required this.splitOn,
     required this.cropOn,
     required this.darkOn,
@@ -16,6 +19,10 @@ class ViewSheet extends StatelessWidget {
     required this.onCrop,
     required this.onTheme,
   });
+
+  /// 쪽을 화면에 맞추는 방식
+  final FitMode fitMode;
+  final ValueChanged<FitMode> onFitMode;
 
   final bool splitOn;
   final bool cropOn;
@@ -43,6 +50,26 @@ class ViewSheet extends StatelessWidget {
             child: Align(
               alignment: Alignment.centerLeft,
               child: Text('보기', style: t.textTheme.titleMedium),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppTokens.space4,
+              0,
+              AppTokens.space4,
+              AppTokens.space3,
+            ),
+            child: SegmentedButton<FitMode>(
+              segments: const [
+                ButtonSegment(value: FitMode.width, label: Text('폭 맞춤')),
+                ButtonSegment(value: FitMode.page, label: Text('화면 맞춤')),
+                ButtonSegment(value: FitMode.height, label: Text('세로 맞춤')),
+              ],
+              selected: {fitMode},
+              onSelectionChanged: (v) {
+                Navigator.pop(context);
+                onFitMode(v.first);
+              },
             ),
           ),
           SwitchListTile(

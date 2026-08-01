@@ -7,6 +7,7 @@ import 'package:uuid/uuid.dart';
 import '../../domain/entities/book.dart';
 import '../../core/reading_filter.dart';
 import '../../domain/entities/crop_rect.dart';
+import '../../domain/entities/fit_mode.dart';
 import '../../domain/entities/reading_theme.dart';
 import '../../domain/entities/reader_settings.dart';
 import '../../domain/repositories/library_repository.dart';
@@ -181,6 +182,8 @@ class LibraryRepositoryImpl implements LibraryRepository {
       darkImageMode: DarkImageMode.parse(row.darkImageMode),
       brightness: row.brightness,
       contrast: row.contrast,
+      fitMode: FitMode.parse(row.fitMode),
+      landscapeHintShown: row.landscapeHintShown,
     );
   }
 
@@ -200,6 +203,8 @@ class LibraryRepositoryImpl implements LibraryRepository {
             darkImageMode: Value(settings.darkImageMode.storageValue),
             brightness: Value(settings.brightness),
             contrast: Value(settings.contrast),
+            fitMode: Value(settings.fitMode.storageValue),
+            landscapeHintShown: Value(settings.landscapeHintShown),
             updatedAt: _now(),
           ),
         );

@@ -6,6 +6,7 @@ import 'package:pdfrx/pdfrx.dart';
 
 import '../../../core/tokens.dart';
 import '../../../domain/entities/crop_rect.dart';
+import '../../../domain/entities/fit_mode.dart';
 import '../../../domain/entities/reader_settings.dart';
 import '../page_tint.dart';
 
@@ -188,9 +189,13 @@ class _PageSliceState extends State<_PageSlice> {
     super.dispose();
   }
 
+  bool _zoomedIn = false;
+
   void _onTransform() {
     // 배율이 1 보다 크면 확대 중으로 본다
-    widget.onZoomChanged(_transform.value.getMaxScaleOnAxis() > 1.01);
+    final z = _transform.value.getMaxScaleOnAxis() > 1.01;
+    if (z != _zoomedIn && mounted) setState(() => _zoomedIn = z);
+    widget.onZoomChanged(z);
     _publishSlice();
   }
 
@@ -202,16 +207,24 @@ class _PageSliceState extends State<_PageSlice> {
     final box = _renderedFor;
     if (img == null || area == null || box == null) return;
 
-    // FittedBox(fitHeight) 로 그리므로 세로는 화면을 꽉 채우고 가로는 비율만큼
-    final drawnHeight = box.height;
-    final drawnWidth = drawnHeight * img.width / img.height;
-    final left = (box.width - drawnWidth) / 2;
+    // FittedBox 는 좌측 위 정렬이므로 원점은 (0,0) 이다.
+    // 맞춤 모드에 따라 어느 변이 화면을 채우는지가 달라진다
+    final aspect = img.width / img.height;
+    final byWidth = box.width / aspect;
+    final byHeight = box.height * aspect;
+    final (drawnWidth, drawnHeight) = switch (widget.settings.fitMode) {
+      FitMode.width => (box.width, byWidth),
+      FitMode.height => (byHeight, box.height),
+      FitMode.page => byWidth <= box.height
+          ? (box.width, byWidth)
+          : (byHeight, box.height),
+    };
 
     widget.onSlice(
       SliceMapper(
         pageNumber: widget.page.pageNumber,
         pageRect: area,
-        imageRect: Rect.fromLTWH(left, 0, drawnWidth, drawnHeight),
+        imageRect: Rect.fromLTWH(0, 0, drawnWidth, drawnHeight),
         transform: _transform.value.clone(),
       ),
     );
@@ -237,9 +250,12 @@ class _PageSliceState extends State<_PageSlice> {
     if (_image == null) return true;
     final prev = _renderedFor;
     if (prev == null) return true;
-    // 세로를 기준으로 그리므로 세로가 바뀔 때 다시 그린다.
+    // 맞춤 기준이 되는 변이 바뀌면 다시 그린다.
     // 조금씩 바뀔 때마다 다시 그리면 스크롤이 끊기니 여유를 둔다
-    return (target.height - prev.height).abs() > prev.height * 0.15;
+    final (now, before) = widget.settings.fitMode == FitMode.height
+        ? (target.height, prev.height)
+        : (target.width, prev.width);
+    return (now - before).abs() > before * 0.15;
   }
 
   Future<void> _render(Size target) async {
@@ -263,8 +279,19 @@ class _PageSliceState extends State<_PageSlice> {
       final h = area.h;
       _sliceArea = Rect.fromLTWH(x, y, w, h);
 
-      // **세로를 화면에 꽉 맞춘다.** 책은 한 쪽이 통째로 보여야 읽힌다
-      final scale = (target.height / h) * dpr;
+      // 맞춤 모드대로 배율을 잡는다.
+      //
+      // 폰 세로 화면에서 세로 맞춤을 쓰면 **좌우가 잘린다** — 쪽이 화면보다
+      // 가로로 길기 때문이다. 그래서 기본은 폭 맞춤이고, 세로로 넘치는 부분은
+      // 밀어서 읽는다.
+      final byWidth = target.width / w;
+      final byHeight = target.height / h;
+      final fit = switch (widget.settings.fitMode) {
+        FitMode.width => byWidth,
+        FitMode.height => byHeight,
+        FitMode.page => byWidth < byHeight ? byWidth : byHeight,
+      };
+      final scale = fit * dpr;
       final full = Size(page.width * scale, page.height * scale);
 
       final img = await page.render(
@@ -345,19 +372,30 @@ class _PageSliceState extends State<_PageSlice> {
           return const ColoredBox(color: AppTokens.slot);
         }
 
-        // 세로를 꽉 채운다. 확대하면 그 안에서 밀어 본다 (핀치·더블탭)
+        // 맞춤 모드대로 그린다. **좌측 위부터** 보여 준다 —
+        // 가운데 정렬로 두면 폭이 넘칠 때 좌우가 똑같이 잘려 첫 글자를 놓친다
+        final fitBox = switch (widget.settings.fitMode) {
+          FitMode.width => BoxFit.fitWidth,
+          FitMode.height => BoxFit.fitHeight,
+          FitMode.page => BoxFit.contain,
+        };
+
         return GestureDetector(
           onDoubleTapDown: _toggleZoom,
           onDoubleTap: () {},
           child: InteractiveViewer(
             transformationController: _transform,
             maxScale: 6,
-            // 확대했을 때 화면 밖으로 밀어낼 수 있어야 아래쪽 글도 본다
+            minScale: 1,
+            // 확대하지 않았을 때는 세로로만 밀린다.
+            // 좌우로도 밀리면 PageView 의 쪽 넘김과 싸운다
+            panAxis: _zoomedIn ? PanAxis.free : PanAxis.vertical,
             boundaryMargin: const EdgeInsets.all(double.infinity),
             clipBehavior: Clip.hardEdge,
             child: SizedBox.expand(
               child: FittedBox(
-                fit: BoxFit.fitHeight,
+                fit: fitBox,
+                alignment: Alignment.topLeft,
                 child: RawImage(image: _image, filterQuality: FilterQuality.medium),
               ),
             ),

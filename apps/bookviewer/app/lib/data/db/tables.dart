@@ -140,6 +140,9 @@ class BookSettings extends Table {
   /// 자동 여백 크롭을 권해 봤는가
   BoolColumn get cropPrompted => boolean().withDefault(const Constant(false))();
 
+  /// 가로로 보라는 안내를 이미 띄웠는가
+  BoolColumn get landscapeHintShown => boolean().withDefault(const Constant(false))();
+
   BoolColumn get showSourceAnnots => boolean().withDefault(const Constant(true))();
 
   TextColumn get updatedAt => text()();

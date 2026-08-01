@@ -1860,6 +1860,20 @@ class $BookSettingsTable extends BookSettings
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _landscapeHintShownMeta =
+      const VerificationMeta('landscapeHintShown');
+  @override
+  late final GeneratedColumn<bool> landscapeHintShown = GeneratedColumn<bool>(
+    'landscape_hint_shown',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("landscape_hint_shown" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   static const VerificationMeta _showSourceAnnotsMeta = const VerificationMeta(
     'showSourceAnnots',
   );
@@ -1905,6 +1919,7 @@ class $BookSettingsTable extends BookSettings
     splitRightToLeft,
     splitPrompted,
     cropPrompted,
+    landscapeHintShown,
     showSourceAnnots,
     updatedAt,
   ];
@@ -2037,6 +2052,15 @@ class $BookSettingsTable extends BookSettings
         ),
       );
     }
+    if (data.containsKey('landscape_hint_shown')) {
+      context.handle(
+        _landscapeHintShownMeta,
+        landscapeHintShown.isAcceptableOrUnknown(
+          data['landscape_hint_shown']!,
+          _landscapeHintShownMeta,
+        ),
+      );
+    }
     if (data.containsKey('show_source_annots')) {
       context.handle(
         _showSourceAnnotsMeta,
@@ -2131,6 +2155,10 @@ class $BookSettingsTable extends BookSettings
         DriftSqlType.bool,
         data['${effectivePrefix}crop_prompted'],
       )!,
+      landscapeHintShown: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}landscape_hint_shown'],
+      )!,
       showSourceAnnots: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}show_source_annots'],
@@ -2195,6 +2223,9 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
 
   /// 자동 여백 크롭을 권해 봤는가
   final bool cropPrompted;
+
+  /// 가로로 보라는 안내를 이미 띄웠는가
+  final bool landscapeHintShown;
   final bool showSourceAnnots;
   final String updatedAt;
   const BookSetting({
@@ -2215,6 +2246,7 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
     required this.splitRightToLeft,
     required this.splitPrompted,
     required this.cropPrompted,
+    required this.landscapeHintShown,
     required this.showSourceAnnots,
     required this.updatedAt,
   });
@@ -2242,6 +2274,7 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
     map['split_right_to_left'] = Variable<bool>(splitRightToLeft);
     map['split_prompted'] = Variable<bool>(splitPrompted);
     map['crop_prompted'] = Variable<bool>(cropPrompted);
+    map['landscape_hint_shown'] = Variable<bool>(landscapeHintShown);
     map['show_source_annots'] = Variable<bool>(showSourceAnnots);
     map['updated_at'] = Variable<String>(updatedAt);
     return map;
@@ -2270,6 +2303,7 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
       splitRightToLeft: Value(splitRightToLeft),
       splitPrompted: Value(splitPrompted),
       cropPrompted: Value(cropPrompted),
+      landscapeHintShown: Value(landscapeHintShown),
       showSourceAnnots: Value(showSourceAnnots),
       updatedAt: Value(updatedAt),
     );
@@ -2298,6 +2332,7 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
       splitRightToLeft: serializer.fromJson<bool>(json['splitRightToLeft']),
       splitPrompted: serializer.fromJson<bool>(json['splitPrompted']),
       cropPrompted: serializer.fromJson<bool>(json['cropPrompted']),
+      landscapeHintShown: serializer.fromJson<bool>(json['landscapeHintShown']),
       showSourceAnnots: serializer.fromJson<bool>(json['showSourceAnnots']),
       updatedAt: serializer.fromJson<String>(json['updatedAt']),
     );
@@ -2323,6 +2358,7 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
       'splitRightToLeft': serializer.toJson<bool>(splitRightToLeft),
       'splitPrompted': serializer.toJson<bool>(splitPrompted),
       'cropPrompted': serializer.toJson<bool>(cropPrompted),
+      'landscapeHintShown': serializer.toJson<bool>(landscapeHintShown),
       'showSourceAnnots': serializer.toJson<bool>(showSourceAnnots),
       'updatedAt': serializer.toJson<String>(updatedAt),
     };
@@ -2346,6 +2382,7 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
     bool? splitRightToLeft,
     bool? splitPrompted,
     bool? cropPrompted,
+    bool? landscapeHintShown,
     bool? showSourceAnnots,
     String? updatedAt,
   }) => BookSetting(
@@ -2366,6 +2403,7 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
     splitRightToLeft: splitRightToLeft ?? this.splitRightToLeft,
     splitPrompted: splitPrompted ?? this.splitPrompted,
     cropPrompted: cropPrompted ?? this.cropPrompted,
+    landscapeHintShown: landscapeHintShown ?? this.landscapeHintShown,
     showSourceAnnots: showSourceAnnots ?? this.showSourceAnnots,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -2404,6 +2442,9 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
       cropPrompted: data.cropPrompted.present
           ? data.cropPrompted.value
           : this.cropPrompted,
+      landscapeHintShown: data.landscapeHintShown.present
+          ? data.landscapeHintShown.value
+          : this.landscapeHintShown,
       showSourceAnnots: data.showSourceAnnots.present
           ? data.showSourceAnnots.value
           : this.showSourceAnnots,
@@ -2431,6 +2472,7 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
           ..write('splitRightToLeft: $splitRightToLeft, ')
           ..write('splitPrompted: $splitPrompted, ')
           ..write('cropPrompted: $cropPrompted, ')
+          ..write('landscapeHintShown: $landscapeHintShown, ')
           ..write('showSourceAnnots: $showSourceAnnots, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -2456,6 +2498,7 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
     splitRightToLeft,
     splitPrompted,
     cropPrompted,
+    landscapeHintShown,
     showSourceAnnots,
     updatedAt,
   );
@@ -2480,6 +2523,7 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
           other.splitRightToLeft == this.splitRightToLeft &&
           other.splitPrompted == this.splitPrompted &&
           other.cropPrompted == this.cropPrompted &&
+          other.landscapeHintShown == this.landscapeHintShown &&
           other.showSourceAnnots == this.showSourceAnnots &&
           other.updatedAt == this.updatedAt);
 }
@@ -2502,6 +2546,7 @@ class BookSettingsCompanion extends UpdateCompanion<BookSetting> {
   final Value<bool> splitRightToLeft;
   final Value<bool> splitPrompted;
   final Value<bool> cropPrompted;
+  final Value<bool> landscapeHintShown;
   final Value<bool> showSourceAnnots;
   final Value<String> updatedAt;
   const BookSettingsCompanion({
@@ -2522,6 +2567,7 @@ class BookSettingsCompanion extends UpdateCompanion<BookSetting> {
     this.splitRightToLeft = const Value.absent(),
     this.splitPrompted = const Value.absent(),
     this.cropPrompted = const Value.absent(),
+    this.landscapeHintShown = const Value.absent(),
     this.showSourceAnnots = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
@@ -2543,6 +2589,7 @@ class BookSettingsCompanion extends UpdateCompanion<BookSetting> {
     this.splitRightToLeft = const Value.absent(),
     this.splitPrompted = const Value.absent(),
     this.cropPrompted = const Value.absent(),
+    this.landscapeHintShown = const Value.absent(),
     this.showSourceAnnots = const Value.absent(),
     required String updatedAt,
   }) : updatedAt = Value(updatedAt);
@@ -2564,6 +2611,7 @@ class BookSettingsCompanion extends UpdateCompanion<BookSetting> {
     Expression<bool>? splitRightToLeft,
     Expression<bool>? splitPrompted,
     Expression<bool>? cropPrompted,
+    Expression<bool>? landscapeHintShown,
     Expression<bool>? showSourceAnnots,
     Expression<String>? updatedAt,
   }) {
@@ -2585,6 +2633,8 @@ class BookSettingsCompanion extends UpdateCompanion<BookSetting> {
       if (splitRightToLeft != null) 'split_right_to_left': splitRightToLeft,
       if (splitPrompted != null) 'split_prompted': splitPrompted,
       if (cropPrompted != null) 'crop_prompted': cropPrompted,
+      if (landscapeHintShown != null)
+        'landscape_hint_shown': landscapeHintShown,
       if (showSourceAnnots != null) 'show_source_annots': showSourceAnnots,
       if (updatedAt != null) 'updated_at': updatedAt,
     });
@@ -2608,6 +2658,7 @@ class BookSettingsCompanion extends UpdateCompanion<BookSetting> {
     Value<bool>? splitRightToLeft,
     Value<bool>? splitPrompted,
     Value<bool>? cropPrompted,
+    Value<bool>? landscapeHintShown,
     Value<bool>? showSourceAnnots,
     Value<String>? updatedAt,
   }) {
@@ -2629,6 +2680,7 @@ class BookSettingsCompanion extends UpdateCompanion<BookSetting> {
       splitRightToLeft: splitRightToLeft ?? this.splitRightToLeft,
       splitPrompted: splitPrompted ?? this.splitPrompted,
       cropPrompted: cropPrompted ?? this.cropPrompted,
+      landscapeHintShown: landscapeHintShown ?? this.landscapeHintShown,
       showSourceAnnots: showSourceAnnots ?? this.showSourceAnnots,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -2688,6 +2740,9 @@ class BookSettingsCompanion extends UpdateCompanion<BookSetting> {
     if (cropPrompted.present) {
       map['crop_prompted'] = Variable<bool>(cropPrompted.value);
     }
+    if (landscapeHintShown.present) {
+      map['landscape_hint_shown'] = Variable<bool>(landscapeHintShown.value);
+    }
     if (showSourceAnnots.present) {
       map['show_source_annots'] = Variable<bool>(showSourceAnnots.value);
     }
@@ -2717,6 +2772,7 @@ class BookSettingsCompanion extends UpdateCompanion<BookSetting> {
           ..write('splitRightToLeft: $splitRightToLeft, ')
           ..write('splitPrompted: $splitPrompted, ')
           ..write('cropPrompted: $cropPrompted, ')
+          ..write('landscapeHintShown: $landscapeHintShown, ')
           ..write('showSourceAnnots: $showSourceAnnots, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -6641,6 +6697,7 @@ typedef $$BookSettingsTableCreateCompanionBuilder =
       Value<bool> splitRightToLeft,
       Value<bool> splitPrompted,
       Value<bool> cropPrompted,
+      Value<bool> landscapeHintShown,
       Value<bool> showSourceAnnots,
       required String updatedAt,
     });
@@ -6663,6 +6720,7 @@ typedef $$BookSettingsTableUpdateCompanionBuilder =
       Value<bool> splitRightToLeft,
       Value<bool> splitPrompted,
       Value<bool> cropPrompted,
+      Value<bool> landscapeHintShown,
       Value<bool> showSourceAnnots,
       Value<String> updatedAt,
     });
@@ -6775,6 +6833,11 @@ class $$BookSettingsTableFilterComposer
 
   ColumnFilters<bool> get cropPrompted => $composableBuilder(
     column: $table.cropPrompted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get landscapeHintShown => $composableBuilder(
+    column: $table.landscapeHintShown,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6901,6 +6964,11 @@ class $$BookSettingsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get landscapeHintShown => $composableBuilder(
+    column: $table.landscapeHintShown,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get showSourceAnnots => $composableBuilder(
     column: $table.showSourceAnnots,
     builder: (column) => ColumnOrderings(column),
@@ -7008,6 +7076,11 @@ class $$BookSettingsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<bool> get landscapeHintShown => $composableBuilder(
+    column: $table.landscapeHintShown,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<bool> get showSourceAnnots => $composableBuilder(
     column: $table.showSourceAnnots,
     builder: (column) => column,
@@ -7085,6 +7158,7 @@ class $$BookSettingsTableTableManager
                 Value<bool> splitRightToLeft = const Value.absent(),
                 Value<bool> splitPrompted = const Value.absent(),
                 Value<bool> cropPrompted = const Value.absent(),
+                Value<bool> landscapeHintShown = const Value.absent(),
                 Value<bool> showSourceAnnots = const Value.absent(),
                 Value<String> updatedAt = const Value.absent(),
               }) => BookSettingsCompanion(
@@ -7105,6 +7179,7 @@ class $$BookSettingsTableTableManager
                 splitRightToLeft: splitRightToLeft,
                 splitPrompted: splitPrompted,
                 cropPrompted: cropPrompted,
+                landscapeHintShown: landscapeHintShown,
                 showSourceAnnots: showSourceAnnots,
                 updatedAt: updatedAt,
               ),
@@ -7127,6 +7202,7 @@ class $$BookSettingsTableTableManager
                 Value<bool> splitRightToLeft = const Value.absent(),
                 Value<bool> splitPrompted = const Value.absent(),
                 Value<bool> cropPrompted = const Value.absent(),
+                Value<bool> landscapeHintShown = const Value.absent(),
                 Value<bool> showSourceAnnots = const Value.absent(),
                 required String updatedAt,
               }) => BookSettingsCompanion.insert(
@@ -7147,6 +7223,7 @@ class $$BookSettingsTableTableManager
                 splitRightToLeft: splitRightToLeft,
                 splitPrompted: splitPrompted,
                 cropPrompted: cropPrompted,
+                landscapeHintShown: landscapeHintShown,
                 showSourceAnnots: showSourceAnnots,
                 updatedAt: updatedAt,
               ),

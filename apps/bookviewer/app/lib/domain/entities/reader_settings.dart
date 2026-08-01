@@ -1,5 +1,6 @@
 import '../../core/reading_filter.dart';
 import 'crop_rect.dart';
+import 'fit_mode.dart';
 import 'reading_theme.dart';
 
 /// 문서별 뷰어 설정 (화면이 쓰는 형태).
@@ -19,6 +20,8 @@ class ReaderSettings {
     this.darkImageMode = DarkImageMode.preserve,
     this.brightness = 1,
     this.contrast = 1,
+    this.fitMode = FitMode.width,
+    this.landscapeHintShown = false,
   });
 
   /// 한 장에 든 두 쪽을 좌·우로 나눠 본다
@@ -54,6 +57,12 @@ class ReaderSettings {
   bool get tintsPage => theme == ReadingTheme.dark || theme == ReadingTheme.sepia
       || brightness != 1 || contrast != 1;
 
+  /// 쪽을 화면에 맞추는 방식
+  final FitMode fitMode;
+
+  /// 가로로 보라는 안내를 이미 띄웠는가
+  final bool landscapeHintShown;
+
   /// 색 변환 설정이 바뀌었는지 가리는 열쇠. 바뀌면 그림을 다시 그린다
   String get tintKey => '${theme.name}/${darkImageMode.name}/$brightness/$contrast';
 
@@ -75,6 +84,8 @@ class ReaderSettings {
     DarkImageMode? darkImageMode,
     double? brightness,
     double? contrast,
+    FitMode? fitMode,
+    bool? landscapeHintShown,
   }) => ReaderSettings(
     splitPages: splitPages ?? this.splitPages,
     splitRightToLeft: splitRightToLeft ?? this.splitRightToLeft,
@@ -87,5 +98,7 @@ class ReaderSettings {
     darkImageMode: darkImageMode ?? this.darkImageMode,
     brightness: brightness ?? this.brightness,
     contrast: contrast ?? this.contrast,
+    fitMode: fitMode ?? this.fitMode,
+    landscapeHintShown: landscapeHintShown ?? this.landscapeHintShown,
   );
 }
