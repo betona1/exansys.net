@@ -1,0 +1,182 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EXANSYS — 브랜드 · 캐릭터 시스템</title>
+<link rel="icon" href='data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' width='16' height='16'><rect width='16' height='16' rx='3.5' fill='%230D1117'/><rect x='3' y='6.5' width='10' height='3' rx='1.5' fill='%23151A22'/><circle cx='8' cy='8' r='1.4' fill='%23FFC24B'/></svg>'>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--ink:#0D1117;--slot:#151A22;--signal:#4CC2FF;--amber:#FFC24B;--sur:#161B22;--sur2:#1C222B;
+--bd:#242B36;--tx:#E6E8EC;--tx2:#8B94A3;--tx3:#5A626F}
+body{background:var(--ink);color:var(--tx);
+font-family:Pretendard,'Malgun Gothic','Segoe UI',system-ui,sans-serif;
+line-height:1.7;word-break:keep-all;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:0 24px 120px}
+header{padding:96px 0 72px;border-bottom:1px solid var(--bd)}
+.hero{display:flex;align-items:center;gap:36px;flex-wrap:wrap}
+.hero h1{font-size:15px;letter-spacing:.32em;color:var(--tx2);font-weight:600}
+.hero .tag{font-size:40px;font-weight:800;letter-spacing:-.02em;margin:6px 0 10px;line-height:1.15}
+.hero p{color:var(--tx2);font-size:15px;max-width:44ch}
+section{padding:72px 0;border-bottom:1px solid var(--bd)}
+h2{font-size:13px;letter-spacing:.22em;color:var(--signal);font-weight:700;margin-bottom:10px}
+h3{font-size:26px;font-weight:700;letter-spacing:-.01em;margin-bottom:14px}
+.lead{color:var(--tx2);max-width:62ch;font-size:15px;margin-bottom:36px}
+.grid{display:grid;gap:16px}
+.g7{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+.g3{grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+.face{background:var(--sur);border:1px solid var(--bd);border-radius:14px;padding:20px 14px;text-align:center;
+transition:.2s border-color,.2s transform}
+.face:hover{border-color:#33404F;transform:translateY(-2px)}
+.art{display:flex;justify-content:center;margin-bottom:14px}
+figcaption b{display:block;font-size:13.5px;font-weight:600}
+figcaption span{display:block;font-size:11.5px;color:var(--tx3);margin:3px 0 8px;min-height:2.6em;line-height:1.4}
+figcaption code{font-size:10.5px;color:var(--tx2);background:var(--sur2);padding:3px 7px;border-radius:5px;
+font-family:ui-monospace,Consolas,monospace}
+.sw{display:flex;align-items:center;gap:14px;background:var(--sur);border:1px solid var(--bd);
+border-radius:12px;padding:14px}
+.chip{width:46px;height:46px;border-radius:11px;flex:0 0 auto;border:1px solid rgba(255,255,255,.09)}
+.sw b{display:block;font-size:13.5px}
+.sw small{display:block;color:var(--tx3);font-size:11.5px;line-height:1.45}
+.sw code{font-size:10.5px;color:var(--tx2);font-family:ui-monospace,Consolas,monospace}
+.hl{display:flex;gap:10px;flex-wrap:wrap}
+.hl div{display:flex;align-items:center;gap:9px;background:var(--sur);border:1px solid var(--bd);
+border-radius:999px;padding:8px 16px 8px 8px;font-size:13px}
+.hl i{width:22px;height:22px;border-radius:7px;display:block}
+.showcase{display:flex;gap:22px;flex-wrap:wrap;align-items:center;background:var(--sur);
+border:1px solid var(--bd);border-radius:18px;padding:32px}
+.light{background:#F5F6F8;border-radius:18px;padding:32px;display:flex;gap:24px;align-items:center;flex-wrap:wrap}
+.geo{background:var(--sur);border:1px solid var(--bd);border-radius:14px;padding:20px 22px;
+font-family:ui-monospace,Consolas,monospace;font-size:12.5px;color:var(--tx2);white-space:pre;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--bd);vertical-align:top}
+th{color:var(--tx3);font-size:11px;letter-spacing:.14em;font-weight:600;text-transform:uppercase}
+td:first-child{color:var(--tx);font-weight:600;white-space:nowrap}
+.no{background:rgba(217,54,54,.07);border:1px solid rgba(217,54,54,.28);border-radius:14px;padding:22px 26px}
+.no h4{color:#FF8A8A;font-size:14px;margin-bottom:12px;letter-spacing:.04em}
+.no ol{padding-left:20px;color:var(--tx2);font-size:13.5px}
+.no li{margin-bottom:7px}
+.warn{border-left:3px solid var(--amber);background:rgba(255,194,75,.06);padding:16px 20px;
+border-radius:0 10px 10px 0;color:var(--tx2);font-size:13.5px;margin-top:20px}
+footer{padding:56px 0;color:var(--tx3);font-size:12.5px;text-align:center}
+@media(max-width:640px){.hero .tag{font-size:29px}h3{font-size:21px}header{padding:60px 0 48px}section{padding:52px 0}}
+</style></head><body><div class="wrap">
+
+<header><div class="hero">
+  <div><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="112" height="112" role="img" aria-label="EXANSYS 앱 아이콘"><rect width="64" height="64" rx="14" fill="#0D1117"/><rect x="13" y="26" width="38" height="12" rx="6" fill="#151A22"/><circle cx="32" cy="32" r="4.5" fill="#4CC2FF"/></svg></div>
+  <div><h1>EXANSYS</h1><div class="tag">THINK AT EXA SCALE</div>
+  <p>매일 열게 되는, 작고 단단한 앱.<br>이 문서는 아이콘·UI·일러스트·웹까지 모든 디자인의 단일 진실 소스입니다.</p></div>
+</div></header>
+
+<section>
+  <h2>CHARACTER</h2><h3>EXA — 앱 그 자체</h3>
+  <p class="lead">EXA 는 조언하는 도우미가 아닙니다. <b>상태를 보여주는 얼굴</b>입니다.
+  앱을 열면 눈을 뜨고, 읽는 동안 함께 보고, 처리 중이면 생각하고, 끝나면 웃습니다. 말은 하지 않습니다.</p>
+  <div class="showcase">
+    <div><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="120" height="120" role="img" aria-label="EXA 기본 · 대기"><rect x="2" y="2" width="60" height="60" rx="17" fill="#0D1117"/><rect x="13" y="26" width="38" height="12" rx="6" fill="#151A22"/><circle cx="32" cy="32" r="4.5" fill="#4CC2FF"/></svg></div>
+    <div style="flex:1;min-width:260px">
+      <div class="geo">바디(스퀘어클)  x=2  y=2  w=60 h=60 rx=17
+바이저(렌즈)    x=13 y=26 w=38 h=12 rx=6
+동공(신호)      cx=32 cy=32 r=4.5</div>
+      <p style="color:var(--tx2);font-size:13.5px;margin-top:14px">
+      <b>동공만 움직입니다.</b> 바디와 바이저는 변형하지 않습니다(완료·휴면만 예외).
+      스트로크 없이 면으로만 구성해 어떤 크기에서도 뭉개지지 않습니다. 최소 사용 16px.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>EXPRESSIONS · MASTER</h2><h3>표정 7종 — 앱 상태와 1:1</h3>
+  <p class="lead">감정 표현이 아니라 상태 표시입니다. 읽는 중만 루프하고 나머지는 1회 재생 후 정지합니다.
+  대기 상태에서 반복 애니메이션을 돌리지 않습니다 — 배터리와 시선을 뺏습니다.</p>
+  <div class="grid g7"><figure class="face"><div class="art"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="88" height="88" role="img" aria-label="EXA 기본 · 대기"><rect x="2" y="2" width="60" height="60" rx="17" fill="#0D1117"/><rect x="13" y="26" width="38" height="12" rx="6" fill="#151A22"/><circle cx="32" cy="32" r="4.5" fill="#4CC2FF"/></svg></div><figcaption><b>기본 · 대기</b><span>앱 아이콘 · 스플래시 · 평상시</span><code>exa-idle</code></figcaption></figure>
+<figure class="face"><div class="art"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="88" height="88" role="img" aria-label="EXA 읽는 중 · 스캔"><rect x="2" y="2" width="60" height="60" rx="17" fill="#0D1117"/><rect x="13" y="26" width="38" height="12" rx="6" fill="#151A22"/><circle cx="40" cy="32" r="4.5" fill="#4CC2FF"/><circle cx="30" cy="32" r="3" fill="#4CC2FF" opacity=".38"/><circle cx="22" cy="32" r="2" fill="#4CC2FF" opacity=".18"/></svg></div><figcaption><b>읽는 중 · 스캔</b><span>인덱싱 · 페이지 로딩</span><code>exa-read</code></figcaption></figure>
+<figure class="face"><div class="art"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="88" height="88" role="img" aria-label="EXA 생각 중 · 처리"><rect x="2" y="2" width="60" height="60" rx="17" fill="#0D1117"/><rect x="13" y="26" width="38" height="12" rx="6" fill="#151A22"/><circle cx="39" cy="30" r="4.5" fill="#4CC2FF"/><circle cx="47" cy="20" r="2.6" fill="#4CC2FF" opacity=".55"/><circle cx="52" cy="14" r="1.5" fill="#4CC2FF" opacity=".3"/></svg></div><figcaption><b>생각 중 · 처리</b><span>AI 요약 · OCR · 영상→북 변환</span><code>exa-think</code></figcaption></figure>
+<figure class="face"><div class="art"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="88" height="88" role="img" aria-label="EXA 찾음 · 검색 결과"><rect x="2" y="2" width="60" height="60" rx="17" fill="#0D1117"/><rect x="13" y="26" width="38" height="12" rx="6" fill="#151A22"/><circle cx="32" cy="32" r="5.4" fill="none" stroke="#4CC2FF" stroke-width="2.4"/><circle cx="32" cy="32" r="1.6" fill="#4CC2FF"/></svg></div><figcaption><b>찾음 · 결과</b><span>검색 결과 · 하이라이트 저장</span><code>exa-found</code></figcaption></figure>
+<figure class="face"><div class="art"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="88" height="88" role="img" aria-label="EXA 완료 · 성공"><rect x="2" y="2" width="60" height="60" rx="17" fill="#0D1117"/><path d="M21 29 q11 11 22 0" fill="none" stroke="#4CC2FF" stroke-width="5" stroke-linecap="round"/></svg></div><figcaption><b>완료 · 성공</b><span>작업 완료 토스트 · 완독</span><code>exa-done</code></figcaption></figure>
+<figure class="face"><div class="art"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="88" height="88" role="img" aria-label="EXA 오류 · 실패"><rect x="2" y="2" width="60" height="60" rx="17" fill="#0D1117"/><rect x="13" y="26" width="38" height="12" rx="6" fill="#151A22"/><rect x="23" y="30" width="18" height="4" rx="2" fill="#4CC2FF"/></svg></div><figcaption><b>오류 · 실패</b><span>실패 · 빈 결과</span><code>exa-error</code></figcaption></figure>
+<figure class="face"><div class="art"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="88" height="88" role="img" aria-label="EXA 휴면 · 백그라운드"><rect x="2" y="2" width="60" height="60" rx="17" fill="#0D1117"/><rect x="15" y="29" width="34" height="6" rx="3" fill="#151A22"/><rect x="26" y="31" width="12" height="2" rx="1" fill="#4CC2FF" opacity=".45"/></svg></div><figcaption><b>휴면 · 배경</b><span>백그라운드 · 오프라인</span><code>exa-sleep</code></figcaption></figure></div>
+</section>
+
+<section>
+  <h2>PRODUCT VARIANT</h2><h3>북뷰 / BookViewer</h3>
+  <p class="lead">새 앱을 만들 때 <b>캐릭터를 새로 그리지 않습니다.</b> 기하는 고정하고
+  <b>액센트 색 하나 + 하단 힌트 글리프 하나</b>만 정합니다. 이것이 EXANSYS 앱군이 한 가족으로 보이는 유일한 이유입니다.</p>
+  <div class="showcase" style="margin-bottom:22px">
+    <div><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="104" height="104" role="img" aria-label="북뷰 앱 아이콘"><rect width="64" height="64" rx="14" fill="#0D1117"/><rect x="13" y="26" width="38" height="12" rx="6" fill="#151A22"/><circle cx="32" cy="32" r="4.5" fill="#FFC24B"/><path d="M20 46 q12 -5 12 -5 q0 0 12 5" fill="none" stroke="#FFC24B" stroke-width="2.6" stroke-linecap="round" opacity=".55"/><path d="M32 41 v6" stroke="#FFC24B" stroke-width="2.6" stroke-linecap="round" opacity=".55"/></svg></div>
+    <div><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 64" width="300" height="74" role="img" aria-label="북뷰 BookViewer"><rect x="2" y="2" width="60" height="60" rx="17" fill="#0D1117"/><rect x="13" y="26" width="38" height="12" rx="6" fill="#151A22"/><circle cx="32" cy="32" r="4.5" fill="#FFC24B"/><path d="M20 46 q12 -5 12 -5 q0 0 12 5" fill="none" stroke="#FFC24B" stroke-width="2.6" stroke-linecap="round" opacity=".55"/><path d="M32 41 v6" stroke="#FFC24B" stroke-width="2.6" stroke-linecap="round" opacity=".55"/><text x="78" y="34" font-family="Pretendard,Segoe UI,sans-serif" font-size="26" font-weight="700" fill="#0D1117">북뷰</text><text x="78" y="52" font-family="Pretendard,Segoe UI,sans-serif" font-size="13" font-weight="500" fill="#5B6270" letter-spacing="2.4">BOOKVIEWER</text></svg></div>
+  </div>
+  <div class="grid g7"><figure class="face"><div class="art"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="88" height="88" role="img" aria-label="북뷰 기본 · 대기"><rect x="2" y="2" width="60" height="60" rx="17" fill="#0D1117"/><rect x="13" y="26" width="38" height="12" rx="6" fill="#151A22"/><circle cx="32" cy="32" r="4.5" fill="#FFC24B"/><path d="M20 46 q12 -5 12 -5 q0 0 12 5" fill="none" stroke="#FFC24B" stroke-width="2.6" stroke-linecap="round" opacity=".55"/><path d="M32 41 v6" stroke="#FFC24B" stroke-width="2.6" stroke-linecap="round" opacity=".55"/></svg></div><figcaption><b>기본 · 대기</b><span>앱 아이콘 · 스플래시 · 평상시</span><code>bookview-idle</code></figcaption></figure>
+<figure class="face"><div class="art"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="88" height="88" role="img" aria-label="북뷰 읽는 중 · 스캔"><rect x="2" y="2" width="60" height="60" rx="17" fill="#0D1117"/><rect x="13" y="26" width="38" height="12" rx="6" fill="#151A22"/><circle cx="40" cy="32" r="4.5" fill="#FFC24B"/><circle cx="30" cy="32" r="3" fill="#FFC24B" opacity=".38"/><circle cx="22" cy="32" r="2" fill="#FFC24B" opacity=".18"/><path d="M20 46 q12 -5 12 -5 q0 0 12 5" fill="none" stroke="#FFC24B" stroke-width="2.6" stroke-linecap="round" opacity=".55"/><path d="M32 41 v6" stroke="#FFC24B" stroke-width="2.6" stroke-linecap="round" opacity=".55"/></svg></div><figcaption><b>읽는 중 · 스캔</b><span>인덱싱 · 페이지 로딩</span><code>bookview-read</code></figcaption></figure>
+<figure class="face"><div class="art"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="88" height="88" role="img" aria-label="북뷰 생각 중 · 처리"><rect x="2" y="2" width="60" height="60" rx="17" fill="#0D1117"/><rect x="13" y="26" width="38" height="12" rx="6" fill="#151A22"/><circle cx="39" cy="30" r="4.5" fill="#FFC24B"/><circle cx="47" cy="20" r="2.6" fill="#FFC24B" opacity=".55"/><circle cx="52" cy="14" r="1.5" fill="#FFC24B" opacity=".3"/><path d="M20 46 q12 -5 12 -5 q0 0 12 5" fill="none" stroke="#FFC24B" stroke-width="2.6" stroke-linecap="round" opacity=".55"/><path d="M32 41 v6" stroke="#FFC24B" stroke-width="2.6" stroke-linecap="round" opacity=".55"/></svg></div><figcaption><b>생각 중 · 처리</b><span>AI 요약 · OCR · 영상→북 변환</span><code>bookview-think</code></figcaption></figure>
+<figure class="face"><div class="art"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="88" height="88" role="img" aria-label="북뷰 찾음 · 검색 결과"><rect x="2" y="2" width="60" height="60" rx="17" fill="#0D1117"/><rect x="13" y="26" width="38" height="12" rx="6" fill="#151A22"/><circle cx="32" cy="32" r="5.4" fill="none" stroke="#FFC24B" stroke-width="2.4"/><circle cx="32" cy="32" r="1.6" fill="#FFC24B"/><path d="M20 46 q12 -5 12 -5 q0 0 12 5" fill="none" stroke="#FFC24B" stroke-width="2.6" stroke-linecap="round" opacity=".55"/><path d="M32 41 v6" stroke="#FFC24B" stroke-width="2.6" stroke-linecap="round" opacity=".55"/></svg></div><figcaption><b>찾음 · 결과</b><span>검색 결과 · 하이라이트 저장</span><code>bookview-found</code></figcaption></figure>
+<figure class="face"><div class="art"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="88" height="88" role="img" aria-label="북뷰 완료 · 성공"><rect x="2" y="2" width="60" height="60" rx="17" fill="#0D1117"/><path d="M21 29 q11 11 22 0" fill="none" stroke="#FFC24B" stroke-width="5" stroke-linecap="round"/><path d="M20 46 q12 -5 12 -5 q0 0 12 5" fill="none" stroke="#FFC24B" stroke-width="2.6" stroke-linecap="round" opacity=".55"/><path d="M32 41 v6" stroke="#FFC24B" stroke-width="2.6" stroke-linecap="round" opacity=".55"/></svg></div><figcaption><b>완료 · 성공</b><span>작업 완료 토스트 · 완독</span><code>bookview-done</code></figcaption></figure>
+<figure class="face"><div class="art"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="88" height="88" role="img" aria-label="북뷰 오류 · 실패"><rect x="2" y="2" width="60" height="60" rx="17" fill="#0D1117"/><rect x="13" y="26" width="38" height="12" rx="6" fill="#151A22"/><rect x="23" y="30" width="18" height="4" rx="2" fill="#FFC24B"/><path d="M20 46 q12 -5 12 -5 q0 0 12 5" fill="none" stroke="#FFC24B" stroke-width="2.6" stroke-linecap="round" opacity=".55"/><path d="M32 41 v6" stroke="#FFC24B" stroke-width="2.6" stroke-linecap="round" opacity=".55"/></svg></div><figcaption><b>오류 · 실패</b><span>실패 · 빈 결과</span><code>bookview-error</code></figcaption></figure>
+<figure class="face"><div class="art"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="88" height="88" role="img" aria-label="북뷰 휴면 · 백그라운드"><rect x="2" y="2" width="60" height="60" rx="17" fill="#0D1117"/><rect x="15" y="29" width="34" height="6" rx="3" fill="#151A22"/><rect x="26" y="31" width="12" height="2" rx="1" fill="#FFC24B" opacity=".45"/><path d="M20 46 q12 -5 12 -5 q0 0 12 5" fill="none" stroke="#FFC24B" stroke-width="2.6" stroke-linecap="round" opacity=".55"/><path d="M32 41 v6" stroke="#FFC24B" stroke-width="2.6" stroke-linecap="round" opacity=".55"/></svg></div><figcaption><b>휴면 · 배경</b><span>백그라운드 · 오프라인</span><code>bookview-sleep</code></figcaption></figure></div>
+</section>
+
+<section>
+  <h2>COLOR</h2><h3>브랜드 코어</h3>
+  <div class="grid g3">
+  <div class="sw"><span class="chip" style="background:#0D1117"></span><div><b>EXANSYS Ink</b><small>바디 · 다크 배경 · 웹 메인</small><code>#0D1117</code></div></div><div class="sw"><span class="chip" style="background:#151A22"></span><div><b>Visor Slot</b><small>바이저 내부</small><code>#151A22</code></div></div><div class="sw"><span class="chip" style="background:#4CC2FF"></span><div><b>EXANSYS Signal</b><small>모회사 액센트 · 링크 · CTA</small><code>#4CC2FF</code></div></div><div class="sw"><span class="chip" style="background:#FFC24B"></span><div><b>BookView Amber</b><small>북뷰 브랜드 액센트 (텍스트 사용 금지)</small><code>#FFC24B</code></div></div><div class="sw"><span class="chip" style="background:#C98A1E"></span><div><b>Amber Deep</b><small>라이트 배경 위 앰버 대체</small><code>#C98A1E</code></div></div><div class="sw"><span class="chip" style="background:#2F6BFF"></span><div><b>Action</b><small>링크 · 포커스 · 선택 (기능색)</small><code>#2F6BFF</code></div></div><div class="sw"><span class="chip" style="background:#F5F6F8"></span><div><b>Paper</b><small>라이트 배경</small><code>#F5F6F8</code></div></div>
+  </div>
+  <div class="warn"><b>중요한 제약.</b> 앰버 <code>#FFC24B</code> 는 흰 배경 대비 약 1.8:1 이라
+  텍스트·포커스링·아이콘 버튼에 쓰면 WCAG 4.5:1 을 절대 못 맞춥니다.
+  <b>앰버는 브랜드 표현 전용이고, 누르는 것에는 쓰지 않습니다.</b>
+  브랜드색과 기능색을 분리하는 것이 이 시스템의 핵심 규칙입니다.</div>
+  <h3 style="margin:40px 0 14px;font-size:19px">하이라이트 5색</h3>
+  <div class="hl"><div><i style="background:#FFE082"></i>중요</div><div><i style="background:#A5D6A7"></i>이해함</div><div><i style="background:#90CAF9"></i>인용 후보</div><div><i style="background:#F48FB1"></i>의문</div><div><i style="background:#CE93D8"></i>나중에</div></div>
+</section>
+
+<section>
+  <h2>LIGHT SURFACE</h2><h3>밝은 배경에서</h3>
+  <div class="light">
+    <div><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="92" height="92" role="img" aria-label="EXA 라이트 배경"><rect x="2" y="2" width="60" height="60" rx="17" fill="none" stroke="#0D1117" stroke-width="3"/><rect x="13" y="26" width="38" height="12" rx="6" fill="#0D1117" opacity=".08"/><circle cx="32" cy="32" r="4.5" fill="#0D1117"/></svg></div>
+    <div style="color:#3B4250;font-size:14px;max-width:44ch">
+      밝은 배경에서는 채워진 바디 대신 <b>외곽선 버전</b>을 씁니다.
+      ink 단색 면이 밝은 지면 위에서 지나치게 무겁게 읽히기 때문입니다.
+      앰버 대신 <code style="background:#E8EAEE;padding:2px 6px;border-radius:4px">#C98A1E</code> 를 씁니다.
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>USAGE</h2><h3>어디에 쓰는가</h3>
+  <p class="lead">EXA 는 <b>다섯 곳에서만</b> 등장합니다. 남발하면 도구가 아니라 장난감이 됩니다.</p>
+  <table>
+    <tr><th>상황</th><th>표정</th><th>카피 톤</th></tr>
+    <tr><td>서재가 비었음</td><td>idle</td><td>"아직 책이 없습니다" + 추가 버튼</td></tr>
+    <tr><td>검색 결과 없음</td><td>error</td><td>"찾지 못했습니다" + 검색어 수정 힌트</td></tr>
+    <tr><td>인덱싱 중</td><td>read</td><td>"검색 준비 중 · 78%"</td></tr>
+    <tr><td>영상→북 변환 중</td><td>think</td><td>단계명 표시 (자막 받는 중 / 슬라이드 찾는 중 …)</td></tr>
+    <tr><td>작업 완료</td><td>done</td><td>4초 토스트</td></tr>
+    <tr><td>오프라인</td><td>sleep</td><td>"서버에 연결할 수 없습니다 · 읽기는 정상 동작합니다"</td></tr>
+  </table>
+  <div class="warn"><b>UI 아이콘과 스타일이 다릅니다.</b> EXA 는 면(fill), UI 아이콘(Lucide)은 선(stroke).
+  섞지 않습니다 — 섞는 순간 화면이 지저분해집니다.</div>
+</section>
+
+<section>
+  <h2>TYPOGRAPHY</h2><h3>Pretendard · JetBrains Mono</h3>
+  <table>
+    <tr><th>용도</th><th>폰트</th><th>라이선스</th></tr>
+    <tr><td>한국어·영어 본문/UI</td><td>Pretendard Variable</td><td>SIL OFL 1.1 — 임베딩·상업이용 자유</td></tr>
+    <tr><td>숫자·코드·타임코드</td><td>JetBrains Mono</td><td>Apache-2.0</td></tr>
+  </table>
+  <div class="warn">한국어 조판 규칙 — 줄바꿈은 반드시 어절 단위(<code>word-break: keep-all</code>).
+  본문 행간 1.6~1.7 (한글은 라틴보다 넓게). 자간 0, 제목만 -0.01em.<br>
+  OFL 주의: 폰트를 <b>수정해서</b> 재배포하면 "Pretendard" 이름을 쓸 수 없습니다(Reserved Font Name).</div>
+</section>
+
+<section>
+  <div class="no"><h4>금지 사항</h4><ol>
+    <li>캐릭터에 팔·다리·입·눈썹을 붙이지 않는다</li>
+    <li>바디/바이저 기하를 변형하지 않는다 (done, sleep 표정만 예외)</li>
+    <li>그라데이션·3D·드롭섀도우를 캐릭터에 적용하지 않는다</li>
+    <li>앰버를 버튼 텍스트·포커스링·본문에 쓰지 않는다 (대비 미달)</li>
+    <li>새 앱마다 새 캐릭터를 그리지 않는다 — 색 1개 + 글리프 1개만 정한다</li>
+    <li>EXA 를 지정된 다섯 곳 밖에서 남발하지 않는다</li>
+    <li>워드마크의 마크와 글자 사이 간격을 임의로 조정하지 않는다</li>
+  </ol></div>
+</section>
+
+<footer>EXANSYS · BRAND SYSTEM v1.0 · 2026-08-01<br>
+<span style="color:var(--tx3)">이 문서에 없는 색·형태·비율을 임의로 만들지 않습니다.</span></footer>
+</div></body></html>
