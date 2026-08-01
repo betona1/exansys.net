@@ -167,8 +167,9 @@ download_logs(id, app_id, ip_hash, ua_hash, date)  -- 중복 방지용, 30일 �
 
 | 앱 | 위치 | 상태 | 비고 |
 |---|---|---|---|
-| **VibeQuest** ⭐주력 | `apps/vibequest/` | **Play 스토어 출시 진행 중** | Flutter Android(net.exansys.vibequest) + 웹 PWA(exansys.net/vibequest/). 용어 867개 학습 게임. 자체 CLAUDE.md·TECHSPEC.md 필독. 제출 자료는 `store/`(앱정보.md·AAB·스크린샷). **서명키 `app/android/keystore/` 분실 금지** |
+| **VibeQuest** ⭐주력 | `apps/vibequest/` | **출시됨** | Flutter Android(net.exansys.vibequest) + 웹 PWA(exansys.net/vibequest/). 용어 867개 학습 게임. 자체 CLAUDE.md·TECHSPEC.md 필독. 제출 자료는 `store/`(앱정보.md·AAB·스크린샷). **서명키 `app/android/keystore/` 분실 금지** |
 | **TechDex** | `apps/techdex/` | 유지보수만 | 1세대 용어 게임(웹 techdex.exansys.net + Flutter). **VibeQuest가 대체** — 신규 기능 금지, 버그만 수정 |
+| **BookViewer** (북뷰) | `apps/bookviewer/` | **기획 중** | PDF로 저장한 책을 책처럼 읽는 생산성 리더 — 넘겨 읽기·전체 검색·영역 캡처·글자 복사. 자체 CLAUDE.md·TECHSPEC.md 참고 |
 | **Exanode** | (코드는 별도 저장소) | **출시됨** | Play 스토어 스네이크 퍼즐(com.betona.crdl). 이 저장소에서는 사이트 쇼케이스(slug `crdl`)·홈 QR 배너로만 다룸 |
 
 ### 12-3. 앱 공통 규칙
