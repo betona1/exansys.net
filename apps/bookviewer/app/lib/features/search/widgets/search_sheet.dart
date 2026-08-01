@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pdfrx/pdfrx.dart';
 
-import '../theme.dart';
+import '../../../core/tokens.dart';
 
 /// 문서 전체 검색 패널.
 ///
@@ -45,7 +45,7 @@ class _SearchSheetState extends State<SearchSheet> {
     final s = widget.searcher;
     final matches = s.matches;
     return Material(
-      color: BookViewerColors.card,
+      color: AppTokens.slot,
       child: SafeArea(
         top: false,
         child: Column(
@@ -104,8 +104,8 @@ class _SearchSheetState extends State<SearchSheet> {
                           leading: CircleAvatar(
                             radius: 15,
                             backgroundColor: i == s.currentIndex
-                                ? BookViewerColors.cyan
-                                : BookViewerColors.line,
+                                ? AppTokens.action
+                                : AppTokens.borderDark,
                             child: Text(
                               '${m.pageNumber}',
                               style: TextStyle(
@@ -145,7 +145,7 @@ class _SearchSheetState extends State<SearchSheet> {
         TextSpan(
           text: text.substring(start, end),
           style: const TextStyle(
-            color: BookViewerColors.cyan,
+            color: AppTokens.action,
             fontWeight: FontWeight.bold,
           ),
         ),

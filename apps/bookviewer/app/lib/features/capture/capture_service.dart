@@ -22,8 +22,12 @@ class CaptureResult {
 /// 저장 위치는 **앱 전용 폴더**다 (확정 사항). 사용자의 사진 갤러리를 어지럽히지
 /// 않고, 저장소 권한도 필요 없다. 갤러리로 보내려면 공유 버튼을 쓴다.
 class CaptureService {
-  /// 원본 쪽을 몇 배로 렌더할지. 3배면 A4 기준 약 220dpi 로 글자가 또렷하다.
-  static const double renderScale = 3.0;
+  /// 출력 해상도(dpi). techspec §9 는 150/300/600 선택을 요구한다 —
+  /// 지금은 기본값 300 고정이고, 선택 UI 는 아직 없다.
+  static const int dpi = 300;
+
+  /// PDF 좌표는 72dpi 기준이므로 배율은 dpi/72 다.
+  static const double renderScale = dpi / 72;
 
   /// 앱 전용 캡처 폴더. 없으면 만든다.
   static Future<Directory> captureDir() async {

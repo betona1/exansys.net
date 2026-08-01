@@ -1,26 +1,19 @@
-// BookViewer(북뷰) — PDF 로 저장한 책을 책처럼 읽는 생산성 리더.
+// BookViewer(북뷰) — PDF 를 "문서"가 아니라 책으로 읽는 앱.
 //
-// MVP 범위: 열기 · 세로 스크롤로 넘겨 읽기 · 문서 전체 검색 · 글자 복사 · 영역 캡처.
-// 자세한 내용은 `apps/bookviewer/TECHSPEC.md`.
+// 규칙은 `apps/bookviewer/CLAUDE.md`, 무엇을 만드는지는 `docs/SPEC.md`,
+// 화면·버튼은 `docs/techspec.md`, 색·캐릭터는 `BRAND.md` 를 따른다.
+// pdfrx 를 다룰 때의 함정은 `docs/engine-verification.md` 에 있다.
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pdfrx/pdfrx.dart';
 
-import 'models/book_entry.dart';
-import 'screens/library_screen.dart';
-import 'screens/reader_screen.dart';
-import 'theme.dart';
-
-/// 개발용 — 파일 고르기를 거치지 않고 바로 읽기 화면을 띄운다.
-///
-///     flutter run -d windows --dart-define=openPdf=E:\...\sample_book.pdf
-///
-/// 비어 있으면(= 보통의 실행) 책장으로 시작한다.
-const _devOpenPdf = String.fromEnvironment('openPdf');
+import 'core/router.dart';
+import 'core/theme.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   pdfrxFlutterInitialize();
-  runApp(const BookViewerApp());
+  runApp(const ProviderScope(child: BookViewerApp()));
 }
 
 class BookViewerApp extends StatelessWidget {
@@ -28,19 +21,14 @@ class BookViewerApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       title: '북뷰',
-      theme: bookViewerTheme(),
+      // 다크 우선 설계다 (BRAND.md §5)
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
+      themeMode: ThemeMode.dark,
       debugShowCheckedModeBanner: false,
-      home: _devOpenPdf.isEmpty
-          ? const LibraryScreen()
-          : ReaderScreen(
-              book: BookEntry(
-                path: _devOpenPdf,
-                title: _devOpenPdf.split(RegExp(r'[/\\]')).last,
-                openedAt: DateTime.now(),
-              ),
-            ),
+      routerConfig: appRouter,
     );
   }
 }

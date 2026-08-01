@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../theme.dart';
+import '../../../core/tokens.dart';
 
 /// 캡처 모드에서 화면 위에 덮는 층.
 ///
@@ -60,7 +60,7 @@ class _CaptureOverlayState extends State<CaptureOverlay> {
               right: 0,
               top: 0,
               child: Material(
-                color: BookViewerColors.cyan.withValues(alpha: 0.94),
+                color: AppTokens.action.withValues(alpha: 0.94),
                 child: SafeArea(
                   bottom: false,
                   child: Padding(
@@ -119,14 +119,14 @@ class _CapturePainter extends CustomPainter {
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2
-        ..color = BookViewerColors.cyan,
+        ..color = AppTokens.action,
     );
     // 모서리 손잡이
     const len = 14.0;
     final handle = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 4
-      ..color = BookViewerColors.cyan;
+      ..color = AppTokens.action;
     for (final (corner, dx, dy) in [
       (rect!.topLeft, 1.0, 1.0),
       (rect!.topRight, -1.0, 1.0),

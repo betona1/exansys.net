@@ -15,8 +15,15 @@ SQLite FTS5 기본 토크나이저 `unicode61` 은 공백 기준이라 한국어
 ## 결정
 **토크나이저를 건드리지 않고 앱 레벨에서 해결한다.**
 
-1. `sqlite3_flutter_libs` 로 **FTS5 가 포함된 SQLite 를 번들**한다
+1. **FTS5 가 포함된 SQLite 를 번들**한다
    (OS 기본 SQLite 는 플랫폼별로 FTS5 활성화 여부가 다르다)
+
+   > **2026-08-01 갱신**: `sqlite3_flutter_libs` 는 **폐기됐다.** 0.6.0+eol 은 코드가 비어 있고,
+   > "`sqlite3` 3.x 부터는 필요 없다"고 안내한다. `sqlite3` 3.5.0 이 hooks 로 SQLite 를 직접
+   > 번들하며, 기본 컴파일 플래그에 `SQLITE_ENABLE_FTS5` 가 들어 있다
+   > (`lib/src/hook/compile/description.dart` 의 `_defaultDefines` 확인).
+   > 따라서 **`sqlite3` 만 의존하면 되고, `sqlite3_flutter_libs` 는 넣지 않는다.**
+   > 이 결정의 요구사항(FTS5 번들)은 그대로 충족된다.
 2. 인덱싱 전 정규화 파이프라인
    - NFC 정규화 — NFD 자모분리 해소. **없으면 검색이 아예 안 된다**
    - NFKC — 라틴 리가처(fi/fl) 정규화
