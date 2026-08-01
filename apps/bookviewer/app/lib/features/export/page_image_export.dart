@@ -1,7 +1,7 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
+import 'package:flutter/foundation.dart';
 import 'package:image/image.dart' as img;
 import 'package:pdfrx/pdfrx.dart';
 
@@ -14,6 +14,46 @@ import '../../domain/entities/crop_rect.dart';
 ///
 /// 라이선스: `image`(MIT) 로 JPG 인코딩, `archive`(MIT) 로 압축.
 /// PyMuPDF 계열은 AGPL 이라 쓸 수 없다 (CLAUDE.md 절대 규칙 1).
+/// 오래 걸리는 일은 반드시 멈출 수 있어야 한다 (CLAUDE.md §18 금지사항).
+/// 102쪽을 300dpi 로 뽑으면 한참 걸리는데 취소가 없으면 갇힌다.
+class ExportCancelToken {
+  bool _cancelled = false;
+
+  bool get isCancelled => _cancelled;
+
+  void cancel() => _cancelled = true;
+}
+
+/// 아이솔레이트로 넘길 JPG 인코딩 거리.
+///
+/// 인코딩은 순수 CPU 라 메인에서 돌리면 화면이 멈춘다 —
+/// 진행률 막대조차 갱신되지 않아 "멈춘 것"으로 보인다 (CLAUDE.md §5).
+class JpegJob {
+  const JpegJob({
+    required this.bgra,
+    required this.width,
+    required this.height,
+    required this.quality,
+  });
+
+  final Uint8List bgra;
+  final int width;
+  final int height;
+  final int quality;
+}
+
+/// `compute()` 에 넘기려면 최상위 함수여야 한다
+Uint8List encodeJpegJob(JpegJob job) {
+  final frame = img.Image.fromBytes(
+    width: job.width,
+    height: job.height,
+    bytes: job.bgra.buffer,
+    numChannels: 4,
+    order: img.ChannelOrder.bgra,
+  );
+  return img.encodeJpg(frame, quality: job.quality);
+}
+
 abstract final class PageImageExport {
   /// 이 수 이상이면 zip 으로 묶는다
   static const zipThreshold = 5;
@@ -57,15 +97,16 @@ abstract final class PageImageExport {
     if (rendered == null) throw Exception('${page.pageNumber}쪽을 그리지 못했습니다');
 
     try {
-      // pdfrx 는 BGRA 로 준다. image 패키지는 채널 순서를 지정할 수 있다
-      final frame = img.Image.fromBytes(
-        width: rendered.width,
-        height: rendered.height,
-        bytes: rendered.pixels.buffer,
-        numChannels: 4,
-        order: img.ChannelOrder.bgra,
+      // 인코딩은 아이솔레이트에서. 메인에서 돌리면 진행률조차 갱신되지 않는다
+      return await compute(
+        encodeJpegJob,
+        JpegJob(
+          bgra: Uint8List.fromList(rendered.pixels),
+          width: rendered.width,
+          height: rendered.height,
+          quality: quality,
+        ),
       );
-      return img.encodeJpg(frame, quality: quality);
     } finally {
       rendered.dispose();
     }
@@ -83,6 +124,7 @@ abstract final class PageImageExport {
     CropRect Function(int pageNumber)? cropFor,
     bool split = false,
     void Function(int done, int total)? onProgress,
+    ExportCancelToken? cancelToken,
   }) async {
     if (pageNumbers.isEmpty) return const [];
     if (!outDir.existsSync()) await outDir.create(recursive: true);
@@ -105,6 +147,8 @@ abstract final class PageImageExport {
         entries.add((name: '${safe}_p${_pad(no)}$suffix.jpg', bytes: bytes));
       }
       onProgress?.call(i + 1, pageNumbers.length);
+      // 멈추라고 했으면 쓰기 전에 그만둔다. 반쯤 만든 파일을 남기지 않는다
+      if (cancelToken?.isCancelled ?? false) return const [];
     }
 
     if (entries.length >= zipThreshold) {

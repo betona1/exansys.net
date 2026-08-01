@@ -20,6 +20,7 @@ import '../../domain/entities/reader_settings.dart';
 import '../../domain/entities/reading_theme.dart';
 import '../annotation/export.dart';
 import '../export/page_image_export.dart';
+import '../export/widgets/export_progress.dart';
 import '../export/widgets/page_image_sheet.dart';
 import '../annotation/export_controller.dart';
 import '../annotation/widgets/highlight_bar.dart';
@@ -104,6 +105,10 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
   bool _search = false;
   bool _capture = false;
   bool _cropDetecting = false;
+
+  /// 쪽 이미지 내보내기 진행 상태. null 이면 돌고 있지 않다
+  ({int done, int total})? _exportProgress;
+  ExportCancelToken? _exportCancel;
 
   /// 하이라이트 긋는 중인가. 켜져 있으면 드래그가 칠하기가 된다
   bool _highlighting = false;
@@ -813,7 +818,11 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
     };
 
     final messenger = ScaffoldMessenger.of(context);
-    setState(() => _cropDetecting = true); // 같은 가림막을 쓴다
+    final cancel = ExportCancelToken();
+    setState(() {
+      _exportCancel = cancel;
+      _exportProgress = (done: 0, total: pages.length);
+    });
     try {
       final base = await getApplicationDocumentsDirectory();
       final files = await PageImageExport.exportPages(
@@ -824,8 +833,16 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
         dpi: req.dpi,
         cropFor: req.asSeen ? _settings.cropFor : null,
         split: req.asSeen && _settings.splitPages,
+        cancelToken: cancel,
+        onProgress: (done, total) {
+          if (mounted) setState(() => _exportProgress = (done: done, total: total));
+        },
       );
       if (!mounted) return;
+      if (cancel.isCancelled) {
+        _toast('내보내기를 멈췄습니다');
+        return;
+      }
       messenger
         ..clearSnackBars()
         ..showSnackBar(
@@ -852,7 +869,12 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
     } on Object catch (e) {
       if (mounted) _toast('이미지를 내보내지 못했습니다 — $e');
     } finally {
-      if (mounted) setState(() => _cropDetecting = false);
+      if (mounted) {
+        setState(() {
+          _exportProgress = null;
+          _exportCancel = null;
+        });
+      }
     }
   }
 
@@ -1047,6 +1069,16 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
               colorSlot: _colorSlot,
               onAdd: (r) => unawaited(_addHighlight(r)),
               onTapHighlight: _onTapHighlight,
+            ),
+
+          if (_exportProgress != null)
+            ExportProgressOverlay(
+              done: _exportProgress!.done,
+              total: _exportProgress!.total,
+              onCancel: () {
+                _exportCancel?.cancel();
+                _toast('멈추는 중… 이 쪽을 마치고 끝냅니다');
+              },
             ),
 
           if (_cropDetecting)
