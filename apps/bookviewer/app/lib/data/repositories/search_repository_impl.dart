@@ -33,6 +33,20 @@ class SearchRepositoryImpl implements SearchRepository {
       var hangulSum = 0.0;
       var textPages = 0;
 
+      // 쪽마다 따로 INSERT 하면 매번 트랜잭션이 커밋된다.
+      // 500쪽 실측에서 색인 5.6초 중 5.1초(92%)가 여기서 났다 —
+      // 텍스트 추출(277ms)·정규화(166ms)·bigram(17ms) 을 다 합친 것보다 열 배 넘게 컸다.
+      // 묶어서 한 번에 쓴다.
+      const batchSize = 50;
+      var pending = <PageTextsCompanion>[];
+
+      Future<void> flush() async {
+        if (pending.isEmpty) return;
+        final rows = pending;
+        pending = [];
+        await _db.batch((b) => b.insertAll(_db.pageTexts, rows, mode: InsertMode.insertOrReplace));
+      }
+
       for (var i = 0; i < total; i++) {
         final page = doc.pages[i];
         final raw = (await page.loadText())?.fullText ?? '';
@@ -40,20 +54,21 @@ class SearchRepositoryImpl implements SearchRepository {
           textPages++;
           hangulSum += Korean.hangulRatio(raw);
           final norm = Korean.normalize(raw);
-          await _db.into(_db.pageTexts).insert(
-                PageTextsCompanion.insert(
-                  bookId: bookId,
-                  pageNo: page.pageNumber,
-                  raw: raw,
-                  norm: norm,
-                  nospace: Korean.stripSpaces(norm),
-                  bigram: Korean.bigrams(norm),
-                ),
-                mode: InsertMode.insertOrReplace,
-              );
+          pending.add(
+            PageTextsCompanion.insert(
+              bookId: bookId,
+              pageNo: page.pageNumber,
+              raw: raw,
+              norm: norm,
+              nospace: Korean.stripSpaces(norm),
+              bigram: Korean.bigrams(norm),
+            ),
+          );
+          if (pending.length >= batchSize) await flush();
         }
         yield IndexProgress(bookId: bookId, done: i + 1, total: total);
       }
+      await flush();
 
       // 텍스트가 거의 없으면 스캔본이다. 검색이 안 된다는 것을 사용자에게 알려야 한다
       final hasTextLayer = textPages > 0 && textPages / total > 0.1;
