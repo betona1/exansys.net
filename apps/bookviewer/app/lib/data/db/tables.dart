@@ -101,6 +101,16 @@ class BookSettings extends Table {
 
   RealColumn get zoomLevel => real().withDefault(const Constant(1))();
 
+  /// 확대 배율과 좌우 위치를 잠갔는가.
+  ///
+  /// 스캔본은 쪽마다 가장자리가 조금씩 달라서, 읽기 좋은 크기를 맞춰 놓아도
+  /// 넘길 때마다 손이 간다. 잠가 두면 그 틀이 유지된다.
+  /// **세로는 잠그지 않는다** — 아래쪽 글을 읽으려면 밀 수 있어야 한다
+  BoolColumn get zoomLocked => boolean().withDefault(const Constant(false))();
+
+  /// 잠갔을 때의 좌우 위치(화면 픽셀)
+  RealColumn get panX => real().withDefault(const Constant(0))();
+
   /// 회전 각도. 뷰 한정이며 파일은 바뀌지 않는다
   IntColumn get rotation => integer().withDefault(const Constant(0))();
 

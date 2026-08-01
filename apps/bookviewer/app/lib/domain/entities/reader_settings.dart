@@ -22,6 +22,9 @@ class ReaderSettings {
     this.contrast = 1,
     this.fitMode = FitMode.width,
     this.landscapeHintShown = false,
+    this.zoomLocked = false,
+    this.zoomLevel = 1,
+    this.panX = 0,
   });
 
   /// 한 장에 든 두 쪽을 좌·우로 나눠 본다
@@ -63,6 +66,13 @@ class ReaderSettings {
   /// 가로로 보라는 안내를 이미 띄웠는가
   final bool landscapeHintShown;
 
+  /// 확대 배율과 좌우 위치를 잠갔는가. 세로는 잠그지 않는다
+  final bool zoomLocked;
+
+  /// 잠갔을 때의 배율과 좌우 위치
+  final double zoomLevel;
+  final double panX;
+
   /// 색 변환 설정이 바뀌었는지 가리는 열쇠. 바뀌면 그림을 다시 그린다
   String get tintKey => '${theme.name}/${darkImageMode.name}/$brightness/$contrast';
 
@@ -86,6 +96,9 @@ class ReaderSettings {
     double? contrast,
     FitMode? fitMode,
     bool? landscapeHintShown,
+    bool? zoomLocked,
+    double? zoomLevel,
+    double? panX,
   }) => ReaderSettings(
     splitPages: splitPages ?? this.splitPages,
     splitRightToLeft: splitRightToLeft ?? this.splitRightToLeft,
@@ -100,5 +113,8 @@ class ReaderSettings {
     contrast: contrast ?? this.contrast,
     fitMode: fitMode ?? this.fitMode,
     landscapeHintShown: landscapeHintShown ?? this.landscapeHintShown,
+    zoomLocked: zoomLocked ?? this.zoomLocked,
+    zoomLevel: zoomLevel ?? this.zoomLevel,
+    panX: panX ?? this.panX,
   );
 }

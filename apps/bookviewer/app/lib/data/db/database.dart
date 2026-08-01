@@ -33,7 +33,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -65,6 +65,10 @@ class AppDatabase extends _$AppDatabase {
       if (from < 7) {
         // 주석 표를 빠뜨리고 있었다. DB스키마.xlsx 에는 처음부터 있었다
         await m.createTable(annotations);
+      }
+      if (from < 8) {
+        await m.addColumn(bookSettings, bookSettings.zoomLocked);
+        await m.addColumn(bookSettings, bookSettings.panX);
       }
     },
     beforeOpen: (details) async {

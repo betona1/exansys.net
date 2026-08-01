@@ -105,6 +105,9 @@ class RenderedPageViewState extends State<RenderedPageView> {
     super.dispose();
   }
 
+  /// 지금 화면의 확대·이동. 잠금 버튼이 이 값을 굳힌다
+  Matrix4 get currentTransform => _lastTransform;
+
   /// 바깥(슬라이더·이전/다음 버튼)에서 특정 보기로 보낸다
   void goToView(int view) {
     if (!_controller.hasClients) return;
@@ -138,7 +141,19 @@ class RenderedPageViewState extends State<RenderedPageView> {
           onZoomChanged: (z) {
             if (z != _zoomed && mounted) setState(() => _zoomed = z);
           },
-          initialTransform: _lastTransform,
+          initialTransform: widget.settings.zoomLocked
+              // 잠갔으면 저장해 둔 배율·좌우 위치로 시작한다.
+              // 세로는 0 에서 — 새 쪽은 위부터 읽는다
+              ? (Matrix4.identity()
+                ..translateByDouble(widget.settings.panX, 0, 0, 1)
+                ..scaleByDouble(
+                  widget.settings.zoomLevel,
+                  widget.settings.zoomLevel,
+                  1,
+                  1,
+                ))
+              : _lastTransform,
+          locked: widget.settings.zoomLocked,
           onTransformChanged: (m) => _lastTransform = m,
           onSlice: widget.onSlice,
         );
@@ -158,6 +173,7 @@ class _PageSlice extends StatefulWidget {
     required this.onSlice,
     required this.initialTransform,
     required this.onTransformChanged,
+    required this.locked,
     this.half,
   });
 
@@ -174,6 +190,9 @@ class _PageSlice extends StatefulWidget {
   /// 앞 쪽에서 쓰던 확대·이동. 넘겨도 배율과 위치가 이어지게 한다
   final Matrix4 initialTransform;
   final ValueChanged<Matrix4> onTransformChanged;
+
+  /// 배율과 좌우 위치를 잠갔는가. 세로 밀기는 그대로 둔다
+  final bool locked;
 
   /// null 이면 통째로, 0 이면 왼쪽 반, 1 이면 오른쪽 반
   final int? half;
@@ -263,6 +282,15 @@ class _PageSliceState extends State<_PageSlice> {
     _transform.value = Matrix4.identity()
       ..translateByDouble(-p.dx * (scale - 1), -p.dy * (scale - 1), 0, 1)
       ..scaleByDouble(scale, scale, 1, 1);
+  }
+
+  @override
+  void didUpdateWidget(_PageSlice old) {
+    super.didUpdateWidget(old);
+    // 잠금을 켜면 저장해 둔 틀로 곧바로 맞춘다
+    if (!old.locked && widget.locked) {
+      _transform.value = widget.initialTransform.clone();
+    }
   }
 
   bool _needsRender(Size target) {
@@ -406,9 +434,11 @@ class _PageSliceState extends State<_PageSlice> {
             transformationController: _transform,
             maxScale: 6,
             minScale: 1,
-            // 확대하지 않았을 때는 세로로만 밀린다.
+            // 잠갔으면 배율을 바꾸지 못하게 한다
+            scaleEnabled: !widget.locked,
+            // 잠갔으면 세로로만. 확대하지 않았을 때도 세로로만 —
             // 좌우로도 밀리면 PageView 의 쪽 넘김과 싸운다
-            panAxis: _zoomedIn ? PanAxis.free : PanAxis.vertical,
+            panAxis: (widget.locked || !_zoomedIn) ? PanAxis.vertical : PanAxis.free,
             boundaryMargin: const EdgeInsets.all(double.infinity),
             clipBehavior: Clip.hardEdge,
             child: SizedBox.expand(

@@ -1693,6 +1693,31 @@ class $BookSettingsTable extends BookSettings
     requiredDuringInsert: false,
     defaultValue: const Constant(1),
   );
+  static const VerificationMeta _zoomLockedMeta = const VerificationMeta(
+    'zoomLocked',
+  );
+  @override
+  late final GeneratedColumn<bool> zoomLocked = GeneratedColumn<bool>(
+    'zoom_locked',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("zoom_locked" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _panXMeta = const VerificationMeta('panX');
+  @override
+  late final GeneratedColumn<double> panX = GeneratedColumn<double>(
+    'pan_x',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
   static const VerificationMeta _rotationMeta = const VerificationMeta(
     'rotation',
   );
@@ -1906,6 +1931,8 @@ class $BookSettingsTable extends BookSettings
     viewMode,
     fitMode,
     zoomLevel,
+    zoomLocked,
+    panX,
     rotation,
     theme,
     darkImageMode,
@@ -1957,6 +1984,18 @@ class $BookSettingsTable extends BookSettings
       context.handle(
         _zoomLevelMeta,
         zoomLevel.isAcceptableOrUnknown(data['zoom_level']!, _zoomLevelMeta),
+      );
+    }
+    if (data.containsKey('zoom_locked')) {
+      context.handle(
+        _zoomLockedMeta,
+        zoomLocked.isAcceptableOrUnknown(data['zoom_locked']!, _zoomLockedMeta),
+      );
+    }
+    if (data.containsKey('pan_x')) {
+      context.handle(
+        _panXMeta,
+        panX.isAcceptableOrUnknown(data['pan_x']!, _panXMeta),
       );
     }
     if (data.containsKey('rotation')) {
@@ -2103,6 +2142,14 @@ class $BookSettingsTable extends BookSettings
         DriftSqlType.double,
         data['${effectivePrefix}zoom_level'],
       )!,
+      zoomLocked: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}zoom_locked'],
+      )!,
+      panX: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}pan_x'],
+      )!,
       rotation: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}rotation'],
@@ -2186,6 +2233,16 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
   final String fitMode;
   final double zoomLevel;
 
+  /// 확대 배율과 좌우 위치를 잠갔는가.
+  ///
+  /// 스캔본은 쪽마다 가장자리가 조금씩 달라서, 읽기 좋은 크기를 맞춰 놓아도
+  /// 넘길 때마다 손이 간다. 잠가 두면 그 틀이 유지된다.
+  /// **세로는 잠그지 않는다** — 아래쪽 글을 읽으려면 밀 수 있어야 한다
+  final bool zoomLocked;
+
+  /// 잠갔을 때의 좌우 위치(화면 픽셀)
+  final double panX;
+
   /// 회전 각도. 뷰 한정이며 파일은 바뀌지 않는다
   final int rotation;
 
@@ -2233,6 +2290,8 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
     required this.viewMode,
     required this.fitMode,
     required this.zoomLevel,
+    required this.zoomLocked,
+    required this.panX,
     required this.rotation,
     required this.theme,
     required this.darkImageMode,
@@ -2257,6 +2316,8 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
     map['view_mode'] = Variable<String>(viewMode);
     map['fit_mode'] = Variable<String>(fitMode);
     map['zoom_level'] = Variable<double>(zoomLevel);
+    map['zoom_locked'] = Variable<bool>(zoomLocked);
+    map['pan_x'] = Variable<double>(panX);
     map['rotation'] = Variable<int>(rotation);
     map['theme'] = Variable<String>(theme);
     map['dark_image_mode'] = Variable<String>(darkImageMode);
@@ -2286,6 +2347,8 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
       viewMode: Value(viewMode),
       fitMode: Value(fitMode),
       zoomLevel: Value(zoomLevel),
+      zoomLocked: Value(zoomLocked),
+      panX: Value(panX),
       rotation: Value(rotation),
       theme: Value(theme),
       darkImageMode: Value(darkImageMode),
@@ -2319,6 +2382,8 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
       viewMode: serializer.fromJson<String>(json['viewMode']),
       fitMode: serializer.fromJson<String>(json['fitMode']),
       zoomLevel: serializer.fromJson<double>(json['zoomLevel']),
+      zoomLocked: serializer.fromJson<bool>(json['zoomLocked']),
+      panX: serializer.fromJson<double>(json['panX']),
       rotation: serializer.fromJson<int>(json['rotation']),
       theme: serializer.fromJson<String>(json['theme']),
       darkImageMode: serializer.fromJson<String>(json['darkImageMode']),
@@ -2345,6 +2410,8 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
       'viewMode': serializer.toJson<String>(viewMode),
       'fitMode': serializer.toJson<String>(fitMode),
       'zoomLevel': serializer.toJson<double>(zoomLevel),
+      'zoomLocked': serializer.toJson<bool>(zoomLocked),
+      'panX': serializer.toJson<double>(panX),
       'rotation': serializer.toJson<int>(rotation),
       'theme': serializer.toJson<String>(theme),
       'darkImageMode': serializer.toJson<String>(darkImageMode),
@@ -2369,6 +2436,8 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
     String? viewMode,
     String? fitMode,
     double? zoomLevel,
+    bool? zoomLocked,
+    double? panX,
     int? rotation,
     String? theme,
     String? darkImageMode,
@@ -2390,6 +2459,8 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
     viewMode: viewMode ?? this.viewMode,
     fitMode: fitMode ?? this.fitMode,
     zoomLevel: zoomLevel ?? this.zoomLevel,
+    zoomLocked: zoomLocked ?? this.zoomLocked,
+    panX: panX ?? this.panX,
     rotation: rotation ?? this.rotation,
     theme: theme ?? this.theme,
     darkImageMode: darkImageMode ?? this.darkImageMode,
@@ -2413,6 +2484,10 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
       viewMode: data.viewMode.present ? data.viewMode.value : this.viewMode,
       fitMode: data.fitMode.present ? data.fitMode.value : this.fitMode,
       zoomLevel: data.zoomLevel.present ? data.zoomLevel.value : this.zoomLevel,
+      zoomLocked: data.zoomLocked.present
+          ? data.zoomLocked.value
+          : this.zoomLocked,
+      panX: data.panX.present ? data.panX.value : this.panX,
       rotation: data.rotation.present ? data.rotation.value : this.rotation,
       theme: data.theme.present ? data.theme.value : this.theme,
       darkImageMode: data.darkImageMode.present
@@ -2459,6 +2534,8 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
           ..write('viewMode: $viewMode, ')
           ..write('fitMode: $fitMode, ')
           ..write('zoomLevel: $zoomLevel, ')
+          ..write('zoomLocked: $zoomLocked, ')
+          ..write('panX: $panX, ')
           ..write('rotation: $rotation, ')
           ..write('theme: $theme, ')
           ..write('darkImageMode: $darkImageMode, ')
@@ -2480,11 +2557,13 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
   }
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     bookId,
     viewMode,
     fitMode,
     zoomLevel,
+    zoomLocked,
+    panX,
     rotation,
     theme,
     darkImageMode,
@@ -2501,7 +2580,7 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
     landscapeHintShown,
     showSourceAnnots,
     updatedAt,
-  );
+  ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2510,6 +2589,8 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
           other.viewMode == this.viewMode &&
           other.fitMode == this.fitMode &&
           other.zoomLevel == this.zoomLevel &&
+          other.zoomLocked == this.zoomLocked &&
+          other.panX == this.panX &&
           other.rotation == this.rotation &&
           other.theme == this.theme &&
           other.darkImageMode == this.darkImageMode &&
@@ -2533,6 +2614,8 @@ class BookSettingsCompanion extends UpdateCompanion<BookSetting> {
   final Value<String> viewMode;
   final Value<String> fitMode;
   final Value<double> zoomLevel;
+  final Value<bool> zoomLocked;
+  final Value<double> panX;
   final Value<int> rotation;
   final Value<String> theme;
   final Value<String> darkImageMode;
@@ -2554,6 +2637,8 @@ class BookSettingsCompanion extends UpdateCompanion<BookSetting> {
     this.viewMode = const Value.absent(),
     this.fitMode = const Value.absent(),
     this.zoomLevel = const Value.absent(),
+    this.zoomLocked = const Value.absent(),
+    this.panX = const Value.absent(),
     this.rotation = const Value.absent(),
     this.theme = const Value.absent(),
     this.darkImageMode = const Value.absent(),
@@ -2576,6 +2661,8 @@ class BookSettingsCompanion extends UpdateCompanion<BookSetting> {
     this.viewMode = const Value.absent(),
     this.fitMode = const Value.absent(),
     this.zoomLevel = const Value.absent(),
+    this.zoomLocked = const Value.absent(),
+    this.panX = const Value.absent(),
     this.rotation = const Value.absent(),
     this.theme = const Value.absent(),
     this.darkImageMode = const Value.absent(),
@@ -2598,6 +2685,8 @@ class BookSettingsCompanion extends UpdateCompanion<BookSetting> {
     Expression<String>? viewMode,
     Expression<String>? fitMode,
     Expression<double>? zoomLevel,
+    Expression<bool>? zoomLocked,
+    Expression<double>? panX,
     Expression<int>? rotation,
     Expression<String>? theme,
     Expression<String>? darkImageMode,
@@ -2620,6 +2709,8 @@ class BookSettingsCompanion extends UpdateCompanion<BookSetting> {
       if (viewMode != null) 'view_mode': viewMode,
       if (fitMode != null) 'fit_mode': fitMode,
       if (zoomLevel != null) 'zoom_level': zoomLevel,
+      if (zoomLocked != null) 'zoom_locked': zoomLocked,
+      if (panX != null) 'pan_x': panX,
       if (rotation != null) 'rotation': rotation,
       if (theme != null) 'theme': theme,
       if (darkImageMode != null) 'dark_image_mode': darkImageMode,
@@ -2645,6 +2736,8 @@ class BookSettingsCompanion extends UpdateCompanion<BookSetting> {
     Value<String>? viewMode,
     Value<String>? fitMode,
     Value<double>? zoomLevel,
+    Value<bool>? zoomLocked,
+    Value<double>? panX,
     Value<int>? rotation,
     Value<String>? theme,
     Value<String>? darkImageMode,
@@ -2667,6 +2760,8 @@ class BookSettingsCompanion extends UpdateCompanion<BookSetting> {
       viewMode: viewMode ?? this.viewMode,
       fitMode: fitMode ?? this.fitMode,
       zoomLevel: zoomLevel ?? this.zoomLevel,
+      zoomLocked: zoomLocked ?? this.zoomLocked,
+      panX: panX ?? this.panX,
       rotation: rotation ?? this.rotation,
       theme: theme ?? this.theme,
       darkImageMode: darkImageMode ?? this.darkImageMode,
@@ -2700,6 +2795,12 @@ class BookSettingsCompanion extends UpdateCompanion<BookSetting> {
     }
     if (zoomLevel.present) {
       map['zoom_level'] = Variable<double>(zoomLevel.value);
+    }
+    if (zoomLocked.present) {
+      map['zoom_locked'] = Variable<bool>(zoomLocked.value);
+    }
+    if (panX.present) {
+      map['pan_x'] = Variable<double>(panX.value);
     }
     if (rotation.present) {
       map['rotation'] = Variable<int>(rotation.value);
@@ -2759,6 +2860,8 @@ class BookSettingsCompanion extends UpdateCompanion<BookSetting> {
           ..write('viewMode: $viewMode, ')
           ..write('fitMode: $fitMode, ')
           ..write('zoomLevel: $zoomLevel, ')
+          ..write('zoomLocked: $zoomLocked, ')
+          ..write('panX: $panX, ')
           ..write('rotation: $rotation, ')
           ..write('theme: $theme, ')
           ..write('darkImageMode: $darkImageMode, ')
@@ -7385,6 +7488,8 @@ typedef $$BookSettingsTableCreateCompanionBuilder =
       Value<String> viewMode,
       Value<String> fitMode,
       Value<double> zoomLevel,
+      Value<bool> zoomLocked,
+      Value<double> panX,
       Value<int> rotation,
       Value<String> theme,
       Value<String> darkImageMode,
@@ -7408,6 +7513,8 @@ typedef $$BookSettingsTableUpdateCompanionBuilder =
       Value<String> viewMode,
       Value<String> fitMode,
       Value<double> zoomLevel,
+      Value<bool> zoomLocked,
+      Value<double> panX,
       Value<int> rotation,
       Value<String> theme,
       Value<String> darkImageMode,
@@ -7469,6 +7576,16 @@ class $$BookSettingsTableFilterComposer
 
   ColumnFilters<double> get zoomLevel => $composableBuilder(
     column: $table.zoomLevel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get zoomLocked => $composableBuilder(
+    column: $table.zoomLocked,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get panX => $composableBuilder(
+    column: $table.panX,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -7600,6 +7717,16 @@ class $$BookSettingsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get zoomLocked => $composableBuilder(
+    column: $table.zoomLocked,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get panX => $composableBuilder(
+    column: $table.panX,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get rotation => $composableBuilder(
     column: $table.rotation,
     builder: (column) => ColumnOrderings(column),
@@ -7721,6 +7848,14 @@ class $$BookSettingsTableAnnotationComposer
 
   GeneratedColumn<double> get zoomLevel =>
       $composableBuilder(column: $table.zoomLevel, builder: (column) => column);
+
+  GeneratedColumn<bool> get zoomLocked => $composableBuilder(
+    column: $table.zoomLocked,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get panX =>
+      $composableBuilder(column: $table.panX, builder: (column) => column);
 
   GeneratedColumn<int> get rotation =>
       $composableBuilder(column: $table.rotation, builder: (column) => column);
@@ -7846,6 +7981,8 @@ class $$BookSettingsTableTableManager
                 Value<String> viewMode = const Value.absent(),
                 Value<String> fitMode = const Value.absent(),
                 Value<double> zoomLevel = const Value.absent(),
+                Value<bool> zoomLocked = const Value.absent(),
+                Value<double> panX = const Value.absent(),
                 Value<int> rotation = const Value.absent(),
                 Value<String> theme = const Value.absent(),
                 Value<String> darkImageMode = const Value.absent(),
@@ -7867,6 +8004,8 @@ class $$BookSettingsTableTableManager
                 viewMode: viewMode,
                 fitMode: fitMode,
                 zoomLevel: zoomLevel,
+                zoomLocked: zoomLocked,
+                panX: panX,
                 rotation: rotation,
                 theme: theme,
                 darkImageMode: darkImageMode,
@@ -7890,6 +8029,8 @@ class $$BookSettingsTableTableManager
                 Value<String> viewMode = const Value.absent(),
                 Value<String> fitMode = const Value.absent(),
                 Value<double> zoomLevel = const Value.absent(),
+                Value<bool> zoomLocked = const Value.absent(),
+                Value<double> panX = const Value.absent(),
                 Value<int> rotation = const Value.absent(),
                 Value<String> theme = const Value.absent(),
                 Value<String> darkImageMode = const Value.absent(),
@@ -7911,6 +8052,8 @@ class $$BookSettingsTableTableManager
                 viewMode: viewMode,
                 fitMode: fitMode,
                 zoomLevel: zoomLevel,
+                zoomLocked: zoomLocked,
+                panX: panX,
                 rotation: rotation,
                 theme: theme,
                 darkImageMode: darkImageMode,

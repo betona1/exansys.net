@@ -184,6 +184,9 @@ class LibraryRepositoryImpl implements LibraryRepository {
       contrast: row.contrast,
       fitMode: FitMode.parse(row.fitMode),
       landscapeHintShown: row.landscapeHintShown,
+      zoomLocked: row.zoomLocked,
+      zoomLevel: row.zoomLevel,
+      panX: row.panX,
     );
   }
 
@@ -205,6 +208,9 @@ class LibraryRepositoryImpl implements LibraryRepository {
             contrast: Value(settings.contrast),
             fitMode: Value(settings.fitMode.storageValue),
             landscapeHintShown: Value(settings.landscapeHintShown),
+            zoomLocked: Value(settings.zoomLocked),
+            zoomLevel: Value(settings.zoomLevel),
+            panX: Value(settings.panX),
             updatedAt: _now(),
           ),
         );

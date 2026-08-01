@@ -16,6 +16,8 @@ class ReaderTopBar extends StatelessWidget {
     required this.onBack,
     required this.onToggleSearch,
     required this.onCapture,
+    required this.zoomLocked,
+    required this.onToggleZoomLock,
     required this.highlighting,
     required this.onToggleHighlight,
     required this.bookmarked,
@@ -41,6 +43,11 @@ class ReaderTopBar extends StatelessWidget {
   final VoidCallback onToggleSearch;
   final VoidCallback onCapture;
 
+
+
+  /// 배율·좌우 위치를 잠갔는가
+  final bool zoomLocked;
+  final VoidCallback onToggleZoomLock;
 
   /// 하이라이트 모드가 켜져 있는가
   final bool highlighting;
@@ -92,6 +99,12 @@ class ReaderTopBar extends StatelessWidget {
                     onPressed: canSearch ? onToggleSearch : null,
                     icon: Icon(searchOpen ? Icons.search_off : Icons.search),
                     tooltip: searchDisabledReason ?? '이 책에서 찾기',
+                  ),
+                  IconButton(
+                    onPressed: onToggleZoomLock,
+                    icon: Icon(zoomLocked ? Icons.lock : Icons.lock_open),
+                    tooltip: zoomLocked ? '좌우 고정 풀기' : '좌우·크기 고정',
+                    color: zoomLocked ? AppTokens.amber : null,
                   ),
                   IconButton(
                     onPressed: onToggleHighlight,

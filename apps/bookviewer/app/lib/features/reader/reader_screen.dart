@@ -312,6 +312,27 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
     await ref.read(libraryRepositoryProvider).saveReaderSettings(widget.book.id, next);
   }
 
+  /// 지금 보고 있는 배율·좌우 위치를 잠근다. 다시 누르면 푼다.
+  ///
+  /// 스캔본은 쪽마다 가장자리가 조금씩 달라서, 읽기 좋은 크기를 맞춰 놓아도
+  /// 넘길 때마다 손이 간다. 잠가 두면 그 틀이 유지된다.
+  /// **값은 책마다 저장되므로 앱을 껐다 켜도 그대로다.**
+  Future<void> _toggleZoomLock() async {
+    if (_settings.zoomLocked) {
+      await _saveSettings(_settings.copyWith(zoomLocked: false));
+      _toast('좌우 고정을 풀었습니다');
+      return;
+    }
+    // 지금 화면의 배율과 좌우 위치를 그대로 굳힌다
+    final m = _renderKey.currentState?.currentTransform ?? Matrix4.identity();
+    final scale = m.getMaxScaleOnAxis();
+    final panX = m.storage[12];
+    await _saveSettings(
+      _settings.copyWith(zoomLocked: true, zoomLevel: scale, panX: panX),
+    );
+    if (mounted) _toast('좌우와 크기를 고정했습니다 · 세로는 그대로 밀립니다');
+  }
+
   Future<void> _toggleSplit() =>
       _saveSettings(_settings.copyWith(splitPages: !_settings.splitPages, splitPrompted: true));
 
@@ -994,6 +1015,8 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
     onSearch: () => setState(() => _search = true),
     onViewSheet: _openViewSheet,
     onCapture: () => setState(() => _capture = true),
+    zoomLocked: _settings.zoomLocked,
+    onToggleZoomLock: () => unawaited(_toggleZoomLock()),
     highlighting: _highlighting,
     onToggleHighlight: () => setState(() => _highlighting = !_highlighting),
     bookmarked: bookmarked,
@@ -1161,6 +1184,8 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
               },
               onToggleSearch: () => setState(() => _search = !_search),
               onCapture: () => setState(() => _capture = true),
+              zoomLocked: _settings.zoomLocked,
+              onToggleZoomLock: () => unawaited(_toggleZoomLock()),
               highlighting: _highlighting,
               onToggleHighlight: () => setState(() => _highlighting = !_highlighting),
               bookmarked: bookmarked,

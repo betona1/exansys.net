@@ -14,6 +14,8 @@ class ReaderRail extends StatelessWidget {
     required this.sideLabel,
     required this.canSearch,
     required this.searchDisabledReason,
+    required this.zoomLocked,
+    required this.onToggleZoomLock,
     required this.highlighting,
     required this.onToggleHighlight,
     required this.bookmarked,
@@ -37,6 +39,11 @@ class ReaderRail extends StatelessWidget {
 
   final bool canSearch;
   final String? searchDisabledReason;
+
+
+  /// 배율·좌우 위치를 잠갔는가
+  final bool zoomLocked;
+  final VoidCallback onToggleZoomLock;
 
   /// 하이라이트 모드가 켜져 있는가
   final bool highlighting;
@@ -102,6 +109,12 @@ class ReaderRail extends StatelessWidget {
                 onPressed: onCapture,
                 icon: const Icon(Icons.crop_free),
                 tooltip: '영역 캡처',
+              ),
+              IconButton(
+                onPressed: onToggleZoomLock,
+                icon: Icon(zoomLocked ? Icons.lock : Icons.lock_open),
+                tooltip: zoomLocked ? '좌우 고정 풀기' : '좌우·크기 고정',
+                color: zoomLocked ? AppTokens.amber : null,
               ),
               IconButton(
                 onPressed: onToggleHighlight,
