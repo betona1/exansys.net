@@ -71,6 +71,13 @@ class RenderedPageViewState extends State<RenderedPageView> {
   /// 그때는 밀기가 그림 이동이어야 한다
   bool _zoomed = false;
 
+  /// 마지막 확대·이동 상태.
+  ///
+  /// 쪽마다 변환이 따로 놀면 넘길 때마다 배율과 위치가 원래대로 돌아간다.
+  /// 확대해 놓고 읽던 사람은 넘길 때마다 다시 맞춰야 한다.
+  /// 여기 담아 두었다가 다음 쪽에 그대로 물려준다.
+  Matrix4 _lastTransform = Matrix4.identity();
+
   int get _perPage => widget.split ? 2 : 1;
   int get viewCount => widget.document.pages.length * _perPage;
 
@@ -131,6 +138,8 @@ class RenderedPageViewState extends State<RenderedPageView> {
           onZoomChanged: (z) {
             if (z != _zoomed && mounted) setState(() => _zoomed = z);
           },
+          initialTransform: _lastTransform,
+          onTransformChanged: (m) => _lastTransform = m,
           onSlice: widget.onSlice,
         );
       },
@@ -147,6 +156,8 @@ class _PageSlice extends StatefulWidget {
     required this.settings,
     required this.onZoomChanged,
     required this.onSlice,
+    required this.initialTransform,
+    required this.onTransformChanged,
     this.half,
   });
 
@@ -159,6 +170,10 @@ class _PageSlice extends StatefulWidget {
 
   /// 이 조각의 좌표 정보를 위로 올린다
   final ValueChanged<SliceMapper> onSlice;
+
+  /// 앞 쪽에서 쓰던 확대·이동. 넘겨도 배율과 위치가 이어지게 한다
+  final Matrix4 initialTransform;
+  final ValueChanged<Matrix4> onTransformChanged;
 
   /// null 이면 통째로, 0 이면 왼쪽 반, 1 이면 오른쪽 반
   final int? half;
@@ -177,6 +192,9 @@ class _PageSliceState extends State<_PageSlice> {
   @override
   void initState() {
     super.initState();
+    // 앞 쪽에서 쓰던 배율·위치를 그대로 물려받는다
+    _transform.value = widget.initialTransform.clone();
+    _zoomedIn = _transform.value.getMaxScaleOnAxis() > 1.01;
     _transform.addListener(_onTransform);
   }
 
@@ -196,6 +214,7 @@ class _PageSliceState extends State<_PageSlice> {
     final z = _transform.value.getMaxScaleOnAxis() > 1.01;
     if (z != _zoomedIn && mounted) setState(() => _zoomedIn = z);
     widget.onZoomChanged(z);
+    widget.onTransformChanged(_transform.value.clone());
     _publishSlice();
   }
 

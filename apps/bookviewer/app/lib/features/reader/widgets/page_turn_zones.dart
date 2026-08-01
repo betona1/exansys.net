@@ -7,10 +7,10 @@ import '../../../core/tokens.dart';
 /// techspec §5: `페이지 넘김 — 좌우 스와이프 / 화면 가장자리 탭`.
 /// 가운데를 누르면 도구막대를 접었다 편다.
 ///
-/// 화살표는 **늘 옅게 보인다.** 영역이 눈에 안 보이면 아무도 쓰지 않고,
-/// 처음 한 번만 보여 주면 잊어버린다. 대신 아주 옅게 두어 읽기를 방해하지 않는다.
-/// 넘길 때·도구막대를 펼 때는 잠깐 또렷해진다.
-class PageTurnZones extends StatelessWidget {
+/// **처음에만 두 번 깜빡여 알리고, 그다음에는 거의 보이지 않게 둔다.**
+/// 늘 또렷하면 본문 글자를 읽는 데 방해가 된다. 그렇다고 아예 안 보이면
+/// 여기를 누를 수 있다는 것을 아무도 모른다.
+class PageTurnZones extends StatefulWidget {
   const PageTurnZones({
     super.key,
     required this.highlighted,
@@ -18,7 +18,7 @@ class PageTurnZones extends StatelessWidget {
     required this.canNext,
   });
 
-  /// 잠깐 또렷하게 보여 줄 때
+  /// 넘긴 직후처럼 잠깐 또렷하게 보여 줄 때
   final bool highlighted;
   final bool canPrev;
   final bool canNext;
@@ -28,6 +28,9 @@ class PageTurnZones extends StatelessWidget {
 
   /// 가장자리 영역의 최대 폭(dp). 태블릿·데스크톱에서 22% 는 지나치게 넓다
   static const maxEdgeWidth = 140.0;
+
+  /// 평상시 화살표 진하기. 글자를 가리지 않을 만큼만
+  static const restingOpacity = 0.11;
 
   /// 탭 위치가 어느 동작인지 (-1 이전, 0 토글, 1 다음)
   static int zoneOf(double dx, double width) {
@@ -44,38 +47,85 @@ class PageTurnZones extends StatelessWidget {
   }
 
   @override
+  State<PageTurnZones> createState() => _PageTurnZonesState();
+}
+
+class _PageTurnZonesState extends State<PageTurnZones> with SingleTickerProviderStateMixin {
+  late final AnimationController _intro = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 2600),
+  );
+
+  /// 처음 한 번: 또렷 → 흐림 → 또렷 → 서서히 사라짐.
+  /// 두 번 깜빡여 "여기를 누르면 넘어간다"를 알린 뒤 물러난다
+  late final Animation<double> _introOpacity = TweenSequence<double>([
+    TweenSequenceItem(tween: ConstantTween(1), weight: 22),
+    TweenSequenceItem(tween: Tween(begin: 1, end: 0.25), weight: 10),
+    TweenSequenceItem(tween: Tween(begin: 0.25, end: 1), weight: 10),
+    TweenSequenceItem(tween: ConstantTween(1), weight: 18),
+    // 점점 흐려져 평상시 밝기로 내려앉는다
+    TweenSequenceItem(
+      tween: Tween(begin: 1, end: PageTurnZones.restingOpacity),
+      weight: 40,
+    ),
+  ]).animate(_intro);
+
+  @override
+  void initState() {
+    super.initState();
+    _intro.forward();
+  }
+
+  @override
+  void dispose() {
+    _intro.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return IgnorePointer(
       child: LayoutBuilder(
         builder: (context, c) {
-          final edge = edgeWidth(c.maxWidth);
-          return Stack(
-            children: [
-              Positioned(
-                left: 0,
-                top: 0,
-                bottom: 0,
-                width: edge,
-                child: _Zone(
-                  icon: Icons.chevron_left,
-                  label: '이전',
-                  enabled: canPrev,
-                  highlighted: highlighted,
-                ),
-              ),
-              Positioned(
-                right: 0,
-                top: 0,
-                bottom: 0,
-                width: edge,
-                child: _Zone(
-                  icon: Icons.chevron_right,
-                  label: '다음',
-                  enabled: canNext,
-                  highlighted: highlighted,
-                ),
-              ),
-            ],
+          final edge = PageTurnZones.edgeWidth(c.maxWidth);
+          return AnimatedBuilder(
+            animation: _introOpacity,
+            builder: (context, _) {
+              // 처음 안내가 끝나면 평상시 밝기. 넘긴 직후에는 잠깐 또렷하게
+              final base = _intro.isAnimating
+                  ? _introOpacity.value
+                  : (widget.highlighted ? 0.55 : PageTurnZones.restingOpacity);
+              return Stack(
+                children: [
+                  Positioned(
+                    left: 0,
+                    top: 0,
+                    bottom: 0,
+                    width: edge,
+                    child: _Zone(
+                      icon: Icons.chevron_left,
+                      label: '이전',
+                      enabled: widget.canPrev,
+                      opacity: base,
+                      showLabel: _intro.isAnimating || widget.highlighted,
+                    ),
+                  ),
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    bottom: 0,
+                    width: edge,
+                    child: _Zone(
+                      icon: Icons.chevron_right,
+                      label: '다음',
+                      enabled: widget.canNext,
+                      opacity: base,
+                      showLabel: _intro.isAnimating || widget.highlighted,
+                    ),
+                  ),
+                ],
+              );
+            },
           );
         },
       ),
@@ -88,53 +138,43 @@ class _Zone extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.enabled,
-    required this.highlighted,
+    required this.opacity,
+    required this.showLabel,
   });
 
   final IconData icon;
   final String label;
   final bool enabled;
-  final bool highlighted;
+  final double opacity;
+  final bool showLabel;
 
   @override
   Widget build(BuildContext context) {
-    // 평소에는 아주 옅게. 넘길 때만 또렷하게
-    final iconAlpha = !enabled
-        ? 0.12
-        : highlighted
-        ? 0.92
-        : 0.30;
-    final backdrop = highlighted && enabled ? 0.26 : 0.0;
-
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      decoration: BoxDecoration(color: Colors.black.withValues(alpha: backdrop)),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          AnimatedOpacity(
-            opacity: iconAlpha,
-            duration: const Duration(milliseconds: 200),
-            child: Icon(icon, size: 32, color: Colors.white),
-          ),
-          // 글자는 또렷할 때만 — 평소에 떠 있으면 읽기를 방해한다
-          AnimatedOpacity(
-            opacity: highlighted && enabled ? 0.9 : 0,
-            duration: const Duration(milliseconds: 200),
-            child: Padding(
-              padding: const EdgeInsets.only(top: AppTokens.space1),
-              child: Text(
-                label,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
+    final o = enabled ? opacity : opacity * 0.35;
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Opacity(
+          opacity: o.clamp(0.0, 1.0),
+          child: Icon(icon, size: 30, color: Colors.white),
+        ),
+        // 글씨는 안내하는 동안만. 평소에 떠 있으면 본문을 가린다
+        AnimatedOpacity(
+          opacity: showLabel && enabled ? (o * 0.9).clamp(0.0, 1.0) : 0,
+          duration: const Duration(milliseconds: 250),
+          child: Padding(
+            padding: const EdgeInsets.only(top: AppTokens.space1),
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

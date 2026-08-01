@@ -1105,7 +1105,7 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
               right: 0,
               bottom: 0,
               child: PageTurnZones(
-                highlighted: _zonesVisible || _chrome,
+                highlighted: _zonesVisible,
                 canPrev: _canPrev,
                 canNext: _canNext,
               ),
