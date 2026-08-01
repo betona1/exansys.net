@@ -215,8 +215,12 @@ export default function Home() {
               </div>
               <div>
                 <span className="inline-block rounded-full bg-green px-3 py-1 text-xs font-bold text-white">{t("banner.new")}</span>
-                <h2 className="font-display mt-3 text-3xl font-extrabold tracking-tight sm:text-5xl">{featured.name}</h2>
-                <p className="mt-2 max-w-md text-[15px] text-muted sm:text-lg">{featured.tagline}</p>
+                <h2 className="font-display mt-3 text-3xl font-extrabold tracking-tight sm:text-5xl">
+                  {pick(lang, featured.nameEn, featured.name) || featured.name}
+                </h2>
+                <p className="mt-2 max-w-md text-[15px] text-muted sm:text-lg">
+                  {pick(lang, featured.taglineEn, featured.tagline)}
+                </p>
                 <a
                   href={featured.storeUrlAndroid}
                   target="_blank"
