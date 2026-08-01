@@ -280,3 +280,138 @@ crewRoutes.delete("/crew/comments/:id", requireRole("crew"), async (c) => {
   await db.delete(galleryComments).where(eq(galleryComments.id, id));
   return c.json(ok({ deleted: id }));
 });
+
+// ─────────────────────────────────────────────────────────────
+// 일회성 시드 — 출시 완료된 자사 앱 2건을 앱튜버갤러리에 올린다.
+// 멱등: 같은 제목의 글이 이미 있으면 아무것도 하지 않는다.
+// 등록이 끝나면 이 라우트는 제거한다 (임시 코드).
+// ─────────────────────────────────────────────────────────────
+const RELEASED_APP_POSTS: {
+  title: string;
+  linkUrl: string;
+  body: string;
+  images: string[];
+}[] = [
+  {
+    title: "VibeQuest — AI·코딩 용어 퀘스트 (Google Play 출시)",
+    linkUrl: "https://play.google.com/store/apps/details?id=net.exansys.vibequest",
+    body: `🐾 어려운 개발 용어, 퀘스트로 클리어!
+
+"프롬프트가 뭐야? API는? 커밋은 또 뭐지?"
+AI로 코딩을 시작했는데 용어가 벽처럼 느껴진다면 — VibeQuest가 딱이에요.
+
+러시안 블루 고양이 '비비'와 함께, 하루 3분 퀘스트로
+AI·프로그래밍·웹·데이터베이스 용어를 하나씩 내 것으로 만들어 보세요.
+
+⚡ 하루 3분, 부담 없는 퀘스트
+· O/X, 4지선다, 주관식, 글자 조립, 짝 맞추기 — 5가지 문제
+· 하트나 생명 제한 없음! 틀려도 계속 배울 수 있어요
+· 틀리면 왜 틀렸는지 차근차근 설명
+
+🧠 과학적인 복습 시스템
+· 틀린 용어는 자동으로 복습 일정에 등록
+· 잊어버릴 때쯤 다시 만나는 간격 반복 학습
+
+📚 867개 용어 사전
+· 생성형 AI, 프롬프트, 에이전트, 바이브코딩부터
+· 프로그래밍 기초, 웹, 백엔드, DB, Git, UX까지
+
+🔒 가입 없이, 광고 없이 — 학습 기록은 내 기기에만 저장
+
+· 패키지: net.exansys.vibequest
+· 카테고리: 교육
+· 개발: EXANSYS`,
+    images: [
+      "/showcase/vibequest/feature_graphic.webp",
+      "/showcase/vibequest/icon_512.webp",
+      "/showcase/vibequest/02_home.webp",
+      "/showcase/vibequest/03_quiz.webp",
+      "/showcase/vibequest/04_wrong.webp",
+      "/showcase/vibequest/07_glossary.webp",
+      "/showcase/vibequest/06_result.webp",
+      "/showcase/vibequest/01_intro_a.webp",
+    ],
+  },
+  {
+    title: "Log Challenge — 습관 인증 챌린지 (Google Play 출시)",
+    linkUrl: "https://play.google.com/store/apps/details?id=com.keywordream.keepup",
+    body: `습관은 '기록(Log)'으로 남을 때 진짜가 됩니다.
+
+Log Challenge는 좋은 습관을 매일 인증하고 도장으로 남기는 습관 챌린지 앱입니다.
+미루면 사라지는 결심을, 마감 전 알림이 놓치지 않게 붙잡아 줍니다.
+
+📸 다양한 인증 방법
+· 사진 (날짜·시각 자동 워터마크)
+· 타이머 (명상 모드·호흡 가이드)
+· 녹음, 동영상, URL
+· 마감 3시간 / 1시간 / 30분 전 알림
+
+🏅 두 가지 챌린지 방식
+· 적립형 — 매일 / 주6일 실행
+· 결과형 — 주1회 · 15일 · 1회성 인증
+· 도장이 찍힌 시즌 달력에서 달성률과 최장 연속 확인
+
+🔒 데이터 안전
+· 모든 기록은 기기 내 저장
+· ZIP 백업과 자동 스냅샷 복구
+
+· 패키지: com.keywordream.keepup
+· 카테고리: 생산성
+· 태그: 습관 형성 · 자기계발 · 할 일 관리`,
+    images: [
+      "/showcase/keepup/00_feature_graphic.webp",
+      "/showcase/keepup/icon_512.webp",
+      "/showcase/keepup/01_home.webp",
+      "/showcase/keepup/02_routines.webp",
+      "/showcase/keepup/03_verify.webp",
+      "/showcase/keepup/04_calendar.webp",
+      "/showcase/keepup/05_alarm.webp",
+    ],
+  },
+];
+
+crewRoutes.post("/crew/seed-released-apps", async (c) => {
+  const db = drizzle(c.env.DB);
+
+  // 글쓴이는 대표(admin) 계정으로 단다
+  const admin = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.role, "admin"))
+    .orderBy(asc(users.id))
+    .limit(1);
+  if (admin.length === 0) return c.json(err("no_admin_user"), 400);
+
+  const created: string[] = [];
+  const skipped: string[] = [];
+
+  for (const post of RELEASED_APP_POSTS) {
+    const dup = await db
+      .select({ id: galleryPosts.id })
+      .from(galleryPosts)
+      .where(eq(galleryPosts.title, post.title))
+      .limit(1);
+    if (dup.length > 0) {
+      skipped.push(post.title);
+      continue;
+    }
+    const inserted = await db
+      .insert(galleryPosts)
+      .values({
+        userId: admin[0].id,
+        title: post.title,
+        body: post.body,
+        linkUrl: post.linkUrl,
+        createdAt: new Date(),
+      })
+      .returning({ id: galleryPosts.id });
+    for (let i = 0; i < post.images.length; i++) {
+      await db
+        .insert(galleryImages)
+        .values({ postId: inserted[0].id, imageUrl: post.images[i], sort: i });
+    }
+    created.push(post.title);
+  }
+
+  return c.json(ok({ created, skipped }));
+});
