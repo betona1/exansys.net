@@ -11,6 +11,7 @@ import '../../core/tokens.dart';
 import '../../domain/entities/book.dart';
 import '../capture/capture_controller.dart';
 import '../capture/widgets/capture_overlay.dart';
+import '../search/indexer.dart';
 import '../search/widgets/search_sheet.dart';
 import 'widgets/reader_bottom_bar.dart';
 import 'widgets/reader_top_bar.dart';
@@ -119,6 +120,9 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
           hasTextLayer: hasText,
         );
     _saveProgress();
+
+    // 전체 검색용 색인을 뒤에서 만든다. 읽기를 막지 않는다
+    unawaited(ref.read(indexerProvider).ensureIndexed(widget.book.id));
   }
 
   bool _onGeneralTap(BuildContext context, PdfViewerController c, PdfViewerGeneralTapHandlerDetails d) {

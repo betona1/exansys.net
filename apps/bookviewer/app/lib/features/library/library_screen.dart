@@ -73,6 +73,11 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
         title: const Text('내 서재'),
         actions: [
           IconButton(
+            onPressed: () => context.go(AppRoutes.search),
+            icon: const Icon(Icons.search),
+            tooltip: '서재 전체에서 찾기',
+          ),
+          IconButton(
             onPressed: _picking ? null : _pickAndOpen,
             icon: const Icon(Icons.add),
             tooltip: 'PDF 가져오기',

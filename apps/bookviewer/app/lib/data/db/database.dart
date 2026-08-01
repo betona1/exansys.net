@@ -14,7 +14,16 @@ part 'database.g.dart';
 /// SQLite 는 `package:sqlite3` 3.x 가 직접 번들한다 (FTS5 포함).
 /// `sqlite3_flutter_libs` 는 폐기되어 넣지 않는다 — ADR-0003 갱신 참고.
 @DriftDatabase(
-  tables: [Books, ReadingProgress, BookSettings, Anchors, Captures, Bookmarks, AppMeta],
+  tables: [
+    Books,
+    ReadingProgress,
+    BookSettings,
+    Anchors,
+    Captures,
+    Bookmarks,
+    PageTexts,
+    AppMeta,
+  ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_open());
@@ -23,15 +32,60 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
+    onCreate: (m) async {
+      await m.createAll();
+      await _createFts();
+    },
+    onUpgrade: (m, from, to) async {
+      if (from < 2) {
+        await m.createTable(pageTexts);
+        await _createFts();
+      }
+    },
     beforeOpen: (details) async {
       // 외래키는 기본이 꺼져 있다. 켜지 않으면 참조 무결성이 조용히 무시된다
       await customStatement('PRAGMA foreign_keys = ON');
     },
   );
+
+  /// FTS5 가상 테이블과 동기화 트리거.
+  ///
+  /// Drift 로는 가상 테이블을 선언할 수 없어 raw SQL 로 만든다.
+  /// `content=` 로 외부 콘텐츠 방식을 쓴다 — 원문을 두 번 저장하지 않는다.
+  /// 외부 콘텐츠 FTS5 는 자동 동기화가 없으므로 **트리거 3종이 필수**다.
+  Future<void> _createFts() async {
+    await customStatement('''
+      CREATE VIRTUAL TABLE IF NOT EXISTS page_fts USING fts5(
+        bigram,
+        nospace,
+        content='page_texts',
+        content_rowid='id',
+        tokenize='unicode61'
+      )
+    ''');
+    await customStatement('''
+      CREATE TRIGGER IF NOT EXISTS page_texts_ai AFTER INSERT ON page_texts BEGIN
+        INSERT INTO page_fts(rowid, bigram, nospace) VALUES (new.id, new.bigram, new.nospace);
+      END
+    ''');
+    await customStatement('''
+      CREATE TRIGGER IF NOT EXISTS page_texts_ad AFTER DELETE ON page_texts BEGIN
+        INSERT INTO page_fts(page_fts, rowid, bigram, nospace)
+          VALUES ('delete', old.id, old.bigram, old.nospace);
+      END
+    ''');
+    await customStatement('''
+      CREATE TRIGGER IF NOT EXISTS page_texts_au AFTER UPDATE ON page_texts BEGIN
+        INSERT INTO page_fts(page_fts, rowid, bigram, nospace)
+          VALUES ('delete', old.id, old.bigram, old.nospace);
+        INSERT INTO page_fts(rowid, bigram, nospace) VALUES (new.id, new.bigram, new.nospace);
+      END
+    ''');
+  }
 }
 
 LazyDatabase _open() {

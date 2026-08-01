@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../features/library/library_screen.dart';
 import '../features/reader/reader_screen.dart';
+import '../features/search/global_search_screen.dart';
 
 /// 라우팅 — `Navigator.push` 대신 go_router 를 쓴다 (CLAUDE.md §5).
 ///
@@ -11,6 +12,7 @@ import '../features/reader/reader_screen.dart';
 abstract final class AppRoutes {
   static const library = '/';
   static const book = '/book/:id';
+  static const search = '/search';
 
   static String bookPath(int id, {int? page}) =>
       page == null ? '/book/$id' : '/book/$id?page=$page';
@@ -23,6 +25,10 @@ final appRouter = GoRouter(
       path: AppRoutes.library,
       builder: (_, _) => const LibraryScreen(),
       routes: [
+        GoRoute(
+          path: 'search',
+          builder: (_, _) => const GlobalSearchScreen(),
+        ),
         GoRoute(
           path: 'book/:id',
           builder: (_, state) {

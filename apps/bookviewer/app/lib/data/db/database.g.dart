@@ -4165,6 +4165,458 @@ class BookmarksCompanion extends UpdateCompanion<Bookmark> {
   }
 }
 
+class $PageTextsTable extends PageTexts
+    with TableInfo<$PageTextsTable, PageTextRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PageTextsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _bookIdMeta = const VerificationMeta('bookId');
+  @override
+  late final GeneratedColumn<int> bookId = GeneratedColumn<int>(
+    'book_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES books (id)',
+    ),
+  );
+  static const VerificationMeta _pageNoMeta = const VerificationMeta('pageNo');
+  @override
+  late final GeneratedColumn<int> pageNo = GeneratedColumn<int>(
+    'page_no',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _rawMeta = const VerificationMeta('raw');
+  @override
+  late final GeneratedColumn<String> raw = GeneratedColumn<String>(
+    'raw',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _normMeta = const VerificationMeta('norm');
+  @override
+  late final GeneratedColumn<String> norm = GeneratedColumn<String>(
+    'norm',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nospaceMeta = const VerificationMeta(
+    'nospace',
+  );
+  @override
+  late final GeneratedColumn<String> nospace = GeneratedColumn<String>(
+    'nospace',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _bigramMeta = const VerificationMeta('bigram');
+  @override
+  late final GeneratedColumn<String> bigram = GeneratedColumn<String>(
+    'bigram',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    bookId,
+    pageNo,
+    raw,
+    norm,
+    nospace,
+    bigram,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'page_texts';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PageTextRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('book_id')) {
+      context.handle(
+        _bookIdMeta,
+        bookId.isAcceptableOrUnknown(data['book_id']!, _bookIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bookIdMeta);
+    }
+    if (data.containsKey('page_no')) {
+      context.handle(
+        _pageNoMeta,
+        pageNo.isAcceptableOrUnknown(data['page_no']!, _pageNoMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_pageNoMeta);
+    }
+    if (data.containsKey('raw')) {
+      context.handle(
+        _rawMeta,
+        raw.isAcceptableOrUnknown(data['raw']!, _rawMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_rawMeta);
+    }
+    if (data.containsKey('norm')) {
+      context.handle(
+        _normMeta,
+        norm.isAcceptableOrUnknown(data['norm']!, _normMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_normMeta);
+    }
+    if (data.containsKey('nospace')) {
+      context.handle(
+        _nospaceMeta,
+        nospace.isAcceptableOrUnknown(data['nospace']!, _nospaceMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nospaceMeta);
+    }
+    if (data.containsKey('bigram')) {
+      context.handle(
+        _bigramMeta,
+        bigram.isAcceptableOrUnknown(data['bigram']!, _bigramMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bigramMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {bookId, pageNo},
+  ];
+  @override
+  PageTextRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PageTextRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      bookId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}book_id'],
+      )!,
+      pageNo: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}page_no'],
+      )!,
+      raw: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}raw'],
+      )!,
+      norm: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}norm'],
+      )!,
+      nospace: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}nospace'],
+      )!,
+      bigram: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}bigram'],
+      )!,
+    );
+  }
+
+  @override
+  $PageTextsTable createAlias(String alias) {
+    return $PageTextsTable(attachedDatabase, alias);
+  }
+}
+
+class PageTextRow extends DataClass implements Insertable<PageTextRow> {
+  final int id;
+  final int bookId;
+  final int pageNo;
+
+  /// 원문 — 스니펫을 사람이 읽을 수 있게 보여주려면 필요하다
+  final String raw;
+
+  /// NFC + NFKC 정규화본
+  final String norm;
+
+  /// 공백 제거 사본 — 한글 PDF 는 어절 공백이 실제 space 가 아닌 경우가 흔하다
+  final String nospace;
+
+  /// bigram 그림자 텍스트 — 이 필드를 unicode61 FTS5 에 넣는다
+  final String bigram;
+  const PageTextRow({
+    required this.id,
+    required this.bookId,
+    required this.pageNo,
+    required this.raw,
+    required this.norm,
+    required this.nospace,
+    required this.bigram,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['book_id'] = Variable<int>(bookId);
+    map['page_no'] = Variable<int>(pageNo);
+    map['raw'] = Variable<String>(raw);
+    map['norm'] = Variable<String>(norm);
+    map['nospace'] = Variable<String>(nospace);
+    map['bigram'] = Variable<String>(bigram);
+    return map;
+  }
+
+  PageTextsCompanion toCompanion(bool nullToAbsent) {
+    return PageTextsCompanion(
+      id: Value(id),
+      bookId: Value(bookId),
+      pageNo: Value(pageNo),
+      raw: Value(raw),
+      norm: Value(norm),
+      nospace: Value(nospace),
+      bigram: Value(bigram),
+    );
+  }
+
+  factory PageTextRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PageTextRow(
+      id: serializer.fromJson<int>(json['id']),
+      bookId: serializer.fromJson<int>(json['bookId']),
+      pageNo: serializer.fromJson<int>(json['pageNo']),
+      raw: serializer.fromJson<String>(json['raw']),
+      norm: serializer.fromJson<String>(json['norm']),
+      nospace: serializer.fromJson<String>(json['nospace']),
+      bigram: serializer.fromJson<String>(json['bigram']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'bookId': serializer.toJson<int>(bookId),
+      'pageNo': serializer.toJson<int>(pageNo),
+      'raw': serializer.toJson<String>(raw),
+      'norm': serializer.toJson<String>(norm),
+      'nospace': serializer.toJson<String>(nospace),
+      'bigram': serializer.toJson<String>(bigram),
+    };
+  }
+
+  PageTextRow copyWith({
+    int? id,
+    int? bookId,
+    int? pageNo,
+    String? raw,
+    String? norm,
+    String? nospace,
+    String? bigram,
+  }) => PageTextRow(
+    id: id ?? this.id,
+    bookId: bookId ?? this.bookId,
+    pageNo: pageNo ?? this.pageNo,
+    raw: raw ?? this.raw,
+    norm: norm ?? this.norm,
+    nospace: nospace ?? this.nospace,
+    bigram: bigram ?? this.bigram,
+  );
+  PageTextRow copyWithCompanion(PageTextsCompanion data) {
+    return PageTextRow(
+      id: data.id.present ? data.id.value : this.id,
+      bookId: data.bookId.present ? data.bookId.value : this.bookId,
+      pageNo: data.pageNo.present ? data.pageNo.value : this.pageNo,
+      raw: data.raw.present ? data.raw.value : this.raw,
+      norm: data.norm.present ? data.norm.value : this.norm,
+      nospace: data.nospace.present ? data.nospace.value : this.nospace,
+      bigram: data.bigram.present ? data.bigram.value : this.bigram,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PageTextRow(')
+          ..write('id: $id, ')
+          ..write('bookId: $bookId, ')
+          ..write('pageNo: $pageNo, ')
+          ..write('raw: $raw, ')
+          ..write('norm: $norm, ')
+          ..write('nospace: $nospace, ')
+          ..write('bigram: $bigram')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, bookId, pageNo, raw, norm, nospace, bigram);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PageTextRow &&
+          other.id == this.id &&
+          other.bookId == this.bookId &&
+          other.pageNo == this.pageNo &&
+          other.raw == this.raw &&
+          other.norm == this.norm &&
+          other.nospace == this.nospace &&
+          other.bigram == this.bigram);
+}
+
+class PageTextsCompanion extends UpdateCompanion<PageTextRow> {
+  final Value<int> id;
+  final Value<int> bookId;
+  final Value<int> pageNo;
+  final Value<String> raw;
+  final Value<String> norm;
+  final Value<String> nospace;
+  final Value<String> bigram;
+  const PageTextsCompanion({
+    this.id = const Value.absent(),
+    this.bookId = const Value.absent(),
+    this.pageNo = const Value.absent(),
+    this.raw = const Value.absent(),
+    this.norm = const Value.absent(),
+    this.nospace = const Value.absent(),
+    this.bigram = const Value.absent(),
+  });
+  PageTextsCompanion.insert({
+    this.id = const Value.absent(),
+    required int bookId,
+    required int pageNo,
+    required String raw,
+    required String norm,
+    required String nospace,
+    required String bigram,
+  }) : bookId = Value(bookId),
+       pageNo = Value(pageNo),
+       raw = Value(raw),
+       norm = Value(norm),
+       nospace = Value(nospace),
+       bigram = Value(bigram);
+  static Insertable<PageTextRow> custom({
+    Expression<int>? id,
+    Expression<int>? bookId,
+    Expression<int>? pageNo,
+    Expression<String>? raw,
+    Expression<String>? norm,
+    Expression<String>? nospace,
+    Expression<String>? bigram,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (bookId != null) 'book_id': bookId,
+      if (pageNo != null) 'page_no': pageNo,
+      if (raw != null) 'raw': raw,
+      if (norm != null) 'norm': norm,
+      if (nospace != null) 'nospace': nospace,
+      if (bigram != null) 'bigram': bigram,
+    });
+  }
+
+  PageTextsCompanion copyWith({
+    Value<int>? id,
+    Value<int>? bookId,
+    Value<int>? pageNo,
+    Value<String>? raw,
+    Value<String>? norm,
+    Value<String>? nospace,
+    Value<String>? bigram,
+  }) {
+    return PageTextsCompanion(
+      id: id ?? this.id,
+      bookId: bookId ?? this.bookId,
+      pageNo: pageNo ?? this.pageNo,
+      raw: raw ?? this.raw,
+      norm: norm ?? this.norm,
+      nospace: nospace ?? this.nospace,
+      bigram: bigram ?? this.bigram,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (bookId.present) {
+      map['book_id'] = Variable<int>(bookId.value);
+    }
+    if (pageNo.present) {
+      map['page_no'] = Variable<int>(pageNo.value);
+    }
+    if (raw.present) {
+      map['raw'] = Variable<String>(raw.value);
+    }
+    if (norm.present) {
+      map['norm'] = Variable<String>(norm.value);
+    }
+    if (nospace.present) {
+      map['nospace'] = Variable<String>(nospace.value);
+    }
+    if (bigram.present) {
+      map['bigram'] = Variable<String>(bigram.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PageTextsCompanion(')
+          ..write('id: $id, ')
+          ..write('bookId: $bookId, ')
+          ..write('pageNo: $pageNo, ')
+          ..write('raw: $raw, ')
+          ..write('norm: $norm, ')
+          ..write('nospace: $nospace, ')
+          ..write('bigram: $bigram')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $AppMetaTable extends AppMeta with TableInfo<$AppMetaTable, AppMetaData> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -4383,6 +4835,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $AnchorsTable anchors = $AnchorsTable(this);
   late final $CapturesTable captures = $CapturesTable(this);
   late final $BookmarksTable bookmarks = $BookmarksTable(this);
+  late final $PageTextsTable pageTexts = $PageTextsTable(this);
   late final $AppMetaTable appMeta = $AppMetaTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
@@ -4395,6 +4848,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     anchors,
     captures,
     bookmarks,
+    pageTexts,
     appMeta,
   ];
 }
@@ -4539,6 +4993,24 @@ final class $$BooksTableReferences
     ).filter((f) => f.bookId.id.sqlEquals($_itemColumn<int>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_bookmarksRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$PageTextsTable, List<PageTextRow>>
+  _pageTextsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.pageTexts,
+    aliasName: 'books__id__page_texts__book_id',
+  );
+
+  $$PageTextsTableProcessedTableManager get pageTextsRefs {
+    final manager = $$PageTextsTableTableManager(
+      $_db,
+      $_db.pageTexts,
+    ).filter((f) => f.bookId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_pageTextsRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -4769,6 +5241,31 @@ class $$BooksTableFilterComposer extends Composer<_$AppDatabase, $BooksTable> {
           }) => $$BookmarksTableFilterComposer(
             $db: $db,
             $table: $db.bookmarks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> pageTextsRefs(
+    Expression<bool> Function($$PageTextsTableFilterComposer f) f,
+  ) {
+    final $$PageTextsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.pageTexts,
+      getReferencedColumn: (t) => t.bookId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PageTextsTableFilterComposer(
+            $db: $db,
+            $table: $db.pageTexts,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -5092,6 +5589,31 @@ class $$BooksTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> pageTextsRefs<T extends Object>(
+    Expression<T> Function($$PageTextsTableAnnotationComposer a) f,
+  ) {
+    final $$PageTextsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.pageTexts,
+      getReferencedColumn: (t) => t.bookId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PageTextsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.pageTexts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$BooksTableTableManager
@@ -5113,6 +5635,7 @@ class $$BooksTableTableManager
             bool anchorsRefs,
             bool capturesRefs,
             bool bookmarksRefs,
+            bool pageTextsRefs,
           })
         > {
   $$BooksTableTableManager(_$AppDatabase db, $BooksTable table)
@@ -5227,6 +5750,7 @@ class $$BooksTableTableManager
                 anchorsRefs = false,
                 capturesRefs = false,
                 bookmarksRefs = false,
+                pageTextsRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
@@ -5236,6 +5760,7 @@ class $$BooksTableTableManager
                     if (anchorsRefs) db.anchors,
                     if (capturesRefs) db.captures,
                     if (bookmarksRefs) db.bookmarks,
+                    if (pageTextsRefs) db.pageTexts,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -5337,6 +5862,27 @@ class $$BooksTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (pageTextsRefs)
+                        await $_getPrefetchedData<
+                          BookRow,
+                          $BooksTable,
+                          PageTextRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$BooksTableReferences
+                              ._pageTextsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$BooksTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).pageTextsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.bookId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -5363,6 +5909,7 @@ typedef $$BooksTableProcessedTableManager =
         bool anchorsRefs,
         bool capturesRefs,
         bool bookmarksRefs,
+        bool pageTextsRefs,
       })
     >;
 typedef $$ReadingProgressTableCreateCompanionBuilder =
@@ -7599,6 +8146,355 @@ typedef $$BookmarksTableProcessedTableManager =
       Bookmark,
       PrefetchHooks Function({bool bookId})
     >;
+typedef $$PageTextsTableCreateCompanionBuilder =
+    PageTextsCompanion Function({
+      Value<int> id,
+      required int bookId,
+      required int pageNo,
+      required String raw,
+      required String norm,
+      required String nospace,
+      required String bigram,
+    });
+typedef $$PageTextsTableUpdateCompanionBuilder =
+    PageTextsCompanion Function({
+      Value<int> id,
+      Value<int> bookId,
+      Value<int> pageNo,
+      Value<String> raw,
+      Value<String> norm,
+      Value<String> nospace,
+      Value<String> bigram,
+    });
+
+final class $$PageTextsTableReferences
+    extends BaseReferences<_$AppDatabase, $PageTextsTable, PageTextRow> {
+  $$PageTextsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $BooksTable _bookIdTable(_$AppDatabase db) =>
+      db.books.createAlias('page_texts__book_id__books__id');
+
+  $$BooksTableProcessedTableManager get bookId {
+    final $_column = $_itemColumn<int>('book_id')!;
+
+    final manager = $$BooksTableTableManager(
+      $_db,
+      $_db.books,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_bookIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$PageTextsTableFilterComposer
+    extends Composer<_$AppDatabase, $PageTextsTable> {
+  $$PageTextsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get pageNo => $composableBuilder(
+    column: $table.pageNo,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get raw => $composableBuilder(
+    column: $table.raw,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get norm => $composableBuilder(
+    column: $table.norm,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get nospace => $composableBuilder(
+    column: $table.nospace,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get bigram => $composableBuilder(
+    column: $table.bigram,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$BooksTableFilterComposer get bookId {
+    final $$BooksTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.bookId,
+      referencedTable: $db.books,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BooksTableFilterComposer(
+            $db: $db,
+            $table: $db.books,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$PageTextsTableOrderingComposer
+    extends Composer<_$AppDatabase, $PageTextsTable> {
+  $$PageTextsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get pageNo => $composableBuilder(
+    column: $table.pageNo,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get raw => $composableBuilder(
+    column: $table.raw,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get norm => $composableBuilder(
+    column: $table.norm,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get nospace => $composableBuilder(
+    column: $table.nospace,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get bigram => $composableBuilder(
+    column: $table.bigram,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$BooksTableOrderingComposer get bookId {
+    final $$BooksTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.bookId,
+      referencedTable: $db.books,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BooksTableOrderingComposer(
+            $db: $db,
+            $table: $db.books,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$PageTextsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PageTextsTable> {
+  $$PageTextsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get pageNo =>
+      $composableBuilder(column: $table.pageNo, builder: (column) => column);
+
+  GeneratedColumn<String> get raw =>
+      $composableBuilder(column: $table.raw, builder: (column) => column);
+
+  GeneratedColumn<String> get norm =>
+      $composableBuilder(column: $table.norm, builder: (column) => column);
+
+  GeneratedColumn<String> get nospace =>
+      $composableBuilder(column: $table.nospace, builder: (column) => column);
+
+  GeneratedColumn<String> get bigram =>
+      $composableBuilder(column: $table.bigram, builder: (column) => column);
+
+  $$BooksTableAnnotationComposer get bookId {
+    final $$BooksTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.bookId,
+      referencedTable: $db.books,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BooksTableAnnotationComposer(
+            $db: $db,
+            $table: $db.books,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$PageTextsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $PageTextsTable,
+          PageTextRow,
+          $$PageTextsTableFilterComposer,
+          $$PageTextsTableOrderingComposer,
+          $$PageTextsTableAnnotationComposer,
+          $$PageTextsTableCreateCompanionBuilder,
+          $$PageTextsTableUpdateCompanionBuilder,
+          (PageTextRow, $$PageTextsTableReferences),
+          PageTextRow,
+          PrefetchHooks Function({bool bookId})
+        > {
+  $$PageTextsTableTableManager(_$AppDatabase db, $PageTextsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PageTextsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PageTextsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PageTextsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> bookId = const Value.absent(),
+                Value<int> pageNo = const Value.absent(),
+                Value<String> raw = const Value.absent(),
+                Value<String> norm = const Value.absent(),
+                Value<String> nospace = const Value.absent(),
+                Value<String> bigram = const Value.absent(),
+              }) => PageTextsCompanion(
+                id: id,
+                bookId: bookId,
+                pageNo: pageNo,
+                raw: raw,
+                norm: norm,
+                nospace: nospace,
+                bigram: bigram,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int bookId,
+                required int pageNo,
+                required String raw,
+                required String norm,
+                required String nospace,
+                required String bigram,
+              }) => PageTextsCompanion.insert(
+                id: id,
+                bookId: bookId,
+                pageNo: pageNo,
+                raw: raw,
+                norm: norm,
+                nospace: nospace,
+                bigram: bigram,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$PageTextsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({bookId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (bookId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.bookId,
+                                referencedTable: $$PageTextsTableReferences
+                                    ._bookIdTable(db),
+                                referencedColumn: $$PageTextsTableReferences
+                                    ._bookIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$PageTextsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $PageTextsTable,
+      PageTextRow,
+      $$PageTextsTableFilterComposer,
+      $$PageTextsTableOrderingComposer,
+      $$PageTextsTableAnnotationComposer,
+      $$PageTextsTableCreateCompanionBuilder,
+      $$PageTextsTableUpdateCompanionBuilder,
+      (PageTextRow, $$PageTextsTableReferences),
+      PageTextRow,
+      PrefetchHooks Function({bool bookId})
+    >;
 typedef $$AppMetaTableCreateCompanionBuilder =
     AppMetaCompanion Function({
       required String key,
@@ -7748,6 +8644,8 @@ class $AppDatabaseManager {
       $$CapturesTableTableManager(_db, _db.captures);
   $$BookmarksTableTableManager get bookmarks =>
       $$BookmarksTableTableManager(_db, _db.bookmarks);
+  $$PageTextsTableTableManager get pageTexts =>
+      $$PageTextsTableTableManager(_db, _db.pageTexts);
   $$AppMetaTableTableManager get appMeta =>
       $$AppMetaTableTableManager(_db, _db.appMeta);
 }

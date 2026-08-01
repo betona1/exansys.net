@@ -2,8 +2,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/db/database.dart';
 import '../data/repositories/library_repository_impl.dart';
+import '../data/repositories/search_repository_impl.dart';
 import '../domain/entities/book.dart';
 import '../domain/repositories/library_repository.dart';
+import '../domain/repositories/search_repository.dart';
 
 /// 앱 전역 프로바이더.
 ///
@@ -29,3 +31,11 @@ final booksProvider = StreamProvider<List<Book>>(
 final bookProvider = FutureProvider.family<Book?, int>(
   (ref, id) => ref.watch(libraryRepositoryProvider).findById(id),
 );
+
+final searchRepositoryProvider = Provider<SearchRepository>(
+  (ref) => SearchRepositoryImpl(ref.watch(databaseProvider)),
+);
+
+/// 지금 돌고 있는 색인 작업. 없으면 null.
+/// 검색 화면 상단에 "78% 인덱싱 중 — 결과가 늘어날 수 있습니다" 를 띄우는 데 쓴다 (techspec §12)
+final indexProgressProvider = StateProvider<IndexProgress?>((ref) => null);

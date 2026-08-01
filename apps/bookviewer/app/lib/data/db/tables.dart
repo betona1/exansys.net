@@ -195,6 +195,36 @@ class Bookmarks extends Table {
   TextColumn get deletedAt => text().nullable()();
 }
 
+/// 페이지 텍스트 캐시 (검색 색인의 원천).
+///
+/// 최초 1회만 추출해 보관한다. 매번 뽑으면 느리고 배터리를 태운다.
+/// 한국어 정규화 4종을 함께 저장한다 — 질의가 어느 형태로 들어와도 걸리게 하기 위해서다 (ADR-0003).
+///
+/// 이 표는 **동기화하지 않는다.** 각 기기에서 로컬로 다시 만든다.
+@DataClassName('PageTextRow')
+class PageTexts extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get bookId => integer().references(Books, #id)();
+  IntColumn get pageNo => integer()();
+
+  /// 원문 — 스니펫을 사람이 읽을 수 있게 보여주려면 필요하다
+  TextColumn get raw => text()();
+
+  /// NFC + NFKC 정규화본
+  TextColumn get norm => text()();
+
+  /// 공백 제거 사본 — 한글 PDF 는 어절 공백이 실제 space 가 아닌 경우가 흔하다
+  TextColumn get nospace => text()();
+
+  /// bigram 그림자 텍스트 — 이 필드를 unicode61 FTS5 에 넣는다
+  TextColumn get bigram => text()();
+
+  @override
+  List<Set<Column<Object>>> get uniqueKeys => [
+    {bookId, pageNo},
+  ];
+}
+
 /// 앱 메타 — 스키마 버전 등
 class AppMeta extends Table {
   TextColumn get key => text()();
