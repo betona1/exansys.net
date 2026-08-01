@@ -115,3 +115,29 @@ enum Breakpoint {
   /// 좌우 분할은 expanded 전용
   bool get allowsSplit => this == Breakpoint.expanded;
 }
+
+/// 읽기 화면에서 조작을 어디에 둘지.
+///
+/// 화면 모양에 따라 귀한 방향이 다르다.
+/// - 폰 세로: 세로가 넉넉하다 → 위아래 바
+/// - 폰 가로: **세로가 귀하다** → 바를 없애고 가장자리에서 끌어당기는 레일
+/// - 태블릿·폴드 펼침: 폭이 넉넉하다 → 좌측 레일 상주
+enum ReaderChrome {
+  /// 위·아래 바
+  bars,
+
+  /// 가장자리 드래그로 나오는 세로 레일
+  drawer,
+
+  /// 상주하는 세로 레일
+  rail;
+
+  /// 세로가 이보다 짧으면 위아래 바가 책을 너무 눌러버린다
+  static const shortHeight = 500.0;
+
+  static ReaderChrome of(Size size) {
+    if (size.width >= AppTokens.breakpointMedium) return ReaderChrome.rail;
+    if (size.height < shortHeight) return ReaderChrome.drawer;
+    return ReaderChrome.bars;
+  }
+}

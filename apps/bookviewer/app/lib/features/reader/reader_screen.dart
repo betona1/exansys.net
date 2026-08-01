@@ -22,6 +22,7 @@ import 'widgets/crop_sheet.dart';
 import 'widgets/in_book_search_sheet.dart';
 import 'widgets/page_turn_zones.dart';
 import 'widgets/reader_bottom_bar.dart';
+import 'widgets/reader_rail.dart';
 import 'widgets/reader_top_bar.dart';
 import 'widgets/rendered_page_view.dart';
 import 'widgets/theme_sheet.dart';
@@ -105,9 +106,14 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
 
   int get _perPage => _settings.splitPages ? 2 : 1;
 
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
+
   @override
   void initState() {
     super.initState();
+    // 읽는 동안 시스템 바를 숨긴다.
+    // 가로로 들면 위아래 검은 바가 책을 눌러 화면이 확 좁아진다
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     unawaited(_open());
     // 처음 열 때 한 번 알려 준다. 영역이 눈에 안 보이면 아무도 쓰지 않는다
     WidgetsBinding.instance.addPostFrameCallback((_) => _flashZones());
@@ -115,6 +121,8 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
 
   @override
   void dispose() {
+    // 서재로 돌아가면 시스템 바를 되돌린다
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     _saveDebounce?.cancel();
     _zonesTimer?.cancel();
     _doc?.dispose();
@@ -630,15 +638,51 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
     );
   }
 
+  ReaderRail _buildRail({VoidCallback? onClose}) => ReaderRail(
+    title: widget.book.title,
+    page: _page,
+    pageCount: _pageCount,
+    sideLabel: _settings.splitPages ? (_view.isEven ? '좌' : '우') : null,
+    canSearch: _hasTextLayer,
+    searchDisabledReason: _hasTextLayer ? null : '스캔본이라 글자를 찾을 수 없습니다',
+    viewChanged: _settings.splitPages ||
+        _settings.cropEnabled ||
+        _settings.theme == ReadingTheme.dark,
+    onBack: () {
+      _saveProgress();
+      context.go(AppRoutes.library);
+    },
+    onSearch: () => setState(() => _search = true),
+    onViewSheet: _openViewSheet,
+    onCapture: () => setState(() => _capture = true),
+    onPrev: () => _step(-1),
+    onNext: () => _step(1),
+    canPrev: _canPrev,
+    canNext: _canNext,
+    onClose: onClose,
+  );
+
   Widget _scaffold(BuildContext context) {
     final doc = _doc;
     final capturing = ref.watch(captureBusyProvider);
+    final chrome = ReaderChrome.of(MediaQuery.sizeOf(context));
 
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: AppTokens.ink,
+      // 가로 화면에서는 오른쪽 가장자리를 끌면 조작 레일이 나온다.
+      // 끌어당기는 폭을 좁게 둔다 — 넓으면 쪽 넘김 탭과 겹친다
+      endDrawer: chrome == ReaderChrome.drawer
+          ? _buildRail(onClose: () => Navigator.of(context).maybePop())
+          : null,
+      drawerEdgeDragWidth: 28,
       body: Stack(
         children: [
-          Positioned.fill(
+          Positioned(
+            left: chrome == ReaderChrome.rail ? ReaderRail.width : 0,
+            top: 0,
+            right: 0,
+            bottom: 0,
             key: _viewerKey,
             child: doc == null
                 ? const Center(child: CircularProgressIndicator())
@@ -687,7 +731,35 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
               ),
             ),
 
-          if (_chrome && !_capture)
+          // 큰 화면에서는 레일이 상주한다. 폭이 남으니 책을 가리지 않는다
+          if (chrome == ReaderChrome.rail && !_capture)
+            Positioned(left: 0, top: 0, bottom: 0, child: _buildRail()),
+
+          // 가로 폰에서는 조작이 서랍에 있다. 여는 손잡이만 살짝 보인다
+          if (chrome == ReaderChrome.drawer && !_capture && _chrome)
+            Positioned(
+              right: 0,
+              top: 0,
+              bottom: 0,
+              child: Center(
+                child: GestureDetector(
+                  onTap: () => _scaffoldKey.currentState?.openEndDrawer(),
+                  child: Container(
+                    width: 22,
+                    height: 84,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.85),
+                      borderRadius: const BorderRadius.horizontal(
+                        left: Radius.circular(AppTokens.radiusButton),
+                      ),
+                    ),
+                    child: const Icon(Icons.chevron_left, size: 18),
+                  ),
+                ),
+              ),
+            ),
+
+          if (chrome == ReaderChrome.bars && _chrome && !_capture)
             ReaderTopBar(
               title: widget.book.title,
               searchOpen: _search,
@@ -716,7 +788,7 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
                   : null,
             ),
 
-          if (_chrome && !_capture)
+          if (chrome == ReaderChrome.bars && _chrome && !_capture)
             ReaderBottomBar(
               page: _page,
               pageCount: _pageCount,
@@ -727,6 +799,27 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
               canNext: _canNext,
               onPageChanged: (v) => setState(() => _page = v),
               onPageSettled: _goToPage,
+            ),
+          // 레일·서랍 모드에서는 검색 패널을 위에 따로 띄운다
+          if (chrome != ReaderChrome.bars && _search && !_capture)
+            Positioned(
+              top: 0,
+              left: chrome == ReaderChrome.rail ? ReaderRail.width : 0,
+              right: 0,
+              child: Material(
+                color: Theme.of(context).colorScheme.surface,
+                child: SafeArea(
+                  bottom: false,
+                  child: InBookSearchSheet(
+                    bookId: widget.book.id,
+                    onClose: () => setState(() => _search = false),
+                    onGoToPage: (p) {
+                      setState(() => _search = false);
+                      _goToPage(p);
+                    },
+                  ),
+                ),
+              ),
             ),
         ],
       ),
