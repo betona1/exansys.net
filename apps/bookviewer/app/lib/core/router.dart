@@ -42,6 +42,19 @@ final appRouter = GoRouter(
             final page = int.tryParse(state.uri.queryParameters['page'] ?? '');
             return ReaderScreen(bookId: id, jumpToPage: page);
           },
+          routes: [
+            // 내보낸 노트가 돌아오는 길 — ADR-0002 가 정한 형식
+            //   bookviewer://book/{id}/page/{n}?anno={uuid}
+            GoRoute(
+              path: 'page/:page',
+              builder: (_, state) {
+                final id = int.tryParse(state.pathParameters['id'] ?? '');
+                final page = int.tryParse(state.pathParameters['page'] ?? '');
+                if (id == null) return const _BadLink();
+                return ReaderScreen(bookId: id, jumpToPage: page);
+              },
+            ),
+          ],
         ),
       ],
     ),

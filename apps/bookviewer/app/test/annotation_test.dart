@@ -2,7 +2,6 @@ import 'dart:ui';
 
 import 'package:bookviewer/data/db/database.dart';
 import 'package:bookviewer/data/repositories/annotation_repository_impl.dart';
-import 'package:drift/drift.dart' hide isNotNull, isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 

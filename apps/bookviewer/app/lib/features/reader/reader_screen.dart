@@ -15,6 +15,8 @@ import '../../domain/entities/crop_rect.dart';
 import '../../domain/entities/fit_mode.dart';
 import '../../domain/entities/reader_settings.dart';
 import '../../domain/entities/reading_theme.dart';
+import '../annotation/export.dart';
+import '../annotation/export_controller.dart';
 import '../annotation/widgets/highlight_bar.dart';
 import '../annotation/widgets/highlight_layer.dart';
 import '../annotation/widgets/marks_sheet.dart';
@@ -680,8 +682,92 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
           onDeleteBookmark: (b) =>
               unawaited(ref.read(annotationRepositoryProvider).deleteBookmark(b.id)),
           onEditNote: (h) => unawaited(_editNote(h)),
+          onExport: () {
+            Navigator.pop(context);
+            _openExportSheet();
+          },
         ),
       ),
+    );
+  }
+
+  /// 형식을 고르고 파일로 꺼낸다 (techspec §7)
+  void _openExportSheet() {
+    unawaited(
+      showModalBottomSheet<void>(
+        context: context,
+        builder: (ctx) => SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(AppTokens.space4),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text('내보내기', style: Theme.of(ctx).textTheme.titleMedium),
+                ),
+              ),
+              for (final f in ExportFormat.values)
+                ListTile(
+                  leading: Icon(switch (f) {
+                    ExportFormat.markdown => Icons.description_outlined,
+                    ExportFormat.obsidian => Icons.hexagon_outlined,
+                    ExportFormat.json => Icons.data_object,
+                    ExportFormat.csv => Icons.table_chart_outlined,
+                  }),
+                  title: Text(f.label),
+                  subtitle: Text(switch (f) {
+                    ExportFormat.markdown => '메모 앱에 붙여 넣기 좋습니다',
+                    ExportFormat.obsidian => '앞머리 속성이 붙습니다',
+                    ExportFormat.json => '다시 읽어 들일 수 있는 원시 데이터',
+                    ExportFormat.csv => '표 계산기에서 열립니다',
+                  }),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    unawaited(_runExport(f));
+                  },
+                ),
+              ListTile(
+                leading: const Icon(Icons.picture_as_pdf_outlined),
+                enabled: false,
+                title: const Text('주석 포함 PDF · 굽기'),
+                subtitle: const Text('서버가 필요합니다 — 아직 준비되지 않았습니다'),
+              ),
+              const SizedBox(height: AppTokens.space2),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _runExport(ExportFormat format) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final result = await ref.read(exportControllerProvider).export(
+      book: widget.book,
+      format: format,
+      doc: _doc,
+    );
+    if (!mounted) return;
+    result.when(
+      ok: (file) => messenger
+        ..clearSnackBars()
+        ..showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 6),
+            content: Text('${format.label} 로 내보냈습니다'),
+            action: SnackBarAction(
+              label: '공유',
+              onPressed: () => unawaited(
+                ref.read(exportControllerProvider).share(file, widget.book),
+              ),
+            ),
+          ),
+        ),
+      failed: (m) => messenger
+        ..clearSnackBars()
+        ..showSnackBar(SnackBar(content: Text(m))),
     );
   }
 

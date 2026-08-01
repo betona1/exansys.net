@@ -15,6 +15,7 @@ class MarksSheet extends StatelessWidget {
     required this.onDeleteHighlight,
     required this.onDeleteBookmark,
     required this.onEditNote,
+    required this.onExport,
   });
 
   final List<Highlight> highlights;
@@ -23,6 +24,9 @@ class MarksSheet extends StatelessWidget {
   final ValueChanged<Highlight> onDeleteHighlight;
   final ValueChanged<BookmarkEntry> onDeleteBookmark;
   final ValueChanged<Highlight> onEditNote;
+
+  /// 밖으로 꺼내기. 쌓아 두기만 하고 못 꺼내면 락인이다 (ADR-0002)
+  final VoidCallback onExport;
 
   @override
   Widget build(BuildContext context) {
@@ -34,6 +38,25 @@ class MarksSheet extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppTokens.space4,
+                AppTokens.space2,
+                AppTokens.space2,
+                0,
+              ),
+              child: Row(
+                children: [
+                  Text('표시해 둔 것', style: t.textTheme.titleMedium),
+                  const Spacer(),
+                  TextButton.icon(
+                    onPressed: (highlights.isEmpty && bookmarks.isEmpty) ? null : onExport,
+                    icon: const Icon(Icons.ios_share, size: 18),
+                    label: const Text('내보내기'),
+                  ),
+                ],
+              ),
+            ),
             TabBar(
               tabs: [
                 Tab(text: '하이라이트 ${highlights.length}'),
