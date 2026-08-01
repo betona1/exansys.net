@@ -1,5 +1,5 @@
 name: bookviewer
-description: "A new Flutter project."
+description: "북뷰(BookViewer) — PDF로 저장한 책을 책처럼 읽는 생산성 리더."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -46,6 +46,20 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
+
+# 앱 아이콘 — 마스코트 비비(바브바브 1단계)가 책 너머로 빼꼼 보는 그림.
+# 원본은 `apps/bookviewer/design/` 에 있고 `scripts/gen_icon.py` 로 다시 만든다.
+# 적용: flutter pub run flutter_launcher_icons
+flutter_launcher_icons:
+  image_path: "assets/icon/icon.png"
+  android: true
+  adaptive_icon_background: "assets/icon/icon_background.png"
+  adaptive_icon_foreground: "assets/icon/icon_foreground.png"
+  windows:
+    generate: true
+    image_path: "assets/icon/icon.png"
+    icon_size: 256
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
