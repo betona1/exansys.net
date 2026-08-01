@@ -1727,6 +1727,30 @@ class $BookSettingsTable extends BookSettings
     requiredDuringInsert: false,
     defaultValue: const Constant('preserve'),
   );
+  static const VerificationMeta _brightnessMeta = const VerificationMeta(
+    'brightness',
+  );
+  @override
+  late final GeneratedColumn<double> brightness = GeneratedColumn<double>(
+    'brightness',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _contrastMeta = const VerificationMeta(
+    'contrast',
+  );
+  @override
+  late final GeneratedColumn<double> contrast = GeneratedColumn<double>(
+    'contrast',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
   static const VerificationMeta _cropEnabledMeta = const VerificationMeta(
     'cropEnabled',
   );
@@ -1871,6 +1895,8 @@ class $BookSettingsTable extends BookSettings
     rotation,
     theme,
     darkImageMode,
+    brightness,
+    contrast,
     cropEnabled,
     cropOdd,
     cropEven,
@@ -1937,6 +1963,18 @@ class $BookSettingsTable extends BookSettings
           data['dark_image_mode']!,
           _darkImageModeMeta,
         ),
+      );
+    }
+    if (data.containsKey('brightness')) {
+      context.handle(
+        _brightnessMeta,
+        brightness.isAcceptableOrUnknown(data['brightness']!, _brightnessMeta),
+      );
+    }
+    if (data.containsKey('contrast')) {
+      context.handle(
+        _contrastMeta,
+        contrast.isAcceptableOrUnknown(data['contrast']!, _contrastMeta),
       );
     }
     if (data.containsKey('crop_enabled')) {
@@ -2053,6 +2091,14 @@ class $BookSettingsTable extends BookSettings
         DriftSqlType.string,
         data['${effectivePrefix}dark_image_mode'],
       )!,
+      brightness: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}brightness'],
+      )!,
+      contrast: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}contrast'],
+      )!,
       cropEnabled: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}crop_enabled'],
@@ -2120,6 +2166,10 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
 
   /// 다크모드 이미지 처리 (invert / preserve / dim)
   final String darkImageMode;
+
+  /// 밝기·대비. 1.0 이 원래 값
+  final double brightness;
+  final double contrast;
   final bool cropEnabled;
 
   /// 홀수/짝수 페이지 크롭 [l,t,r,b] 비율 JSON.
@@ -2155,6 +2205,8 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
     required this.rotation,
     required this.theme,
     required this.darkImageMode,
+    required this.brightness,
+    required this.contrast,
     required this.cropEnabled,
     this.cropOdd,
     this.cropEven,
@@ -2176,6 +2228,8 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
     map['rotation'] = Variable<int>(rotation);
     map['theme'] = Variable<String>(theme);
     map['dark_image_mode'] = Variable<String>(darkImageMode);
+    map['brightness'] = Variable<double>(brightness);
+    map['contrast'] = Variable<double>(contrast);
     map['crop_enabled'] = Variable<bool>(cropEnabled);
     if (!nullToAbsent || cropOdd != null) {
       map['crop_odd'] = Variable<String>(cropOdd);
@@ -2202,6 +2256,8 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
       rotation: Value(rotation),
       theme: Value(theme),
       darkImageMode: Value(darkImageMode),
+      brightness: Value(brightness),
+      contrast: Value(contrast),
       cropEnabled: Value(cropEnabled),
       cropOdd: cropOdd == null && nullToAbsent
           ? const Value.absent()
@@ -2232,6 +2288,8 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
       rotation: serializer.fromJson<int>(json['rotation']),
       theme: serializer.fromJson<String>(json['theme']),
       darkImageMode: serializer.fromJson<String>(json['darkImageMode']),
+      brightness: serializer.fromJson<double>(json['brightness']),
+      contrast: serializer.fromJson<double>(json['contrast']),
       cropEnabled: serializer.fromJson<bool>(json['cropEnabled']),
       cropOdd: serializer.fromJson<String?>(json['cropOdd']),
       cropEven: serializer.fromJson<String?>(json['cropEven']),
@@ -2255,6 +2313,8 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
       'rotation': serializer.toJson<int>(rotation),
       'theme': serializer.toJson<String>(theme),
       'darkImageMode': serializer.toJson<String>(darkImageMode),
+      'brightness': serializer.toJson<double>(brightness),
+      'contrast': serializer.toJson<double>(contrast),
       'cropEnabled': serializer.toJson<bool>(cropEnabled),
       'cropOdd': serializer.toJson<String?>(cropOdd),
       'cropEven': serializer.toJson<String?>(cropEven),
@@ -2276,6 +2336,8 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
     int? rotation,
     String? theme,
     String? darkImageMode,
+    double? brightness,
+    double? contrast,
     bool? cropEnabled,
     Value<String?> cropOdd = const Value.absent(),
     Value<String?> cropEven = const Value.absent(),
@@ -2294,6 +2356,8 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
     rotation: rotation ?? this.rotation,
     theme: theme ?? this.theme,
     darkImageMode: darkImageMode ?? this.darkImageMode,
+    brightness: brightness ?? this.brightness,
+    contrast: contrast ?? this.contrast,
     cropEnabled: cropEnabled ?? this.cropEnabled,
     cropOdd: cropOdd.present ? cropOdd.value : this.cropOdd,
     cropEven: cropEven.present ? cropEven.value : this.cropEven,
@@ -2316,6 +2380,10 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
       darkImageMode: data.darkImageMode.present
           ? data.darkImageMode.value
           : this.darkImageMode,
+      brightness: data.brightness.present
+          ? data.brightness.value
+          : this.brightness,
+      contrast: data.contrast.present ? data.contrast.value : this.contrast,
       cropEnabled: data.cropEnabled.present
           ? data.cropEnabled.value
           : this.cropEnabled,
@@ -2353,6 +2421,8 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
           ..write('rotation: $rotation, ')
           ..write('theme: $theme, ')
           ..write('darkImageMode: $darkImageMode, ')
+          ..write('brightness: $brightness, ')
+          ..write('contrast: $contrast, ')
           ..write('cropEnabled: $cropEnabled, ')
           ..write('cropOdd: $cropOdd, ')
           ..write('cropEven: $cropEven, ')
@@ -2376,6 +2446,8 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
     rotation,
     theme,
     darkImageMode,
+    brightness,
+    contrast,
     cropEnabled,
     cropOdd,
     cropEven,
@@ -2398,6 +2470,8 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
           other.rotation == this.rotation &&
           other.theme == this.theme &&
           other.darkImageMode == this.darkImageMode &&
+          other.brightness == this.brightness &&
+          other.contrast == this.contrast &&
           other.cropEnabled == this.cropEnabled &&
           other.cropOdd == this.cropOdd &&
           other.cropEven == this.cropEven &&
@@ -2418,6 +2492,8 @@ class BookSettingsCompanion extends UpdateCompanion<BookSetting> {
   final Value<int> rotation;
   final Value<String> theme;
   final Value<String> darkImageMode;
+  final Value<double> brightness;
+  final Value<double> contrast;
   final Value<bool> cropEnabled;
   final Value<String?> cropOdd;
   final Value<String?> cropEven;
@@ -2436,6 +2512,8 @@ class BookSettingsCompanion extends UpdateCompanion<BookSetting> {
     this.rotation = const Value.absent(),
     this.theme = const Value.absent(),
     this.darkImageMode = const Value.absent(),
+    this.brightness = const Value.absent(),
+    this.contrast = const Value.absent(),
     this.cropEnabled = const Value.absent(),
     this.cropOdd = const Value.absent(),
     this.cropEven = const Value.absent(),
@@ -2455,6 +2533,8 @@ class BookSettingsCompanion extends UpdateCompanion<BookSetting> {
     this.rotation = const Value.absent(),
     this.theme = const Value.absent(),
     this.darkImageMode = const Value.absent(),
+    this.brightness = const Value.absent(),
+    this.contrast = const Value.absent(),
     this.cropEnabled = const Value.absent(),
     this.cropOdd = const Value.absent(),
     this.cropEven = const Value.absent(),
@@ -2474,6 +2554,8 @@ class BookSettingsCompanion extends UpdateCompanion<BookSetting> {
     Expression<int>? rotation,
     Expression<String>? theme,
     Expression<String>? darkImageMode,
+    Expression<double>? brightness,
+    Expression<double>? contrast,
     Expression<bool>? cropEnabled,
     Expression<String>? cropOdd,
     Expression<String>? cropEven,
@@ -2493,6 +2575,8 @@ class BookSettingsCompanion extends UpdateCompanion<BookSetting> {
       if (rotation != null) 'rotation': rotation,
       if (theme != null) 'theme': theme,
       if (darkImageMode != null) 'dark_image_mode': darkImageMode,
+      if (brightness != null) 'brightness': brightness,
+      if (contrast != null) 'contrast': contrast,
       if (cropEnabled != null) 'crop_enabled': cropEnabled,
       if (cropOdd != null) 'crop_odd': cropOdd,
       if (cropEven != null) 'crop_even': cropEven,
@@ -2514,6 +2598,8 @@ class BookSettingsCompanion extends UpdateCompanion<BookSetting> {
     Value<int>? rotation,
     Value<String>? theme,
     Value<String>? darkImageMode,
+    Value<double>? brightness,
+    Value<double>? contrast,
     Value<bool>? cropEnabled,
     Value<String?>? cropOdd,
     Value<String?>? cropEven,
@@ -2533,6 +2619,8 @@ class BookSettingsCompanion extends UpdateCompanion<BookSetting> {
       rotation: rotation ?? this.rotation,
       theme: theme ?? this.theme,
       darkImageMode: darkImageMode ?? this.darkImageMode,
+      brightness: brightness ?? this.brightness,
+      contrast: contrast ?? this.contrast,
       cropEnabled: cropEnabled ?? this.cropEnabled,
       cropOdd: cropOdd ?? this.cropOdd,
       cropEven: cropEven ?? this.cropEven,
@@ -2569,6 +2657,12 @@ class BookSettingsCompanion extends UpdateCompanion<BookSetting> {
     }
     if (darkImageMode.present) {
       map['dark_image_mode'] = Variable<String>(darkImageMode.value);
+    }
+    if (brightness.present) {
+      map['brightness'] = Variable<double>(brightness.value);
+    }
+    if (contrast.present) {
+      map['contrast'] = Variable<double>(contrast.value);
     }
     if (cropEnabled.present) {
       map['crop_enabled'] = Variable<bool>(cropEnabled.value);
@@ -2613,6 +2707,8 @@ class BookSettingsCompanion extends UpdateCompanion<BookSetting> {
           ..write('rotation: $rotation, ')
           ..write('theme: $theme, ')
           ..write('darkImageMode: $darkImageMode, ')
+          ..write('brightness: $brightness, ')
+          ..write('contrast: $contrast, ')
           ..write('cropEnabled: $cropEnabled, ')
           ..write('cropOdd: $cropOdd, ')
           ..write('cropEven: $cropEven, ')
@@ -6535,6 +6631,8 @@ typedef $$BookSettingsTableCreateCompanionBuilder =
       Value<int> rotation,
       Value<String> theme,
       Value<String> darkImageMode,
+      Value<double> brightness,
+      Value<double> contrast,
       Value<bool> cropEnabled,
       Value<String?> cropOdd,
       Value<String?> cropEven,
@@ -6555,6 +6653,8 @@ typedef $$BookSettingsTableUpdateCompanionBuilder =
       Value<int> rotation,
       Value<String> theme,
       Value<String> darkImageMode,
+      Value<double> brightness,
+      Value<double> contrast,
       Value<bool> cropEnabled,
       Value<String?> cropOdd,
       Value<String?> cropEven,
@@ -6625,6 +6725,16 @@ class $$BookSettingsTableFilterComposer
 
   ColumnFilters<String> get darkImageMode => $composableBuilder(
     column: $table.darkImageMode,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get brightness => $composableBuilder(
+    column: $table.brightness,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get contrast => $composableBuilder(
+    column: $table.contrast,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6741,6 +6851,16 @@ class $$BookSettingsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<double> get brightness => $composableBuilder(
+    column: $table.brightness,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get contrast => $composableBuilder(
+    column: $table.contrast,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get cropEnabled => $composableBuilder(
     column: $table.cropEnabled,
     builder: (column) => ColumnOrderings(column),
@@ -6843,6 +6963,14 @@ class $$BookSettingsTableAnnotationComposer
     column: $table.darkImageMode,
     builder: (column) => column,
   );
+
+  GeneratedColumn<double> get brightness => $composableBuilder(
+    column: $table.brightness,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get contrast =>
+      $composableBuilder(column: $table.contrast, builder: (column) => column);
 
   GeneratedColumn<bool> get cropEnabled => $composableBuilder(
     column: $table.cropEnabled,
@@ -6947,6 +7075,8 @@ class $$BookSettingsTableTableManager
                 Value<int> rotation = const Value.absent(),
                 Value<String> theme = const Value.absent(),
                 Value<String> darkImageMode = const Value.absent(),
+                Value<double> brightness = const Value.absent(),
+                Value<double> contrast = const Value.absent(),
                 Value<bool> cropEnabled = const Value.absent(),
                 Value<String?> cropOdd = const Value.absent(),
                 Value<String?> cropEven = const Value.absent(),
@@ -6965,6 +7095,8 @@ class $$BookSettingsTableTableManager
                 rotation: rotation,
                 theme: theme,
                 darkImageMode: darkImageMode,
+                brightness: brightness,
+                contrast: contrast,
                 cropEnabled: cropEnabled,
                 cropOdd: cropOdd,
                 cropEven: cropEven,
@@ -6985,6 +7117,8 @@ class $$BookSettingsTableTableManager
                 Value<int> rotation = const Value.absent(),
                 Value<String> theme = const Value.absent(),
                 Value<String> darkImageMode = const Value.absent(),
+                Value<double> brightness = const Value.absent(),
+                Value<double> contrast = const Value.absent(),
                 Value<bool> cropEnabled = const Value.absent(),
                 Value<String?> cropOdd = const Value.absent(),
                 Value<String?> cropEven = const Value.absent(),
@@ -7003,6 +7137,8 @@ class $$BookSettingsTableTableManager
                 rotation: rotation,
                 theme: theme,
                 darkImageMode: darkImageMode,
+                brightness: brightness,
+                contrast: contrast,
                 cropEnabled: cropEnabled,
                 cropOdd: cropOdd,
                 cropEven: cropEven,

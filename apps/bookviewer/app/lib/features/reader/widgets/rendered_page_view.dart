@@ -1,10 +1,13 @@
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pdfrx/pdfrx.dart';
 
 import '../../../core/tokens.dart';
 import '../../../domain/entities/crop_rect.dart';
+import '../../../domain/entities/reader_settings.dart';
+import '../page_tint.dart';
 
 /// 쪽을 직접 그려 보여 주는 뷰어.
 ///
@@ -27,6 +30,7 @@ class RenderedPageView extends StatefulWidget {
     required this.initialView,
     required this.onViewChanged,
     required this.cropFor,
+    required this.settings,
     this.split = false,
     this.rightToLeft = false,
   });
@@ -40,6 +44,9 @@ class RenderedPageView extends StatefulWidget {
   /// 쪽 번호(1부터) → 잘라 낼 여백
   final CropRect Function(int pageNumber) cropFor;
 
+  /// 다크 리딩·밝기·대비를 여기서 읽는다
+  final ReaderSettings settings;
+
   final bool split;
 
   /// 오른쪽 반쪽을 먼저 읽는 책(세로쓰기 등)
@@ -51,6 +58,10 @@ class RenderedPageView extends StatefulWidget {
 
 class RenderedPageViewState extends State<RenderedPageView> {
   late PageController _controller = PageController(initialPage: widget.initialView);
+
+  /// 확대 중인가. 확대했을 때 좌우로 밀면 쪽이 넘어가 버리면 안 된다 —
+  /// 그때는 밀기가 그림 이동이어야 한다
+  bool _zoomed = false;
 
   int get _perPage => widget.split ? 2 : 1;
   int get viewCount => widget.document.pages.length * _perPage;
@@ -86,6 +97,8 @@ class RenderedPageViewState extends State<RenderedPageView> {
     return PageView.builder(
       controller: _controller,
       itemCount: viewCount,
+      // 확대 중에는 쪽 넘김을 막는다. 밀기는 그림을 옮기는 데 쓴다
+      physics: _zoomed ? const NeverScrollableScrollPhysics() : const PageScrollPhysics(),
       onPageChanged: widget.onViewChanged,
       itemBuilder: (context, view) {
         final pageIndex = view ~/ _perPage;
@@ -98,10 +111,14 @@ class RenderedPageViewState extends State<RenderedPageView> {
           half = isLeft ? 0 : 1;
         }
         return _PageSlice(
-          key: ValueKey('$view/${crop.hashCode}'),
+          key: ValueKey('\$view/\${crop.hashCode}/\${widget.settings.tintKey}'),
           page: page,
           crop: crop,
+          settings: widget.settings,
           half: half,
+          onZoomChanged: (z) {
+            if (z != _zoomed && mounted) setState(() => _zoomed = z);
+          },
         );
       },
     );
@@ -110,10 +127,21 @@ class RenderedPageViewState extends State<RenderedPageView> {
 
 /// 쪽의 한 조각(크롭 적용, 필요하면 좌·우 반쪽)을 그린다.
 class _PageSlice extends StatefulWidget {
-  const _PageSlice({super.key, required this.page, required this.crop, this.half});
+  const _PageSlice({
+    super.key,
+    required this.page,
+    required this.crop,
+    required this.settings,
+    required this.onZoomChanged,
+    this.half,
+  });
 
   final PdfPage page;
   final CropRect crop;
+  final ReaderSettings settings;
+
+  /// 확대 여부가 바뀌면 알려 준다 (부모가 쪽 넘김을 막는다)
+  final ValueChanged<bool> onZoomChanged;
 
   /// null 이면 통째로, 0 이면 왼쪽 반, 1 이면 오른쪽 반
   final int? half;
@@ -123,15 +151,43 @@ class _PageSlice extends StatefulWidget {
 }
 
 class _PageSliceState extends State<_PageSlice> {
+  final _transform = TransformationController();
   ui.Image? _image;
   Size? _renderedFor;
   bool _loading = false;
   Object? _error;
 
   @override
+  void initState() {
+    super.initState();
+    _transform.addListener(_onTransform);
+  }
+
+  @override
   void dispose() {
+    _transform
+      ..removeListener(_onTransform)
+      ..dispose();
     _image?.dispose();
     super.dispose();
+  }
+
+  void _onTransform() {
+    // 배율이 1 보다 크면 확대 중으로 본다
+    widget.onZoomChanged(_transform.value.getMaxScaleOnAxis() > 1.01);
+  }
+
+  /// 두 번 두드리면 확대/원래대로. 폰에서 핀치보다 빠르다
+  void _toggleZoom(TapDownDetails d) {
+    if (_transform.value.getMaxScaleOnAxis() > 1.01) {
+      _transform.value = Matrix4.identity();
+      return;
+    }
+    const scale = 2.5;
+    final p = d.localPosition;
+    _transform.value = Matrix4.identity()
+      ..translateByDouble(-p.dx * (scale - 1), -p.dy * (scale - 1), 0, 1)
+      ..scaleByDouble(scale, scale, 1, 1);
   }
 
   bool _needsRender(Size target) {
@@ -178,22 +234,44 @@ class _PageSliceState extends State<_PageSlice> {
       );
       if (img == null) throw Exception('쪽을 그리지 못했습니다');
 
-      final ui.Image decoded;
+      // 다크 리딩·밝기·대비는 픽셀에서 직접 처리한다.
+      // 색 행렬만으로는 "사진은 남기고 글자만 뒤집기"를 할 수 없다 (page_tint.dart)
+      PdfImage source = img;
+      PdfImage? tinted;
       try {
-        decoded = await img.createImage();
+        if (widget.settings.tintsPage) {
+          final bytes = await compute(
+            tintPage,
+            TintRequest(
+              pixels: Uint8List.fromList(img.pixels),
+              mode: widget.settings.darkImageMode,
+              brightness: widget.settings.brightness,
+              contrast: widget.settings.contrast,
+            ),
+          );
+          tinted = PdfImage.createFromBgraData(bytes, width: img.width, height: img.height);
+          source = tinted;
+        }
+
+        final ui.Image decoded;
+        try {
+          decoded = await source.createImage();
+        } finally {
+          tinted?.dispose();
+        }
+        if (!mounted) {
+          decoded.dispose();
+          return;
+        }
+        setState(() {
+          _image?.dispose();
+          _image = decoded;
+          _renderedFor = target;
+          _error = null;
+        });
       } finally {
         img.dispose();
       }
-      if (!mounted) {
-        decoded.dispose();
-        return;
-      }
-      setState(() {
-        _image?.dispose();
-        _image = decoded;
-        _renderedFor = target;
-        _error = null;
-      });
     } on Object catch (e) {
       if (mounted) setState(() => _error = e);
     } finally {
@@ -222,13 +300,21 @@ class _PageSliceState extends State<_PageSlice> {
           return const ColoredBox(color: AppTokens.slot);
         }
 
-        // 세로를 꽉 채우고, 가로가 넘치면 좌우로 밀어 본다
-        return InteractiveViewer(
-          maxScale: 5,
-          child: SizedBox.expand(
-            child: FittedBox(
-              fit: BoxFit.fitHeight,
-              child: RawImage(image: _image, filterQuality: FilterQuality.medium),
+        // 세로를 꽉 채운다. 확대하면 그 안에서 밀어 본다 (핀치·더블탭)
+        return GestureDetector(
+          onDoubleTapDown: _toggleZoom,
+          onDoubleTap: () {},
+          child: InteractiveViewer(
+            transformationController: _transform,
+            maxScale: 6,
+            // 확대했을 때 화면 밖으로 밀어낼 수 있어야 아래쪽 글도 본다
+            boundaryMargin: const EdgeInsets.all(double.infinity),
+            clipBehavior: Clip.hardEdge,
+            child: SizedBox.expand(
+              child: FittedBox(
+                fit: BoxFit.fitHeight,
+                child: RawImage(image: _image, filterQuality: FilterQuality.medium),
+              ),
             ),
           ),
         );

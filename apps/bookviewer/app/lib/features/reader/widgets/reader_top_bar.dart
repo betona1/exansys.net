@@ -11,6 +11,7 @@ class ReaderTopBar extends StatelessWidget {
     required this.title,
     required this.searchOpen,
     required this.canSearch,
+    required this.searchDisabledReason,
     required this.canCapture,
     required this.onBack,
     required this.onToggleSearch,
@@ -19,6 +20,8 @@ class ReaderTopBar extends StatelessWidget {
     required this.onToggleSplit,
     required this.cropOn,
     required this.onCrop,
+    required this.themeOn,
+    required this.onTheme,
     this.searchSheet,
   });
 
@@ -27,6 +30,10 @@ class ReaderTopBar extends StatelessWidget {
 
   /// 문서가 열리기 전에는 검색기가 없다
   final bool canSearch;
+
+  /// 검색이 막힌 이유. 스캔본이면 "글자를 찾을 수 없습니다".
+  /// **버튼을 숨기지 않고 이유를 보여 준다** — 사라지면 기능이 없다고 오해한다 (techspec §6.5)
+  final String? searchDisabledReason;
   final bool canCapture;
 
   final VoidCallback onBack;
@@ -42,6 +49,10 @@ class ReaderTopBar extends StatelessWidget {
   /// 여백 크롭이 켜져 있는가
   final bool cropOn;
   final VoidCallback? onCrop;
+
+  /// 다크 리딩이 켜져 있는가
+  final bool themeOn;
+  final VoidCallback? onTheme;
 
   final Widget? searchSheet;
 
@@ -75,13 +86,19 @@ class ReaderTopBar extends StatelessWidget {
                   IconButton(
                     onPressed: canSearch ? onToggleSearch : null,
                     icon: Icon(searchOpen ? Icons.search_off : Icons.search),
-                    tooltip: '이 책에서 찾기',
+                    tooltip: searchDisabledReason ?? '이 책에서 찾기',
                   ),
                   IconButton(
                     onPressed: onToggleSplit,
                     icon: Icon(splitOn ? Icons.menu_book : Icons.vertical_split),
                     tooltip: splitOn ? '한 장씩 보기' : '좌우 나눠 보기',
                     color: splitOn ? AppTokens.amber : null,
+                  ),
+                  IconButton(
+                    onPressed: onTheme,
+                    icon: const Icon(Icons.contrast),
+                    tooltip: '테마 · 밝기',
+                    color: themeOn ? AppTokens.amber : null,
                   ),
                   IconButton(
                     onPressed: onCrop,

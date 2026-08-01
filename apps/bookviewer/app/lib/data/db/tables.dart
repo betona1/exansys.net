@@ -110,6 +110,10 @@ class BookSettings extends Table {
   /// 다크모드 이미지 처리 (invert / preserve / dim)
   TextColumn get darkImageMode => text().withDefault(const Constant('preserve'))();
 
+  /// 밝기·대비. 1.0 이 원래 값
+  RealColumn get brightness => real().withDefault(const Constant(1))();
+  RealColumn get contrast => real().withDefault(const Constant(1))();
+
   BoolColumn get cropEnabled => boolean().withDefault(const Constant(false))();
 
   /// 홀수/짝수 페이지 크롭 [l,t,r,b] 비율 JSON.

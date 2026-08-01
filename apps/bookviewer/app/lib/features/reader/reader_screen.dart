@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pdfrx/pdfrx.dart';
@@ -11,6 +12,7 @@ import '../../core/tokens.dart';
 import '../../domain/entities/book.dart';
 import '../../domain/entities/crop_rect.dart';
 import '../../domain/entities/reader_settings.dart';
+import '../../domain/entities/reading_theme.dart';
 import '../capture/capture_controller.dart';
 import '../capture/widgets/capture_overlay.dart';
 import '../search/indexer.dart';
@@ -19,6 +21,8 @@ import 'crop_detector.dart';
 import 'widgets/crop_sheet.dart';
 import 'widgets/reader_bottom_bar.dart';
 import 'widgets/reader_top_bar.dart';
+import 'widgets/theme_sheet.dart';
+import 'widgets/page_turn_zones.dart';
 import 'widgets/rendered_page_view.dart';
 
 /// 읽기 화면 (techspec §4).
@@ -86,14 +90,50 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
   /// 보기 번호 — 분할이면 반쪽 단위, 아니면 쪽 단위 (0부터)
   int _view = 0;
 
+  /// 이 문서에 글자 레이어가 있는가. 없으면 검색이 성립하지 않는다
+  bool _hasTextLayer = true;
+
+  /// 좌우 넘김 영역을 잠깐 드러내는 중인가
+  bool _zonesVisible = false;
+  Timer? _zonesTimer;
+
   /// PdfViewer 대신 직접 그려야 하는가
-  bool get _custom => _settings.splitPages || _settings.cropEnabled;
+  /// PdfViewer 대신 직접 그려야 하는가.
+  /// 다크 리딩은 픽셀을 직접 만져야 해서 여기 포함된다
+  bool get _custom =>
+      _settings.splitPages || _settings.cropEnabled || _settings.tintsPage;
   int get _perPage => _settings.splitPages ? 2 : 1;
 
   @override
   void initState() {
     super.initState();
     unawaited(_loadSettings());
+    // 처음 열 때 한 번 알려 준다. 영역이 눈에 안 보이면 아무도 쓰지 않는다
+    WidgetsBinding.instance.addPostFrameCallback((_) => _flashZones());
+  }
+
+  /// 좌우 넘김 영역을 잠깐 드러낸다
+  void _flashZones() {
+    if (!mounted) return;
+    setState(() => _zonesVisible = true);
+    _zonesTimer?.cancel();
+    _zonesTimer = Timer(const Duration(milliseconds: 1400), () {
+      if (mounted) setState(() => _zonesVisible = false);
+    });
+  }
+
+  /// 화면 어디를 눌렀는지에 따라 이전/다음/도구막대 (techspec §5)
+  void _handleTapAt(double dx, double width) {
+    switch (PageTurnZones.zoneOf(dx, width)) {
+      case -1:
+        _step(-1);
+        _flashZones();
+      case 1:
+        _step(1);
+        _flashZones();
+      default:
+        setState(() => _chrome = !_chrome);
+    }
   }
 
   Future<void> _loadSettings() async {
@@ -109,6 +149,7 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
   @override
   void dispose() {
     _saveDebounce?.cancel();
+    _zonesTimer?.cancel();
     _renderDoc?.dispose();
     _searcher?.removeListener(_repaint);
     _searcher?.dispose();
@@ -151,8 +192,16 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
     // 스캔본이면 검색이 되지 않는다. 사용자에게 알려야 하므로 여기서 판정해 저장한다
     // (모든 쪽을 로드해야 정확하다 — 점진 로드 함정, docs/engine-verification.md)
     await doc.loadPagesProgressively();
-    final first = await doc.pages.first.loadText();
-    final hasText = (first?.fullText.trim().isNotEmpty) ?? false;
+    // 첫 쪽만 보면 속표지 때문에 잘못 판정한다. 여러 쪽을 훑는다
+    var textPages = 0;
+    final probe = doc.pages.length < 8 ? doc.pages.length : 8;
+    for (var i = 0; i < probe; i++) {
+      final at = (doc.pages.length * i) ~/ probe;
+      final t = await doc.pages[at].loadText();
+      if ((t?.fullText.trim().isNotEmpty) ?? false) textPages++;
+    }
+    final hasText = textPages > 0;
+    if (mounted) setState(() => _hasTextLayer = hasText);
     await ref.read(libraryRepositoryProvider).updateDocumentInfo(
           widget.book.id,
           pageCount: doc.pages.length,
@@ -163,10 +212,30 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
     // 전체 검색용 색인을 뒤에서 만든다. 읽기를 막지 않는다
     unawaited(ref.read(indexerProvider).ensureIndexed(widget.book.id));
 
+    if (!hasText) _notifyScanned();
     _maybeSuggestSplit(doc);
     if (_settings.splitPrompted || _settings.splitPages) {
       await _maybeSuggestCrop(doc);
     }
+  }
+
+  /// 스캔본이라 검색이 안 된다는 것을 알린다 (techspec §11).
+  ///
+  /// 알려 주지 않으면 사용자는 **검색 기능이 고장 났다고 생각한다.**
+  /// 실제로 그랬다 — "검색은 왜 안 되는건가?"
+  void _notifyScanned() {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..clearSnackBars()
+      ..showSnackBar(
+        const SnackBar(
+          duration: Duration(seconds: 7),
+          content: Text(
+            '이 책은 글자가 아니라 사진으로 된 스캔본입니다.\n'
+            '찾기와 글자 복사가 되지 않습니다 (OCR 은 아직 준비 중).',
+          ),
+        ),
+      );
   }
 
   /// 한 장에 두 쪽이 들어 있어 보이면 나눠 보기를 권한다 (techspec §16 제안형 온보딩).
@@ -278,6 +347,20 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
     }
   }
 
+  /// 특정 쪽으로 (슬라이더·Home/End 가 쓴다)
+  void _goToPage(int page) {
+    if (_pageCount <= 0) return;
+    final target = page.clamp(1, _pageCount);
+    if (_custom) {
+      final view = ((target - 1) * _perPage).clamp(0, (_pageCount * _perPage) - 1);
+      setState(() => _view = view);
+      _renderKey.currentState?.goToView(view);
+      _onViewChanged(view);
+    } else {
+      unawaited(_controller.goToPage(pageNumber: target));
+    }
+  }
+
   bool get _canPrev => _custom ? _view > 0 : _page > 1;
   bool get _canNext => _custom
       ? _view < (_pageCount * _perPage) - 1
@@ -334,6 +417,22 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
     );
   }
 
+  /// 테마 시트 — 고르는 즉시 화면에 반영하고, 닫을 때 저장한다
+  Future<void> _openThemeSheet() async {
+    if (await _ensureRenderDoc() == null) return;
+    if (!mounted) return;
+    final before = _settings;
+    final result = await showModalBottomSheet<ReaderSettings>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => ThemeSheet(
+        settings: _settings,
+        onChanged: (s) => setState(() => _settings = s),
+      ),
+    );
+    await _saveSettings(result ?? before);
+  }
+
   /// 미리보기에 쓸 쪽 — 표지·간지를 피해 본문 쪽을 고른다
   int _firstPageWith({required bool isOdd, required int total}) {
     for (var i = 3; i <= total; i++) {
@@ -388,10 +487,11 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
   }
 
   bool _onGeneralTap(BuildContext context, PdfViewerController c, PdfViewerGeneralTapHandlerDetails d) {
-    // 본문을 한 번 탭하면 툴바를 접었다 편다 (몰입 모드).
+    // 가장자리는 쪽 넘김, 가운데는 도구막대 토글 (techspec §5).
     // 글자·링크 위를 누른 것은 뷰어가 처리하게 그대로 넘긴다
     if (d.type == PdfViewerGeneralTapType.tap && d.tapOn == PdfViewerPart.background) {
-      setState(() => _chrome = !_chrome);
+      final width = _viewerKey.currentContext?.size?.width ?? 0;
+      _handleTapAt(d.localPosition.dx, width);
       return true;
     }
     return false;
@@ -426,6 +526,69 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
   Widget build(BuildContext context) {
     final capturing = ref.watch(captureBusyProvider);
 
+    // 데스크톱 키보드 (techspec §5): ← → PgUp PgDn 로 넘기고 Esc 로 나간다
+    return Shortcuts(
+      shortcuts: const <ShortcutActivator, Intent>{
+        SingleActivator(LogicalKeyboardKey.arrowRight): _NextPageIntent(),
+        SingleActivator(LogicalKeyboardKey.pageDown): _NextPageIntent(),
+        SingleActivator(LogicalKeyboardKey.space): _NextPageIntent(),
+        SingleActivator(LogicalKeyboardKey.arrowLeft): _PrevPageIntent(),
+        SingleActivator(LogicalKeyboardKey.pageUp): _PrevPageIntent(),
+        SingleActivator(LogicalKeyboardKey.home): _FirstPageIntent(),
+        SingleActivator(LogicalKeyboardKey.end): _LastPageIntent(),
+        SingleActivator(LogicalKeyboardKey.keyF, control: true): _FindIntent(),
+        SingleActivator(LogicalKeyboardKey.f11): _ToggleChromeIntent(),
+      },
+      child: Actions(
+        actions: <Type, Action<Intent>>{
+          _NextPageIntent: CallbackAction<_NextPageIntent>(
+            onInvoke: (_) {
+              _step(1);
+              _flashZones();
+              return null;
+            },
+          ),
+          _PrevPageIntent: CallbackAction<_PrevPageIntent>(
+            onInvoke: (_) {
+              _step(-1);
+              _flashZones();
+              return null;
+            },
+          ),
+          _FirstPageIntent: CallbackAction<_FirstPageIntent>(
+            onInvoke: (_) {
+              _goToPage(1);
+              return null;
+            },
+          ),
+          _LastPageIntent: CallbackAction<_LastPageIntent>(
+            onInvoke: (_) {
+              _goToPage(_pageCount);
+              return null;
+            },
+          ),
+          _FindIntent: CallbackAction<_FindIntent>(
+            onInvoke: (_) {
+              if (_searcher != null) setState(() => _search = true);
+              return null;
+            },
+          ),
+          _ToggleChromeIntent: CallbackAction<_ToggleChromeIntent>(
+            onInvoke: (_) {
+              setState(() => _chrome = !_chrome);
+              return null;
+            },
+          ),
+        },
+        child: Focus(
+          autofocus: true,
+          child: _buildScaffold(context, capturing),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildScaffold(BuildContext context, bool capturing) {
     return Scaffold(
       backgroundColor: AppTokens.ink,
       body: Stack(
@@ -461,9 +624,13 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
               child: ColoredBox(
                 color: AppTokens.ink,
                 child: GestureDetector(
-                  // 직접 그린 이미지라 뷰어의 탭 처리가 닿지 않는다.
-                  // 몰입 모드 토글을 여기서 따로 받는다
-                  onTap: () => setState(() => _chrome = !_chrome),
+                  // 직접 그린 화면이라 뷰어의 탭 처리가 닿지 않는다.
+                  // 가장자리 넘김·도구막대 토글을 여기서 따로 받는다
+                  behavior: HitTestBehavior.translucent,
+                  onTapUp: (d) => _handleTapAt(
+                    d.localPosition.dx,
+                    context.size?.width ?? 0,
+                  ),
                   child: RenderedPageView(
                     key: _renderKey,
                     document: _renderDoc!,
@@ -471,6 +638,7 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
                     split: _settings.splitPages,
                     rightToLeft: _settings.splitRightToLeft,
                     cropFor: _settings.cropFor,
+                    settings: _settings,
                     onViewChanged: _onViewChanged,
                   ),
                 ),
@@ -492,11 +660,24 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
               onCancel: () => setState(() => _capture = false),
             ),
 
+          // 좌우 넘김 영역 — 늘 옅게, 넘길 때만 또렷하게
+          if (!_capture)
+            Positioned.fill(
+              child: PageTurnZones(
+                highlighted: _zonesVisible || _chrome,
+                canPrev: _canPrev,
+                canNext: _canNext,
+              ),
+            ),
+
           if (_chrome && !_capture)
             ReaderTopBar(
               title: widget.book.title,
               searchOpen: _search,
-              canSearch: _searcher != null,
+              canSearch: _searcher != null && _hasTextLayer,
+              searchDisabledReason: _hasTextLayer
+                  ? null
+                  : '스캔본이라 글자를 찾을 수 없습니다',
               canCapture: _doc != null,
               onBack: () {
                 _saveProgress();
@@ -511,6 +692,8 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
               onToggleSplit: _doc == null ? null : () => unawaited(_toggleSplit()),
               cropOn: _settings.cropEnabled,
               onCrop: _doc == null ? null : () => unawaited(_openCropSheet()),
+              themeOn: _settings.theme == ReadingTheme.dark,
+              onTheme: _doc == null ? null : () => unawaited(_openThemeSheet()),
               searchSheet: _search && _searcher != null
                   ? SearchSheet(
                       searcher: _searcher!,
@@ -547,6 +730,30 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
       ),
     );
   }
+}
+
+class _NextPageIntent extends Intent {
+  const _NextPageIntent();
+}
+
+class _PrevPageIntent extends Intent {
+  const _PrevPageIntent();
+}
+
+class _FirstPageIntent extends Intent {
+  const _FirstPageIntent();
+}
+
+class _LastPageIntent extends Intent {
+  const _LastPageIntent();
+}
+
+class _FindIntent extends Intent {
+  const _FindIntent();
+}
+
+class _ToggleChromeIntent extends Intent {
+  const _ToggleChromeIntent();
 }
 
 class _ReaderError extends StatelessWidget {

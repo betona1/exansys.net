@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'tokens.dart';
 
-/// 리딩 테마 (SPEC §2.1 · techspec §8)
-enum ReadingTheme { light, dark, sepia, system }
-
 /// 앱 테마. 값은 전부 [AppTokens] 에서 가져온다.
 ///
 /// 다크 우선 설계다 — 그림자 대신 표면 밝기 차이로 층을 표현한다 (BRAND.md §5).

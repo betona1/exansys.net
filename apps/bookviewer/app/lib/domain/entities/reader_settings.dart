@@ -1,4 +1,6 @@
+import '../../core/reading_filter.dart';
 import 'crop_rect.dart';
+import 'reading_theme.dart';
 
 /// 문서별 뷰어 설정 (화면이 쓰는 형태).
 ///
@@ -13,6 +15,10 @@ class ReaderSettings {
     this.cropOdd,
     this.cropEven,
     this.cropPrompted = false,
+    this.theme = ReadingTheme.system,
+    this.darkImageMode = DarkImageMode.preserve,
+    this.brightness = 1,
+    this.contrast = 1,
   });
 
   /// 한 장에 든 두 쪽을 좌·우로 나눠 본다
@@ -34,6 +40,23 @@ class ReaderSettings {
   /// 크롭을 이미 권해 봤는가
   final bool cropPrompted;
 
+  /// 리딩 테마 (techspec §8)
+  final ReadingTheme theme;
+
+  /// 다크에서 사진·그림을 어떻게 다룰지
+  final DarkImageMode darkImageMode;
+
+  /// 0.5~1.5. 1 이 원래
+  final double brightness;
+  final double contrast;
+
+  /// 쪽 그림을 손봐야 하는가
+  bool get tintsPage => theme == ReadingTheme.dark || theme == ReadingTheme.sepia
+      || brightness != 1 || contrast != 1;
+
+  /// 색 변환 설정이 바뀌었는지 가리는 열쇠. 바뀌면 그림을 다시 그린다
+  String get tintKey => '${theme.name}/${darkImageMode.name}/$brightness/$contrast';
+
   /// 쪽 번호(1부터)에 맞는 여백
   CropRect cropFor(int pageNumber) {
     if (!cropEnabled) return CropRect.none;
@@ -48,6 +71,10 @@ class ReaderSettings {
     CropRect? cropOdd,
     CropRect? cropEven,
     bool? cropPrompted,
+    ReadingTheme? theme,
+    DarkImageMode? darkImageMode,
+    double? brightness,
+    double? contrast,
   }) => ReaderSettings(
     splitPages: splitPages ?? this.splitPages,
     splitRightToLeft: splitRightToLeft ?? this.splitRightToLeft,
@@ -56,5 +83,9 @@ class ReaderSettings {
     cropOdd: cropOdd ?? this.cropOdd,
     cropEven: cropEven ?? this.cropEven,
     cropPrompted: cropPrompted ?? this.cropPrompted,
+    theme: theme ?? this.theme,
+    darkImageMode: darkImageMode ?? this.darkImageMode,
+    brightness: brightness ?? this.brightness,
+    contrast: contrast ?? this.contrast,
   );
 }

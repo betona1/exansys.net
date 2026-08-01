@@ -5,7 +5,9 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../domain/entities/book.dart';
+import '../../core/reading_filter.dart';
 import '../../domain/entities/crop_rect.dart';
+import '../../domain/entities/reading_theme.dart';
 import '../../domain/entities/reader_settings.dart';
 import '../../domain/repositories/library_repository.dart';
 import '../db/database.dart';
@@ -175,6 +177,10 @@ class LibraryRepositoryImpl implements LibraryRepository {
       cropOdd: CropRect.fromJson(row.cropOdd),
       cropEven: CropRect.fromJson(row.cropEven),
       cropPrompted: row.cropPrompted,
+      theme: ReadingTheme.parse(row.theme),
+      darkImageMode: DarkImageMode.parse(row.darkImageMode),
+      brightness: row.brightness,
+      contrast: row.contrast,
     );
   }
 
@@ -190,6 +196,10 @@ class LibraryRepositoryImpl implements LibraryRepository {
             cropOdd: Value(settings.cropOdd?.toJson()),
             cropEven: Value(settings.cropEven?.toJson()),
             cropPrompted: Value(settings.cropPrompted),
+            theme: Value(settings.theme.storageValue),
+            darkImageMode: Value(settings.darkImageMode.storageValue),
+            brightness: Value(settings.brightness),
+            contrast: Value(settings.contrast),
             updatedAt: _now(),
           ),
         );
