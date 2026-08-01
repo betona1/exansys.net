@@ -1,10 +1,13 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:pdfrx/pdfrx.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../core/providers.dart';
 import '../../core/router.dart';
@@ -16,6 +19,8 @@ import '../../domain/entities/fit_mode.dart';
 import '../../domain/entities/reader_settings.dart';
 import '../../domain/entities/reading_theme.dart';
 import '../annotation/export.dart';
+import '../export/page_image_export.dart';
+import '../export/widgets/page_image_sheet.dart';
 import '../annotation/export_controller.dart';
 import '../annotation/widgets/highlight_bar.dart';
 import '../annotation/widgets/highlight_layer.dart';
@@ -728,6 +733,17 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
                     unawaited(_runExport(f));
                   },
                 ),
+              const Divider(height: 1),
+              ListTile(
+                leading: const Icon(Icons.image_outlined),
+                title: const Text('쪽 이미지 (JPG)'),
+                subtitle: const Text('다섯 장 넘으면 zip 하나로 묶습니다'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  unawaited(_exportPageImages());
+                },
+              ),
+              const Divider(height: 1),
               ListTile(
                 leading: const Icon(Icons.picture_as_pdf_outlined),
                 enabled: false,
@@ -769,6 +785,75 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
         ..clearSnackBars()
         ..showSnackBar(SnackBar(content: Text(m))),
     );
+  }
+
+  /// 쪽을 JPG 로 뽑는다. 다섯 장이 넘으면 zip 하나로 묶는다
+  Future<void> _exportPageImages() async {
+    final doc = _doc;
+    if (doc == null) return;
+
+    final hasCropOrSplit = _settings.cropEnabled || _settings.splitPages;
+    final req = await showModalBottomSheet<PageImageRequest>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => PageImageSheet(
+        pageCount: _pageCount,
+        hasCropOrSplit: hasCropOrSplit,
+      ),
+    );
+    if (req == null || !mounted) return;
+
+    final pages = switch (req.range) {
+      PageRange.current => [_page],
+      PageRange.visible => [
+        for (var p = _page - 10; p <= _page + 10; p++)
+          if (p >= 1 && p <= _pageCount) p,
+      ],
+      PageRange.all => [for (var p = 1; p <= _pageCount; p++) p],
+    };
+
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() => _cropDetecting = true); // 같은 가림막을 쓴다
+    try {
+      final base = await getApplicationDocumentsDirectory();
+      final files = await PageImageExport.exportPages(
+        doc: doc,
+        pageNumbers: pages,
+        outDir: Directory('${base.path}${Platform.pathSeparator}exports'),
+        baseName: widget.book.title,
+        dpi: req.dpi,
+        cropFor: req.asSeen ? _settings.cropFor : null,
+        split: req.asSeen && _settings.splitPages,
+      );
+      if (!mounted) return;
+      messenger
+        ..clearSnackBars()
+        ..showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 6),
+            content: Text(
+              files.length == 1 && files.first.path.endsWith('.zip')
+                  ? 'zip 하나로 묶어 냈습니다'
+                  : '${files.length}장을 냈습니다',
+            ),
+            action: SnackBarAction(
+              label: '공유',
+              onPressed: () => unawaited(
+                SharePlus.instance.share(
+                  ShareParams(
+                    files: [for (final f in files) XFile(f.path)],
+                    text: widget.book.title,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+    } on Object catch (e) {
+      if (mounted) _toast('이미지를 내보내지 못했습니다 — $e');
+    } finally {
+      if (mounted) setState(() => _cropDetecting = false);
+    }
   }
 
   void _toast(String message) {

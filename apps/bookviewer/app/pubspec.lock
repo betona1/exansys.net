@@ -18,7 +18,7 @@ packages:
     source: hosted
     version: "13.0.0"
   archive:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: archive
       sha256: a96e8b390886ee8abb49b7bd3ac8df6f451c621619f52a26e815fdcf568959ff
@@ -361,7 +361,7 @@ packages:
     source: hosted
     version: "4.1.2"
   image:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: image
       sha256: "6300175e00616bbc832e2fc91bfa4d776af5402c81c7151bee6905bb08473c52"
@@ -585,7 +585,7 @@ packages:
     source: hosted
     version: "2.4.7"
   pdfrx_engine:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: pdfrx_engine
       sha256: ef8f8cfa64255bfc91a559dd2d32d7cfe7a0f8003bac297bbf9a0aed1182fae5
