@@ -9,7 +9,6 @@ import '../../../core/tokens.dart';
 class ReaderRail extends StatelessWidget {
   const ReaderRail({
     super.key,
-    required this.title,
     required this.page,
     required this.pageCount,
     required this.sideLabel,
@@ -27,7 +26,6 @@ class ReaderRail extends StatelessWidget {
     this.onClose,
   });
 
-  final String title;
   final int page;
   final int pageCount;
   final String? sideLabel;

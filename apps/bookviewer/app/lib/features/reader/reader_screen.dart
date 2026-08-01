@@ -639,7 +639,6 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
   }
 
   ReaderRail _buildRail({VoidCallback? onClose}) => ReaderRail(
-    title: widget.book.title,
     page: _page,
     pageCount: _pageCount,
     sideLabel: _settings.splitPages ? (_view.isEven ? '좌' : '우') : null,
@@ -683,10 +682,12 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
             top: 0,
             right: 0,
             bottom: 0,
-            key: _viewerKey,
             child: doc == null
                 ? const Center(child: CircularProgressIndicator())
                 : GestureDetector(
+                    // 키는 Positioned 가 아니라 여기에 단다.
+                    // Positioned 는 RenderObject 를 만들지 않아 크기 조회가 어긋난다
+                    key: _viewerKey,
                     behavior: HitTestBehavior.translucent,
                     onTapUp: (d) => _handleTapAt(
                       d.localPosition.dx,
@@ -721,9 +722,14 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
               onCancel: () => setState(() => _capture = false),
             ),
 
-          // 좌우 넘김 영역 — 늘 옅게, 넘길 때만 또렷하게
+          // 좌우 넘김 영역 — 늘 옅게, 넘길 때만 또렷하게.
+          // 상주 레일 위에는 그리지 않는다 (화살표가 버튼을 덮는다)
           if (!_capture)
-            Positioned.fill(
+            Positioned(
+              left: chrome == ReaderChrome.rail ? ReaderRail.width : 0,
+              top: 0,
+              right: 0,
+              bottom: 0,
               child: PageTurnZones(
                 highlighted: _zonesVisible || _chrome,
                 canPrev: _canPrev,
