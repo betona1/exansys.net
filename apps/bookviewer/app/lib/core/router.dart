@@ -18,8 +18,12 @@ abstract final class AppRoutes {
       page == null ? '/book/$id' : '/book/$id?page=$page';
 }
 
+/// 개발용 — 서재를 거치지 않고 바로 그 책을 연다.
+///   flutter run -d windows --release --dart-define=openBookId=1
+const _devOpenBookId = int.fromEnvironment('openBookId');
+
 final appRouter = GoRouter(
-  initialLocation: AppRoutes.library,
+  initialLocation: _devOpenBookId > 0 ? '/book/$_devOpenBookId' : AppRoutes.library,
   routes: [
     GoRoute(
       path: AppRoutes.library,

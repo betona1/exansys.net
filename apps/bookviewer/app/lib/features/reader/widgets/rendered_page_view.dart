@@ -57,7 +57,10 @@ class RenderedPageView extends StatefulWidget {
 }
 
 class RenderedPageViewState extends State<RenderedPageView> {
-  late PageController _controller = PageController(initialPage: widget.initialView);
+  // 컨트롤러는 하나로 끝까지 간다.
+  // 모드가 바뀔 때마다 새로 만들어 갈아 끼우면, 아직 붙어 있는 것을 버리게 되어
+  // 화면이 옛 위치에 멈춘 채 아무 일도 일어나지 않은 것처럼 보인다.
+  late final PageController _controller = PageController(initialPage: widget.initialView);
 
   /// 확대 중인가. 확대했을 때 좌우로 밀면 쪽이 넘어가 버리면 안 된다 —
   /// 그때는 밀기가 그림 이동이어야 한다
@@ -69,14 +72,18 @@ class RenderedPageViewState extends State<RenderedPageView> {
   @override
   void didUpdateWidget(RenderedPageView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    final old = oldWidget;
-    // 분할을 켜고 끄면 보기 개수가 달라진다. 컨트롤러를 새로 만들지 않으면
-    // 엉뚱한 위치로 튄다
-    if (old.split != widget.split) {
-      final page = _controller.hasClients ? _controller.page?.round() ?? 0 : widget.initialView;
-      final pageIndex = page ~/ (old.split ? 2 : 1);
-      _controller.dispose();
-      _controller = PageController(initialPage: (pageIndex * _perPage).clamp(0, viewCount - 1));
+    // 분할을 켜고 끄면 한 쪽이 한 칸이 되었다가 두 칸이 된다.
+    // 보고 있던 **쪽**을 유지해야 하므로 위치를 다시 계산해 옮긴다.
+    if (oldWidget.split != widget.split) {
+      final current = _controller.hasClients
+          ? (_controller.page?.round() ?? widget.initialView)
+          : widget.initialView;
+      final pageIndex = current ~/ (oldWidget.split ? 2 : 1);
+      final target = (pageIndex * _perPage).clamp(0, viewCount - 1);
+      // 이 프레임에는 아직 옛 itemCount 로 그려져 있다. 다음 프레임에 옮긴다
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _controller.hasClients) _controller.jumpToPage(target);
+      });
     }
   }
 

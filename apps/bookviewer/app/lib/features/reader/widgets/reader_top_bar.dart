@@ -16,12 +16,8 @@ class ReaderTopBar extends StatelessWidget {
     required this.onBack,
     required this.onToggleSearch,
     required this.onCapture,
-    required this.splitOn,
-    required this.onToggleSplit,
-    required this.cropOn,
-    required this.onCrop,
-    required this.themeOn,
-    required this.onTheme,
+    required this.viewChanged,
+    required this.onOpenViewSheet,
     this.searchSheet,
   });
 
@@ -40,19 +36,11 @@ class ReaderTopBar extends StatelessWidget {
   final VoidCallback onToggleSearch;
   final VoidCallback onCapture;
 
-  /// 좌우 나눠 보기가 켜져 있는가
-  final bool splitOn;
+  /// 보기 설정 가운데 하나라도 켜져 있는가 (분할·크롭·다크)
+  final bool viewChanged;
 
   /// null 이면 아직 문서가 준비되지 않은 것
-  final VoidCallback? onToggleSplit;
-
-  /// 여백 크롭이 켜져 있는가
-  final bool cropOn;
-  final VoidCallback? onCrop;
-
-  /// 다크 리딩이 켜져 있는가
-  final bool themeOn;
-  final VoidCallback? onTheme;
+  final VoidCallback? onOpenViewSheet;
 
   final Widget? searchSheet;
 
@@ -88,23 +76,13 @@ class ReaderTopBar extends StatelessWidget {
                     icon: Icon(searchOpen ? Icons.search_off : Icons.search),
                     tooltip: searchDisabledReason ?? '이 책에서 찾기',
                   ),
+                  // 보기 관련은 시트 하나로 모은다.
+                  // 도구막대에 토글이 여섯 개 늘어서면 무엇이 무엇인지 알 수 없다
                   IconButton(
-                    onPressed: onToggleSplit,
-                    icon: Icon(splitOn ? Icons.menu_book : Icons.vertical_split),
-                    tooltip: splitOn ? '한 장씩 보기' : '좌우 나눠 보기',
-                    color: splitOn ? AppTokens.amber : null,
-                  ),
-                  IconButton(
-                    onPressed: onTheme,
-                    icon: const Icon(Icons.contrast),
-                    tooltip: '테마 · 밝기',
-                    color: themeOn ? AppTokens.amber : null,
-                  ),
-                  IconButton(
-                    onPressed: onCrop,
-                    icon: const Icon(Icons.crop),
-                    tooltip: '여백 잘라내기',
-                    color: cropOn ? AppTokens.amber : null,
+                    onPressed: onOpenViewSheet,
+                    icon: const Icon(Icons.tune),
+                    tooltip: '보기 — 나눠 보기 · 여백 · 테마',
+                    color: viewChanged ? AppTokens.amber : null,
                   ),
                   IconButton(
                     onPressed: canCapture ? onCapture : null,

@@ -22,6 +22,7 @@ import 'widgets/crop_sheet.dart';
 import 'widgets/reader_bottom_bar.dart';
 import 'widgets/reader_top_bar.dart';
 import 'widgets/theme_sheet.dart';
+import 'widgets/view_sheet.dart';
 import 'widgets/page_turn_zones.dart';
 import 'widgets/rendered_page_view.dart';
 
@@ -58,6 +59,10 @@ class _ReaderView extends ConsumerStatefulWidget {
   @override
   ConsumerState<_ReaderView> createState() => _ReaderViewState();
 }
+
+/// 개발용 자가진단 — 화면을 손으로 누르지 않고 모드 전환을 확인한다.
+///   flutter run -d windows --release --dart-define=selftest=split
+const _selfTest = String.fromEnvironment('selftest');
 
 class _ReaderViewState extends ConsumerState<_ReaderView> {
   final _controller = PdfViewerController();
@@ -212,6 +217,8 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
     // 전체 검색용 색인을 뒤에서 만든다. 읽기를 막지 않는다
     unawaited(ref.read(indexerProvider).ensureIndexed(widget.book.id));
 
+    if (_selfTest == 'split') unawaited(_runSelfTest());
+
     if (!hasText) _notifyScanned();
     _maybeSuggestSplit(doc);
     if (_settings.splitPrompted || _settings.splitPages) {
@@ -275,6 +282,33 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
           ],
         ),
       );
+  }
+
+  /// 좌우 분할·그냥 보기 전환이 실제로 되는지 스스로 눌러 본다
+  Future<void> _runSelfTest() async {
+    void say(String tag) {
+      // ignore: avoid_print
+      print('SELFTEST | $tag | split=${_settings.splitPages} crop=${_settings.cropEnabled} '
+          'custom=$_custom renderDoc=${_renderDoc != null} view=$_view page=$_page/$_pageCount');
+    }
+
+    await Future<void>.delayed(const Duration(milliseconds: 800));
+    say('시작');
+
+    await _toggleSplit();
+    await Future<void>.delayed(const Duration(milliseconds: 600));
+    say('분할 켠 뒤');
+
+    _step(1);
+    await Future<void>.delayed(const Duration(milliseconds: 400));
+    say('한 칸 넘긴 뒤');
+
+    await _toggleSplit();
+    await Future<void>.delayed(const Duration(milliseconds: 600));
+    say('분할 끈 뒤');
+
+    // ignore: avoid_print
+    print('SELFTEST | 끝');
   }
 
   Future<void> _saveSettings(ReaderSettings next) async {
@@ -413,6 +447,23 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
         cropOdd: result.odd,
         cropEven: result.even,
         cropPrompted: true,
+      ),
+    );
+  }
+
+  /// 보기 시트 — 나눠 보기·여백·테마를 한곳에서 (techspec §1 툴바 → 시트 → 실행)
+  void _openViewSheet() {
+    unawaited(
+      showModalBottomSheet<void>(
+        context: context,
+        builder: (_) => ViewSheet(
+          splitOn: _settings.splitPages,
+          cropOn: _settings.cropEnabled,
+          darkOn: _settings.theme == ReadingTheme.dark,
+          onToggleSplit: () => unawaited(_toggleSplit()),
+          onCrop: () => unawaited(_openCropSheet()),
+          onTheme: () => unawaited(_openThemeSheet()),
+        ),
       ),
     );
   }
@@ -688,12 +739,10 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
                 if (!_search) _searcher?.resetTextSearch();
               }),
               onCapture: () => setState(() => _capture = true),
-              splitOn: _settings.splitPages,
-              onToggleSplit: _doc == null ? null : () => unawaited(_toggleSplit()),
-              cropOn: _settings.cropEnabled,
-              onCrop: _doc == null ? null : () => unawaited(_openCropSheet()),
-              themeOn: _settings.theme == ReadingTheme.dark,
-              onTheme: _doc == null ? null : () => unawaited(_openThemeSheet()),
+              viewChanged: _settings.splitPages ||
+                  _settings.cropEnabled ||
+                  _settings.theme == ReadingTheme.dark,
+              onOpenViewSheet: _doc == null ? null : _openViewSheet,
               searchSheet: _search && _searcher != null
                   ? SearchSheet(
                       searcher: _searcher!,
