@@ -257,3 +257,51 @@ appRoutes.get("/:slug/qr", async (c) => {
     "Content-Disposition": `inline; filename="${rows[0].slug}-${platform}-qr.svg"`,
   });
 });
+
+// ─────────────────────────────────────────────────────────────
+// 일회성 시드 — Exanode 의 아이콘·썸네일·영문 문구·스크린샷을 채운다.
+// 한글 이름·소개·설명은 이미 등록된 값을 그대로 둔다.
+// 등록이 끝나면 이 라우트는 제거한다 (임시 코드).
+// ─────────────────────────────────────────────────────────────
+appRoutes.post("/seed-exanode-assets", async (c) => {
+  const db = drizzle(c.env.DB);
+  await ensureColumns(db, "apps", APPS_GALLERY_COLUMNS);
+
+  const found = await db.select({ id: apps.id }).from(apps).where(eq(apps.slug, "crdl")).limit(1);
+  if (found.length === 0) return c.json(err("not_found"), 404);
+  const appId = found[0].id;
+
+  await db
+    .update(apps)
+    .set({
+      iconUrl: "/showcase/exanode/icon-512.webp",
+      thumbUrl: "/showcase/exanode/feature-1024x500.webp",
+      nameEn: "Exanode",
+      taglineEn:
+        "Trace 1 to N in one unbroken path — a snake puzzle reborn from 30-year-old graph paper.",
+      descriptionEn: `A grid puzzle once drawn by hand on graph paper, brought back as a mobile game.
+
+Sweep the grid with the snake's head and step on the numbers in order, from 1 to N. It combines the action of Snake with the planning of a puzzle — the path behind you cannot be undone, so every turn counts.
+
+· Endless stages that keep unfolding
+· One wrong turn and the path is closed — plan before you move
+· Clear a stage and the water comes rushing in
+· A cute snake keeps you company`,
+      category: "Game",
+      sort: 2,
+    })
+    .where(eq(apps.id, appId));
+
+  const shots = [
+    "/showcase/exanode/store-01-title.webp",
+    "/showcase/exanode/store-02-map.webp",
+    "/showcase/exanode/store-03-play.webp",
+    "/showcase/exanode/store-04-water.webp",
+    "/showcase/exanode/store-05-banner.webp",
+  ];
+  await db.delete(appScreenshots).where(eq(appScreenshots.appId, appId));
+  for (let i = 0; i < shots.length; i++) {
+    await db.insert(appScreenshots).values({ appId, imageUrl: shots[i], sort: i });
+  }
+  return c.json(ok({ updated: "crdl", shots: shots.length }));
+});
