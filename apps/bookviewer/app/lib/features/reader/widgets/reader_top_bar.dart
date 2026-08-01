@@ -16,6 +16,11 @@ class ReaderTopBar extends StatelessWidget {
     required this.onBack,
     required this.onToggleSearch,
     required this.onCapture,
+    required this.highlighting,
+    required this.onToggleHighlight,
+    required this.bookmarked,
+    required this.onToggleBookmark,
+    required this.onOpenMarks,
     required this.viewChanged,
     required this.onOpenViewSheet,
     this.searchSheet,
@@ -35,6 +40,18 @@ class ReaderTopBar extends StatelessWidget {
   final VoidCallback onBack;
   final VoidCallback onToggleSearch;
   final VoidCallback onCapture;
+
+
+  /// 하이라이트 모드가 켜져 있는가
+  final bool highlighting;
+  final VoidCallback onToggleHighlight;
+
+  /// 지금 쪽이 북마크되어 있는가
+  final bool bookmarked;
+  final VoidCallback onToggleBookmark;
+
+  /// 하이라이트·북마크 모아 보기
+  final VoidCallback onOpenMarks;
 
   /// 보기 설정 가운데 하나라도 켜져 있는가 (분할·크롭·다크)
   final bool viewChanged;
@@ -75,6 +92,23 @@ class ReaderTopBar extends StatelessWidget {
                     onPressed: canSearch ? onToggleSearch : null,
                     icon: Icon(searchOpen ? Icons.search_off : Icons.search),
                     tooltip: searchDisabledReason ?? '이 책에서 찾기',
+                  ),
+                  IconButton(
+                    onPressed: onToggleHighlight,
+                    icon: const Icon(Icons.brush),
+                    tooltip: highlighting ? '형광펜 끄기' : '형광펜',
+                    color: highlighting ? AppTokens.amber : null,
+                  ),
+                  IconButton(
+                    onPressed: onToggleBookmark,
+                    icon: Icon(bookmarked ? Icons.bookmark : Icons.bookmark_border),
+                    tooltip: bookmarked ? '북마크 빼기' : '이 쪽 북마크',
+                    color: bookmarked ? AppTokens.amber : null,
+                  ),
+                  IconButton(
+                    onPressed: onOpenMarks,
+                    icon: const Icon(Icons.list),
+                    tooltip: '하이라이트·북마크 목록',
                   ),
                   // 보기 관련은 시트 하나로 모은다.
                   // 도구막대에 토글이 여섯 개 늘어서면 무엇이 무엇인지 알 수 없다

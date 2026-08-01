@@ -19,6 +19,7 @@ part 'database.g.dart';
     ReadingProgress,
     BookSettings,
     Anchors,
+    Annotations,
     Captures,
     Bookmarks,
     PageTexts,
@@ -32,7 +33,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -60,6 +61,10 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 6) {
         await m.addColumn(bookSettings, bookSettings.landscapeHintShown);
+      }
+      if (from < 7) {
+        // 주석 표를 빠뜨리고 있었다. DB스키마.xlsx 에는 처음부터 있었다
+        await m.createTable(annotations);
       }
     },
     beforeOpen: (details) async {

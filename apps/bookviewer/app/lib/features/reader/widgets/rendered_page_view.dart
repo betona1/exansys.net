@@ -432,6 +432,26 @@ class SliceMapper {
   /// 확대·이동 변환
   final Matrix4 transform;
 
+  /// 쪽 좌표 → 화면(조각 로컬) 좌표. 하이라이트를 제자리에 그리는 데 쓴다.
+  /// 이 조각에 걸치지 않으면 null
+  Rect? toLocalRect(Rect page) {
+    final inter = page.intersect(pageRect);
+    if (inter.width <= 0 || inter.height <= 0) return null;
+
+    final fx = (inter.left - pageRect.left) / pageRect.width;
+    final fy = (inter.top - pageRect.top) / pageRect.height;
+    final fw = inter.width / pageRect.width;
+    final fh = inter.height / pageRect.height;
+
+    final drawn = Rect.fromLTWH(
+      imageRect.left + fx * imageRect.width,
+      imageRect.top + fy * imageRect.height,
+      fw * imageRect.width,
+      fh * imageRect.height,
+    );
+    return MatrixUtils.transformRect(transform, drawn);
+  }
+
   /// 화면(조각 로컬) 좌표의 사각형 → 쪽 좌표. 조각 밖이면 잘라 낸다
   Rect? toPageRect(Rect local) {
     final inv = Matrix4.tryInvert(transform);

@@ -187,6 +187,35 @@ class Anchors extends Table {
   TextColumn get createdAt => text()();
 }
 
+/// 주석 — 하이라이트·밑줄·취소선·메모.
+///
+/// 원본 PDF 를 건드리지 않고 여기에 쌓는다 (ADR-0002).
+/// 위치는 anchors 를 통해 참조하므로 캡처와 같은 재부착 로직을 공유한다.
+class Annotations extends Table {
+  IntColumn get id => integer().autoIncrement()();
+
+  /// 동기화 기준 전역 고유 ID. Obsidian 딥링크에도 쓴다
+  TextColumn get uuid => text().unique()();
+
+  IntColumn get bookId => integer().references(Books, #id)();
+  IntColumn get anchorId => integer().references(Anchors, #id)();
+
+  /// highlight / underline / strikeout / note
+  TextColumn get annoType => text()();
+
+  /// 하이라이트 색 슬롯 1~5.
+  /// **색상값이 아니라 슬롯을 저장한다** — 테마를 바꿔도 의미가 따라온다
+  IntColumn get colorSlot => integer().withDefault(const Constant(1))();
+
+  TextColumn get note => text().nullable()();
+
+  TextColumn get createdAt => text()();
+  TextColumn get updatedAt => text()();
+
+  /// 소프트 삭제
+  TextColumn get deletedAt => text().nullable()();
+}
+
 /// 캡처 기록.
 /// **출처(책·페이지·좌표)를 절대 잃지 않는다** — anchorId 가 그 연결이다.
 class Captures extends Table {

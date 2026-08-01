@@ -9,11 +9,15 @@ import 'package:pdfrx/pdfrx.dart';
 import '../../core/providers.dart';
 import '../../core/router.dart';
 import '../../core/tokens.dart';
+import '../../domain/entities/annotation.dart';
 import '../../domain/entities/book.dart';
 import '../../domain/entities/crop_rect.dart';
 import '../../domain/entities/fit_mode.dart';
 import '../../domain/entities/reader_settings.dart';
 import '../../domain/entities/reading_theme.dart';
+import '../annotation/widgets/highlight_bar.dart';
+import '../annotation/widgets/highlight_layer.dart';
+import '../annotation/widgets/marks_sheet.dart';
 import '../capture/capture_controller.dart';
 import '../capture/widgets/capture_overlay.dart';
 import '../search/indexer.dart';
@@ -93,6 +97,10 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
   bool _search = false;
   bool _capture = false;
   bool _cropDetecting = false;
+
+  /// 하이라이트 긋는 중인가. 켜져 있으면 드래그가 칠하기가 된다
+  bool _highlighting = false;
+  int _colorSlot = 1;
 
   /// 이 문서에 글자 레이어가 있는가. 없으면 검색이 성립하지 않는다
   bool _hasTextLayer = true;
@@ -543,6 +551,140 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
     );
   }
 
+  // ── 하이라이트·북마크 ───────────────────────────────────
+
+  Future<void> _addHighlight(Rect pageRect) async {
+    final slice = _slice;
+    if (slice == null) return;
+    await ref.read(annotationRepositoryProvider).addHighlight(
+      bookId: widget.book.id,
+      pageNo: slice.pageNumber,
+      rect: pageRect,
+      colorSlot: _colorSlot,
+      // 파일이 바뀌었는지 판정할 기준. 지금은 등록 당시 값을 쓴다
+      documentChecksum: '',
+    );
+  }
+
+  Future<void> _toggleBookmark() async {
+    final added = await ref
+        .read(annotationRepositoryProvider)
+        .toggleBookmark(bookId: widget.book.id, pageNo: _page);
+    if (!mounted) return;
+    _toast(added ? '$_page쪽을 북마크했습니다' : '북마크를 뺐습니다');
+  }
+
+  /// 하이라이트를 누르면 색을 바꾸거나 지운다
+  void _onTapHighlight(Highlight h) {
+    unawaited(
+      showModalBottomSheet<void>(
+        context: context,
+        builder: (ctx) => SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(AppTokens.space3),
+                child: Row(
+                  children: [
+                    for (var slot = 1; slot <= AppTokens.highlights.length; slot++)
+                      Expanded(
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.pop(ctx);
+                            unawaited(
+                              ref
+                                  .read(annotationRepositoryProvider)
+                                  .updateHighlight(h.id, colorSlot: slot),
+                            );
+                          },
+                          child: Container(
+                            height: 34,
+                            margin: const EdgeInsets.symmetric(horizontal: 3),
+                            decoration: BoxDecoration(
+                              color: AppTokens.highlights[slot - 1],
+                              borderRadius: BorderRadius.circular(6),
+                              border: slot == h.colorSlot
+                                  ? Border.all(color: Colors.black87, width: 2.5)
+                                  : null,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.edit_note),
+                title: const Text('메모'),
+                subtitle: h.note == null ? null : Text(h.note!),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  unawaited(_editNote(h));
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.delete_outline),
+                title: const Text('삭제'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  unawaited(ref.read(annotationRepositoryProvider).deleteHighlight(h.id));
+                },
+              ),
+              const SizedBox(height: AppTokens.space2),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _editNote(Highlight h) async {
+    final controller = TextEditingController(text: h.note ?? '');
+    final text = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('메모'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          maxLines: 4,
+          decoration: const InputDecoration(hintText: '이 자리에 남길 말'),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+            child: const Text('저장'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (text == null) return;
+    await ref.read(annotationRepositoryProvider).updateHighlight(h.id, note: text);
+  }
+
+  void _openMarksSheet(List<Highlight> highlights, List<BookmarkEntry> bookmarks) {
+    unawaited(
+      showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        builder: (_) => MarksSheet(
+          highlights: highlights,
+          bookmarks: bookmarks,
+          onGoToPage: _goToPage,
+          onDeleteHighlight: (h) =>
+              unawaited(ref.read(annotationRepositoryProvider).deleteHighlight(h.id)),
+          onDeleteBookmark: (b) =>
+              unawaited(ref.read(annotationRepositoryProvider).deleteBookmark(b.id)),
+          onEditNote: (h) => unawaited(_editNote(h)),
+        ),
+      ),
+    );
+  }
+
   void _toast(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context)
@@ -638,7 +780,12 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
     );
   }
 
-  ReaderRail _buildRail({VoidCallback? onClose}) => ReaderRail(
+  ReaderRail _buildRail({
+    VoidCallback? onClose,
+    required bool bookmarked,
+    required List<Highlight> highlights,
+    required List<BookmarkEntry> bookmarks,
+  }) => ReaderRail(
     page: _page,
     pageCount: _pageCount,
     sideLabel: _settings.splitPages ? (_view.isEven ? '좌' : '우') : null,
@@ -654,6 +801,11 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
     onSearch: () => setState(() => _search = true),
     onViewSheet: _openViewSheet,
     onCapture: () => setState(() => _capture = true),
+    highlighting: _highlighting,
+    onToggleHighlight: () => setState(() => _highlighting = !_highlighting),
+    bookmarked: bookmarked,
+    onToggleBookmark: () => unawaited(_toggleBookmark()),
+    onOpenMarks: () => _openMarksSheet(highlights, bookmarks),
     onPrev: () => _step(-1),
     onNext: () => _step(1),
     canPrev: _canPrev,
@@ -665,6 +817,9 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
     final doc = _doc;
     final capturing = ref.watch(captureBusyProvider);
     final chrome = ReaderChrome.of(MediaQuery.sizeOf(context));
+    final highlights = ref.watch(highlightsProvider(widget.book.id)).valueOrNull ?? const [];
+    final bookmarks = ref.watch(bookmarksProvider(widget.book.id)).valueOrNull ?? const [];
+    final bookmarked = bookmarks.any((b) => b.pageNo == _page);
 
     return Scaffold(
       key: _scaffoldKey,
@@ -672,7 +827,12 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
       // 가로 화면에서는 오른쪽 가장자리를 끌면 조작 레일이 나온다.
       // 끌어당기는 폭을 좁게 둔다 — 넓으면 쪽 넘김 탭과 겹친다
       endDrawer: chrome == ReaderChrome.drawer
-          ? _buildRail(onClose: () => Navigator.of(context).maybePop())
+          ? _buildRail(
+              onClose: () => Navigator.of(context).maybePop(),
+              bookmarked: bookmarked,
+              highlights: highlights,
+              bookmarks: bookmarks,
+            )
           : null,
       drawerEdgeDragWidth: 28,
       body: Stack(
@@ -707,6 +867,17 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
                   ),
           ),
 
+          // 하이라이트는 책 바로 위에 얹는다
+          if (doc != null && !_capture)
+            HighlightLayer(
+              slice: _slice,
+              highlights: highlights,
+              drawing: _highlighting,
+              colorSlot: _colorSlot,
+              onAdd: (r) => unawaited(_addHighlight(r)),
+              onTapHighlight: _onTapHighlight,
+            ),
+
           if (_cropDetecting)
             const Positioned.fill(
               child: ColoredBox(
@@ -739,7 +910,16 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
 
           // 큰 화면에서는 레일이 상주한다. 폭이 남으니 책을 가리지 않는다
           if (chrome == ReaderChrome.rail && !_capture)
-            Positioned(left: 0, top: 0, bottom: 0, child: _buildRail()),
+            Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              child: _buildRail(
+                bookmarked: bookmarked,
+                highlights: highlights,
+                bookmarks: bookmarks,
+              ),
+            ),
 
           // 가로 폰에서는 조작이 서랍에 있다. 여는 손잡이만 살짝 보인다
           if (chrome == ReaderChrome.drawer && !_capture && _chrome)
@@ -778,6 +958,11 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
               },
               onToggleSearch: () => setState(() => _search = !_search),
               onCapture: () => setState(() => _capture = true),
+              highlighting: _highlighting,
+              onToggleHighlight: () => setState(() => _highlighting = !_highlighting),
+              bookmarked: bookmarked,
+              onToggleBookmark: () => unawaited(_toggleBookmark()),
+              onOpenMarks: () => _openMarksSheet(highlights, bookmarks),
               viewChanged: _settings.splitPages ||
                   _settings.cropEnabled ||
                   _settings.theme == ReadingTheme.dark,
@@ -794,7 +979,14 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
                   : null,
             ),
 
-          if (chrome == ReaderChrome.bars && _chrome && !_capture)
+          if (_highlighting && !_capture)
+            HighlightBar(
+              colorSlot: _colorSlot,
+              onPick: (slot) => setState(() => _colorSlot = slot),
+              onDone: () => setState(() => _highlighting = false),
+            ),
+
+          if (chrome == ReaderChrome.bars && _chrome && !_capture && !_highlighting)
             ReaderBottomBar(
               page: _page,
               pageCount: _pageCount,

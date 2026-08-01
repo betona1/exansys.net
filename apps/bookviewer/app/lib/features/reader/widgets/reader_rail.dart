@@ -14,6 +14,11 @@ class ReaderRail extends StatelessWidget {
     required this.sideLabel,
     required this.canSearch,
     required this.searchDisabledReason,
+    required this.highlighting,
+    required this.onToggleHighlight,
+    required this.bookmarked,
+    required this.onToggleBookmark,
+    required this.onOpenMarks,
     required this.viewChanged,
     required this.onBack,
     required this.onSearch,
@@ -32,6 +37,18 @@ class ReaderRail extends StatelessWidget {
 
   final bool canSearch;
   final String? searchDisabledReason;
+
+  /// 하이라이트 모드가 켜져 있는가
+  final bool highlighting;
+  final VoidCallback onToggleHighlight;
+
+  /// 지금 쪽이 북마크되어 있는가
+  final bool bookmarked;
+  final VoidCallback onToggleBookmark;
+
+  /// 하이라이트·북마크 모아 보기
+  final VoidCallback onOpenMarks;
+
   final bool viewChanged;
 
   final VoidCallback onBack;
@@ -85,6 +102,23 @@ class ReaderRail extends StatelessWidget {
                 onPressed: onCapture,
                 icon: const Icon(Icons.crop_free),
                 tooltip: '영역 캡처',
+              ),
+              IconButton(
+                onPressed: onToggleHighlight,
+                icon: const Icon(Icons.brush),
+                tooltip: highlighting ? '형광펜 끄기' : '형광펜',
+                color: highlighting ? AppTokens.amber : null,
+              ),
+              IconButton(
+                onPressed: onToggleBookmark,
+                icon: Icon(bookmarked ? Icons.bookmark : Icons.bookmark_border),
+                tooltip: bookmarked ? '북마크 빼기' : '이 쪽 북마크',
+                color: bookmarked ? AppTokens.amber : null,
+              ),
+              IconButton(
+                onPressed: onOpenMarks,
+                icon: const Icon(Icons.list),
+                tooltip: '하이라이트·북마크 목록',
               ),
 
               const Spacer(),
