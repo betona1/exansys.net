@@ -5,6 +5,8 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../domain/entities/book.dart';
+import '../../domain/entities/crop_rect.dart';
+import '../../domain/entities/reader_settings.dart';
 import '../../domain/repositories/library_repository.dart';
 import '../db/database.dart';
 
@@ -158,6 +160,39 @@ class LibraryRepositoryImpl implements LibraryRepository {
     // 원본 PDF 파일은 건드리지 않는다
     await (_db.update(_db.books)..where((t) => t.id.equals(bookId)))
         .write(BooksCompanion(deletedAt: Value(_now()), updatedAt: Value(_now())));
+  }
+
+  @override
+  Future<ReaderSettings> readerSettings(int bookId) async {
+    final row = await (_db.select(_db.bookSettings)..where((t) => t.bookId.equals(bookId)))
+        .getSingleOrNull();
+    if (row == null) return const ReaderSettings();
+    return ReaderSettings(
+      splitPages: row.splitPages,
+      splitRightToLeft: row.splitRightToLeft,
+      splitPrompted: row.splitPrompted,
+      cropEnabled: row.cropEnabled,
+      cropOdd: CropRect.fromJson(row.cropOdd),
+      cropEven: CropRect.fromJson(row.cropEven),
+      cropPrompted: row.cropPrompted,
+    );
+  }
+
+  @override
+  Future<void> saveReaderSettings(int bookId, ReaderSettings settings) async {
+    await _db.into(_db.bookSettings).insertOnConflictUpdate(
+          BookSettingsCompanion.insert(
+            bookId: Value(bookId),
+            splitPages: Value(settings.splitPages),
+            splitRightToLeft: Value(settings.splitRightToLeft),
+            splitPrompted: Value(settings.splitPrompted),
+            cropEnabled: Value(settings.cropEnabled),
+            cropOdd: Value(settings.cropOdd?.toJson()),
+            cropEven: Value(settings.cropEven?.toJson()),
+            cropPrompted: Value(settings.cropPrompted),
+            updatedAt: _now(),
+          ),
+        );
   }
 
   /// 앞 [_hashHeadBytes] + 파일 크기로 만든 SHA-256.

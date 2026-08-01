@@ -9,12 +9,17 @@ import '../../core/providers.dart';
 import '../../core/router.dart';
 import '../../core/tokens.dart';
 import '../../domain/entities/book.dart';
+import '../../domain/entities/crop_rect.dart';
+import '../../domain/entities/reader_settings.dart';
 import '../capture/capture_controller.dart';
 import '../capture/widgets/capture_overlay.dart';
 import '../search/indexer.dart';
 import '../search/widgets/search_sheet.dart';
+import 'crop_detector.dart';
+import 'widgets/crop_sheet.dart';
 import 'widgets/reader_bottom_bar.dart';
 import 'widgets/reader_top_bar.dart';
+import 'widgets/rendered_page_view.dart';
 
 /// 읽기 화면 (techspec §4).
 ///
@@ -68,9 +73,43 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
   bool _capture = false;
   Timer? _saveDebounce;
 
+  /// 좌우 분할 모드. 스캔 책은 한 장에 두 쪽이 들어 있어 그대로는 읽기 어렵다
+  ReaderSettings _settings = const ReaderSettings();
+  final _renderKey = GlobalKey<RenderedPageViewState>();
+
+  /// 직접 그리는 모드(분할·크롭)에서 쓰는 별도 문서 핸들.
+  /// PdfViewer 가 쥔 문서를 같이 쓰면 뷰어를 떼는 순간 닫혀 버린다
+  PdfDocument? _renderDoc;
+  bool _renderLoading = false;
+  bool _cropDetecting = false;
+
+  /// 보기 번호 — 분할이면 반쪽 단위, 아니면 쪽 단위 (0부터)
+  int _view = 0;
+
+  /// PdfViewer 대신 직접 그려야 하는가
+  bool get _custom => _settings.splitPages || _settings.cropEnabled;
+  int get _perPage => _settings.splitPages ? 2 : 1;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_loadSettings());
+  }
+
+  Future<void> _loadSettings() async {
+    final s = await ref.read(libraryRepositoryProvider).readerSettings(widget.book.id);
+    if (!mounted) return;
+    setState(() => _settings = s);
+    if (s.splitPages || s.cropEnabled) {
+      await _ensureRenderDoc();
+      if (mounted) setState(() => _view = (_page - 1) * (s.splitPages ? 2 : 1));
+    }
+  }
+
   @override
   void dispose() {
     _saveDebounce?.cancel();
+    _renderDoc?.dispose();
     _searcher?.removeListener(_repaint);
     _searcher?.dispose();
     super.dispose();
@@ -123,6 +162,229 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
 
     // 전체 검색용 색인을 뒤에서 만든다. 읽기를 막지 않는다
     unawaited(ref.read(indexerProvider).ensureIndexed(widget.book.id));
+
+    _maybeSuggestSplit(doc);
+    if (_settings.splitPrompted || _settings.splitPages) {
+      await _maybeSuggestCrop(doc);
+    }
+  }
+
+  /// 한 장에 두 쪽이 들어 있어 보이면 나눠 보기를 권한다 (techspec §16 제안형 온보딩).
+  ///
+  /// 기본으로 켜면 정상 문서에서 쪽이 반토막 나고, 기본으로 끄면 아무도 기능을 모른다.
+  /// 그래서 감지해서 물어본다. 거절하면 다시 묻지 않는다.
+  void _maybeSuggestSplit(PdfDocument doc) {
+    if (!mounted || _settings.splitPages || _settings.splitPrompted) return;
+    final first = doc.pages.first;
+    // 가로가 세로보다 뚜렷하게 길면 펼쳐 스캔한 책으로 본다
+    if (first.width < first.height * 1.2) return;
+
+    ScaffoldMessenger.of(context)
+      ..clearMaterialBanners()
+      ..showMaterialBanner(
+        MaterialBanner(
+          content: const Text('이 책은 한 장에 두 쪽이 들어 있는 것 같습니다.\n좌우로 나눠 한 쪽씩 볼까요?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                ScaffoldMessenger.of(context).clearMaterialBanners();
+                unawaited(() async {
+                  await _saveSettings(_settings.copyWith(splitPrompted: true));
+                  final doc = _doc;
+                  if (doc != null) await _maybeSuggestCrop(doc);
+                }());
+              },
+              child: const Text('아니요'),
+            ),
+            FilledButton(
+              onPressed: () {
+                ScaffoldMessenger.of(context).clearMaterialBanners();
+                unawaited(_toggleSplit());
+              },
+              child: const Text('나눠 보기'),
+            ),
+          ],
+        ),
+      );
+  }
+
+  Future<void> _saveSettings(ReaderSettings next) async {
+    if (mounted) setState(() => _settings = next);
+    await ref.read(libraryRepositoryProvider).saveReaderSettings(widget.book.id, next);
+  }
+
+  /// 직접 그리는 모드에 쓸 문서를 연다 (분할·크롭 공용).
+  Future<PdfDocument?> _ensureRenderDoc() async {
+    if (_renderDoc != null) return _renderDoc;
+    if (_renderLoading) return null;
+    _renderLoading = true;
+    try {
+      final doc = await PdfDocument.openFile(widget.book.filePath);
+      if (!mounted) {
+        await doc.dispose();
+        return null;
+      }
+      setState(() {
+        _renderDoc = doc;
+        _pageCount = doc.pages.length;
+      });
+      return doc;
+    } on Object catch (e) {
+      if (mounted) _toast('문서를 열지 못했습니다 — $e');
+      return null;
+    } finally {
+      _renderLoading = false;
+    }
+  }
+
+  Future<void> _applySettings(ReaderSettings next) async {
+    final wasCustom = _custom;
+    if (next.splitPages || next.cropEnabled) {
+      if (await _ensureRenderDoc() == null) return;
+    }
+    await _saveSettings(next);
+    if (!mounted) return;
+    setState(() {
+      // 모드가 바뀌면 보기 번호를 지금 쪽 기준으로 다시 잡는다
+      _view = ((_page - 1) * (next.splitPages ? 2 : 1)).clamp(0, (_pageCount * 2) - 1);
+    });
+    if (wasCustom && !_custom) _saveProgress();
+  }
+
+  Future<void> _toggleSplit() =>
+      _applySettings(_settings.copyWith(splitPages: !_settings.splitPages, splitPrompted: true));
+
+  void _onViewChanged(int view) {
+    setState(() {
+      _view = view;
+      _page = (view ~/ _perPage) + 1;
+    });
+    _saveDebounce?.cancel();
+    _saveDebounce = Timer(const Duration(milliseconds: 700), _saveProgress);
+  }
+
+  /// 한 쪽(분할 모드면 반쪽) 이동. 책을 넘기는 가장 기본 동작이다 (techspec §6.1)
+  void _step(int delta) {
+    if (_custom) {
+      final maxView = (_pageCount * _perPage) - 1;
+      final next = (_view + delta).clamp(0, maxView);
+      if (next == _view) return;
+      _renderKey.currentState?.goToView(next);
+      _onViewChanged(next);
+    } else {
+      final next = (_page + delta).clamp(1, _pageCount == 0 ? 1 : _pageCount);
+      if (next == _page) return;
+      unawaited(_controller.goToPage(pageNumber: next));
+    }
+  }
+
+  bool get _canPrev => _custom ? _view > 0 : _page > 1;
+  bool get _canNext => _custom
+      ? _view < (_pageCount * _perPage) - 1
+      : _pageCount > 0 && _page < _pageCount;
+
+  // ── 여백 크롭 ───────────────────────────────────────────
+  //
+  // 자동 감지는 반드시 틀리는 쪽이 나온다. 그래서 감지 결과를 곧바로 적용하지 않고
+  // 조정 시트를 함께 띄운다 (SPEC §2.1 — 수동 미세조정 UI 필수).
+
+  Future<void> _openCropSheet({bool detectFirst = false}) async {
+    final doc = await _ensureRenderDoc();
+    if (doc == null || !mounted) return;
+
+    var odd = _settings.cropOdd ?? CropRect.none;
+    var even = _settings.cropEven ?? CropRect.none;
+
+    if (detectFirst || (odd.isEmpty && even.isEmpty)) {
+      setState(() => _cropDetecting = true);
+      try {
+        final found = await CropDetector.detect(doc);
+        odd = found.odd;
+        even = found.even;
+      } on Object catch (e) {
+        if (mounted) _toast('여백을 자동으로 찾지 못했습니다 — $e');
+      } finally {
+        if (mounted) setState(() => _cropDetecting = false);
+      }
+    }
+    if (!mounted) return;
+
+    final pages = doc.pages.length;
+    final result = await showModalBottomSheet<CropSheetResult>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => CropSheet(
+        document: doc,
+        oddPage: _firstPageWith(isOdd: true, total: pages),
+        evenPage: _firstPageWith(isOdd: false, total: pages),
+        initialOdd: odd,
+        initialEven: even,
+        enabled: true,
+      ),
+    );
+    if (result == null || !mounted) return;
+
+    await _applySettings(
+      _settings.copyWith(
+        cropEnabled: result.enabled,
+        cropOdd: result.odd,
+        cropEven: result.even,
+        cropPrompted: true,
+      ),
+    );
+  }
+
+  /// 미리보기에 쓸 쪽 — 표지·간지를 피해 본문 쪽을 고른다
+  int _firstPageWith({required bool isOdd, required int total}) {
+    for (var i = 3; i <= total; i++) {
+      if (i.isOdd == isOdd) return i;
+    }
+    return isOdd ? 1 : (total >= 2 ? 2 : 1);
+  }
+
+  /// 여백이 넉넉하면 잘라내기를 권한다 (techspec §16 제안형 온보딩).
+  ///
+  /// 기본 ON 이면 "페이지 번호가 잘렸다"는 불만이 나오고,
+  /// 기본 OFF 면 아무도 기능이 있는 줄 모른다. 그래서 감지해서 물어본다.
+  Future<void> _maybeSuggestCrop(PdfDocument doc) async {
+    if (!mounted || _settings.cropEnabled || _settings.cropPrompted) return;
+    final sample = await CropDetector.detectPage(doc.pages[doc.pages.length ~/ 2]);
+    if (sample == null || !mounted) return;
+    // 한 변이라도 5% 넘게 비어 있어야 권할 만하다
+    final biggest = [sample.left, sample.top, sample.right, sample.bottom]
+        .reduce((a, b) => a > b ? a : b);
+    if (biggest < 0.05) return;
+
+    ScaffoldMessenger.of(context)
+      ..clearMaterialBanners()
+      ..showMaterialBanner(
+        MaterialBanner(
+          content: const Text('여백이 넓습니다. 잘라내면 글자가 더 커집니다.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                ScaffoldMessenger.of(context).clearMaterialBanners();
+                unawaited(_saveSettings(_settings.copyWith(cropPrompted: true)));
+              },
+              child: const Text('안 볼래요'),
+            ),
+            FilledButton(
+              onPressed: () {
+                ScaffoldMessenger.of(context).clearMaterialBanners();
+                unawaited(_openCropSheet(detectFirst: true));
+              },
+              child: const Text('맞춰 보기'),
+            ),
+          ],
+        ),
+      );
+  }
+
+  void _toast(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..clearSnackBars()
+      ..showSnackBar(SnackBar(content: Text(message)));
   }
 
   bool _onGeneralTap(BuildContext context, PdfViewerController c, PdfViewerGeneralTapHandlerDetails d) {
@@ -168,6 +430,9 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
       backgroundColor: AppTokens.ink,
       body: Stack(
         children: [
+          // 분할 모드에서도 PdfViewer 를 계속 띄워 둔다.
+          // 검색기·색인·캡처가 그 문서에 붙어 있어 떼면 같이 죽는다.
+          // 분할 화면이 그 위를 덮는 구조다.
           Positioned.fill(
             key: _viewerKey,
             child: PdfViewer.file(
@@ -191,6 +456,35 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
             ),
           ),
 
+          if (_custom && _renderDoc != null)
+            Positioned.fill(
+              child: ColoredBox(
+                color: AppTokens.ink,
+                child: GestureDetector(
+                  // 직접 그린 이미지라 뷰어의 탭 처리가 닿지 않는다.
+                  // 몰입 모드 토글을 여기서 따로 받는다
+                  onTap: () => setState(() => _chrome = !_chrome),
+                  child: RenderedPageView(
+                    key: _renderKey,
+                    document: _renderDoc!,
+                    initialView: _view,
+                    split: _settings.splitPages,
+                    rightToLeft: _settings.splitRightToLeft,
+                    cropFor: _settings.cropFor,
+                    onViewChanged: _onViewChanged,
+                  ),
+                ),
+              ),
+            ),
+
+          if (_cropDetecting)
+            const Positioned.fill(
+              child: ColoredBox(
+                color: Color(0xCC0D1117),
+                child: Center(child: CircularProgressIndicator()),
+              ),
+            ),
+
           if (_capture)
             CaptureOverlay(
               busy: capturing,
@@ -213,6 +507,10 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
                 if (!_search) _searcher?.resetTextSearch();
               }),
               onCapture: () => setState(() => _capture = true),
+              splitOn: _settings.splitPages,
+              onToggleSplit: _doc == null ? null : () => unawaited(_toggleSplit()),
+              cropOn: _settings.cropEnabled,
+              onCrop: _doc == null ? null : () => unawaited(_openCropSheet()),
               searchSheet: _search && _searcher != null
                   ? SearchSheet(
                       searcher: _searcher!,
@@ -228,8 +526,22 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
             ReaderBottomBar(
               page: _page,
               pageCount: _pageCount,
+              // 분할 모드에서는 "12쪽 (좌)" 처럼 어느 반쪽인지 함께 보여준다
+              sideLabel: _settings.splitPages ? (_view.isEven ? '좌' : '우') : null,
               onPageChanged: (v) => setState(() => _page = v),
-              onPageSettled: (v) => unawaited(_controller.goToPage(pageNumber: v)),
+              onPrev: () => _step(-1),
+              onNext: () => _step(1),
+              canPrev: _canPrev,
+              canNext: _canNext,
+              onPageSettled: (v) {
+                if (_custom) {
+                  final view = ((v - 1) * _perPage).clamp(0, (_pageCount * _perPage) - 1);
+                  setState(() => _view = view);
+                  _renderKey.currentState?.goToView(view);
+                } else {
+                  unawaited(_controller.goToPage(pageNumber: v));
+                }
+              },
             ),
         ],
       ),

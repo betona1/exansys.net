@@ -1,4 +1,5 @@
 import '../entities/book.dart';
+import '../entities/reader_settings.dart';
 
 /// 서재 저장소 인터페이스.
 ///
@@ -27,4 +28,9 @@ abstract interface class LibraryRepository {
 
   /// 서재에서 뺀다. **원본 PDF 파일은 지우지 않는다.**
   Future<void> removeBook(int bookId);
+
+  /// 문서별 뷰어 설정
+  Future<ReaderSettings> readerSettings(int bookId);
+
+  Future<void> saveReaderSettings(int bookId, ReaderSettings settings);
 }

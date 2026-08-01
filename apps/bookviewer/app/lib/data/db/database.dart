@@ -32,7 +32,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -44,6 +44,15 @@ class AppDatabase extends _$AppDatabase {
       if (from < 2) {
         await m.createTable(pageTexts);
         await _createFts();
+      }
+      if (from < 3) {
+        // 컬럼 추가만 한다. 테이블을 다시 만들면 사용자의 읽던 자리와 주석이 날아간다
+        await m.addColumn(bookSettings, bookSettings.splitPages);
+        await m.addColumn(bookSettings, bookSettings.splitRightToLeft);
+        await m.addColumn(bookSettings, bookSettings.splitPrompted);
+      }
+      if (from < 4) {
+        await m.addColumn(bookSettings, bookSettings.cropPrompted);
       }
     },
     beforeOpen: (details) async {

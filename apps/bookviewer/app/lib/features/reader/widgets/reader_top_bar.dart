@@ -15,6 +15,10 @@ class ReaderTopBar extends StatelessWidget {
     required this.onBack,
     required this.onToggleSearch,
     required this.onCapture,
+    required this.splitOn,
+    required this.onToggleSplit,
+    required this.cropOn,
+    required this.onCrop,
     this.searchSheet,
   });
 
@@ -28,6 +32,17 @@ class ReaderTopBar extends StatelessWidget {
   final VoidCallback onBack;
   final VoidCallback onToggleSearch;
   final VoidCallback onCapture;
+
+  /// 좌우 나눠 보기가 켜져 있는가
+  final bool splitOn;
+
+  /// null 이면 아직 문서가 준비되지 않은 것
+  final VoidCallback? onToggleSplit;
+
+  /// 여백 크롭이 켜져 있는가
+  final bool cropOn;
+  final VoidCallback? onCrop;
+
   final Widget? searchSheet;
 
   @override
@@ -61,6 +76,18 @@ class ReaderTopBar extends StatelessWidget {
                     onPressed: canSearch ? onToggleSearch : null,
                     icon: Icon(searchOpen ? Icons.search_off : Icons.search),
                     tooltip: '이 책에서 찾기',
+                  ),
+                  IconButton(
+                    onPressed: onToggleSplit,
+                    icon: Icon(splitOn ? Icons.menu_book : Icons.vertical_split),
+                    tooltip: splitOn ? '한 장씩 보기' : '좌우 나눠 보기',
+                    color: splitOn ? AppTokens.amber : null,
+                  ),
+                  IconButton(
+                    onPressed: onCrop,
+                    icon: const Icon(Icons.crop),
+                    tooltip: '여백 잘라내기',
+                    color: cropOn ? AppTokens.amber : null,
                   ),
                   IconButton(
                     onPressed: canCapture ? onCapture : null,

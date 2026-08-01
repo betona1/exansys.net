@@ -1776,6 +1776,66 @@ class $BookSettingsTable extends BookSettings
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
+  static const VerificationMeta _splitPagesMeta = const VerificationMeta(
+    'splitPages',
+  );
+  @override
+  late final GeneratedColumn<bool> splitPages = GeneratedColumn<bool>(
+    'split_pages',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("split_pages" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _splitRightToLeftMeta = const VerificationMeta(
+    'splitRightToLeft',
+  );
+  @override
+  late final GeneratedColumn<bool> splitRightToLeft = GeneratedColumn<bool>(
+    'split_right_to_left',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("split_right_to_left" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _splitPromptedMeta = const VerificationMeta(
+    'splitPrompted',
+  );
+  @override
+  late final GeneratedColumn<bool> splitPrompted = GeneratedColumn<bool>(
+    'split_prompted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("split_prompted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _cropPromptedMeta = const VerificationMeta(
+    'cropPrompted',
+  );
+  @override
+  late final GeneratedColumn<bool> cropPrompted = GeneratedColumn<bool>(
+    'crop_prompted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("crop_prompted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   static const VerificationMeta _showSourceAnnotsMeta = const VerificationMeta(
     'showSourceAnnots',
   );
@@ -1815,6 +1875,10 @@ class $BookSettingsTable extends BookSettings
     cropOdd,
     cropEven,
     columnMode,
+    splitPages,
+    splitRightToLeft,
+    splitPrompted,
+    cropPrompted,
     showSourceAnnots,
     updatedAt,
   ];
@@ -1902,6 +1966,39 @@ class $BookSettingsTable extends BookSettings
         columnMode.isAcceptableOrUnknown(data['column_mode']!, _columnModeMeta),
       );
     }
+    if (data.containsKey('split_pages')) {
+      context.handle(
+        _splitPagesMeta,
+        splitPages.isAcceptableOrUnknown(data['split_pages']!, _splitPagesMeta),
+      );
+    }
+    if (data.containsKey('split_right_to_left')) {
+      context.handle(
+        _splitRightToLeftMeta,
+        splitRightToLeft.isAcceptableOrUnknown(
+          data['split_right_to_left']!,
+          _splitRightToLeftMeta,
+        ),
+      );
+    }
+    if (data.containsKey('split_prompted')) {
+      context.handle(
+        _splitPromptedMeta,
+        splitPrompted.isAcceptableOrUnknown(
+          data['split_prompted']!,
+          _splitPromptedMeta,
+        ),
+      );
+    }
+    if (data.containsKey('crop_prompted')) {
+      context.handle(
+        _cropPromptedMeta,
+        cropPrompted.isAcceptableOrUnknown(
+          data['crop_prompted']!,
+          _cropPromptedMeta,
+        ),
+      );
+    }
     if (data.containsKey('show_source_annots')) {
       context.handle(
         _showSourceAnnotsMeta,
@@ -1972,6 +2069,22 @@ class $BookSettingsTable extends BookSettings
         DriftSqlType.int,
         data['${effectivePrefix}column_mode'],
       )!,
+      splitPages: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}split_pages'],
+      )!,
+      splitRightToLeft: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}split_right_to_left'],
+      )!,
+      splitPrompted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}split_prompted'],
+      )!,
+      cropPrompted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}crop_prompted'],
+      )!,
       showSourceAnnots: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}show_source_annots'],
@@ -2016,6 +2129,22 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
 
   /// 다단 순차 보기 컬럼 수 (0=사용 안 함)
   final int columnMode;
+
+  /// **한 장에 든 두 쪽을 좌·우로 나눠 본다.**
+  ///
+  /// 책을 펼친 채 스캔하면 PDF 한 장에 두 쪽이 들어간다. 그대로 보면 폰에서
+  /// 글자가 절반 크기가 되어 읽을 수 없다. `view_mode` 의 `spread`(두 장을 붙이는 것)와
+  /// 반대 방향이라 별도 값으로 둔다.
+  final bool splitPages;
+
+  /// 오른쪽 반쪽을 먼저 읽는가 (세로쓰기 등). 기본은 왼쪽 → 오른쪽
+  final bool splitRightToLeft;
+
+  /// 좌우 분할을 권해 봤는가. 거절한 사람에게 매번 묻지 않기 위한 표시
+  final bool splitPrompted;
+
+  /// 자동 여백 크롭을 권해 봤는가
+  final bool cropPrompted;
   final bool showSourceAnnots;
   final String updatedAt;
   const BookSetting({
@@ -2030,6 +2159,10 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
     this.cropOdd,
     this.cropEven,
     required this.columnMode,
+    required this.splitPages,
+    required this.splitRightToLeft,
+    required this.splitPrompted,
+    required this.cropPrompted,
     required this.showSourceAnnots,
     required this.updatedAt,
   });
@@ -2051,6 +2184,10 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
       map['crop_even'] = Variable<String>(cropEven);
     }
     map['column_mode'] = Variable<int>(columnMode);
+    map['split_pages'] = Variable<bool>(splitPages);
+    map['split_right_to_left'] = Variable<bool>(splitRightToLeft);
+    map['split_prompted'] = Variable<bool>(splitPrompted);
+    map['crop_prompted'] = Variable<bool>(cropPrompted);
     map['show_source_annots'] = Variable<bool>(showSourceAnnots);
     map['updated_at'] = Variable<String>(updatedAt);
     return map;
@@ -2073,6 +2210,10 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
           ? const Value.absent()
           : Value(cropEven),
       columnMode: Value(columnMode),
+      splitPages: Value(splitPages),
+      splitRightToLeft: Value(splitRightToLeft),
+      splitPrompted: Value(splitPrompted),
+      cropPrompted: Value(cropPrompted),
       showSourceAnnots: Value(showSourceAnnots),
       updatedAt: Value(updatedAt),
     );
@@ -2095,6 +2236,10 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
       cropOdd: serializer.fromJson<String?>(json['cropOdd']),
       cropEven: serializer.fromJson<String?>(json['cropEven']),
       columnMode: serializer.fromJson<int>(json['columnMode']),
+      splitPages: serializer.fromJson<bool>(json['splitPages']),
+      splitRightToLeft: serializer.fromJson<bool>(json['splitRightToLeft']),
+      splitPrompted: serializer.fromJson<bool>(json['splitPrompted']),
+      cropPrompted: serializer.fromJson<bool>(json['cropPrompted']),
       showSourceAnnots: serializer.fromJson<bool>(json['showSourceAnnots']),
       updatedAt: serializer.fromJson<String>(json['updatedAt']),
     );
@@ -2114,6 +2259,10 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
       'cropOdd': serializer.toJson<String?>(cropOdd),
       'cropEven': serializer.toJson<String?>(cropEven),
       'columnMode': serializer.toJson<int>(columnMode),
+      'splitPages': serializer.toJson<bool>(splitPages),
+      'splitRightToLeft': serializer.toJson<bool>(splitRightToLeft),
+      'splitPrompted': serializer.toJson<bool>(splitPrompted),
+      'cropPrompted': serializer.toJson<bool>(cropPrompted),
       'showSourceAnnots': serializer.toJson<bool>(showSourceAnnots),
       'updatedAt': serializer.toJson<String>(updatedAt),
     };
@@ -2131,6 +2280,10 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
     Value<String?> cropOdd = const Value.absent(),
     Value<String?> cropEven = const Value.absent(),
     int? columnMode,
+    bool? splitPages,
+    bool? splitRightToLeft,
+    bool? splitPrompted,
+    bool? cropPrompted,
     bool? showSourceAnnots,
     String? updatedAt,
   }) => BookSetting(
@@ -2145,6 +2298,10 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
     cropOdd: cropOdd.present ? cropOdd.value : this.cropOdd,
     cropEven: cropEven.present ? cropEven.value : this.cropEven,
     columnMode: columnMode ?? this.columnMode,
+    splitPages: splitPages ?? this.splitPages,
+    splitRightToLeft: splitRightToLeft ?? this.splitRightToLeft,
+    splitPrompted: splitPrompted ?? this.splitPrompted,
+    cropPrompted: cropPrompted ?? this.cropPrompted,
     showSourceAnnots: showSourceAnnots ?? this.showSourceAnnots,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -2167,6 +2324,18 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
       columnMode: data.columnMode.present
           ? data.columnMode.value
           : this.columnMode,
+      splitPages: data.splitPages.present
+          ? data.splitPages.value
+          : this.splitPages,
+      splitRightToLeft: data.splitRightToLeft.present
+          ? data.splitRightToLeft.value
+          : this.splitRightToLeft,
+      splitPrompted: data.splitPrompted.present
+          ? data.splitPrompted.value
+          : this.splitPrompted,
+      cropPrompted: data.cropPrompted.present
+          ? data.cropPrompted.value
+          : this.cropPrompted,
       showSourceAnnots: data.showSourceAnnots.present
           ? data.showSourceAnnots.value
           : this.showSourceAnnots,
@@ -2188,6 +2357,10 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
           ..write('cropOdd: $cropOdd, ')
           ..write('cropEven: $cropEven, ')
           ..write('columnMode: $columnMode, ')
+          ..write('splitPages: $splitPages, ')
+          ..write('splitRightToLeft: $splitRightToLeft, ')
+          ..write('splitPrompted: $splitPrompted, ')
+          ..write('cropPrompted: $cropPrompted, ')
           ..write('showSourceAnnots: $showSourceAnnots, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -2207,6 +2380,10 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
     cropOdd,
     cropEven,
     columnMode,
+    splitPages,
+    splitRightToLeft,
+    splitPrompted,
+    cropPrompted,
     showSourceAnnots,
     updatedAt,
   );
@@ -2225,6 +2402,10 @@ class BookSetting extends DataClass implements Insertable<BookSetting> {
           other.cropOdd == this.cropOdd &&
           other.cropEven == this.cropEven &&
           other.columnMode == this.columnMode &&
+          other.splitPages == this.splitPages &&
+          other.splitRightToLeft == this.splitRightToLeft &&
+          other.splitPrompted == this.splitPrompted &&
+          other.cropPrompted == this.cropPrompted &&
           other.showSourceAnnots == this.showSourceAnnots &&
           other.updatedAt == this.updatedAt);
 }
@@ -2241,6 +2422,10 @@ class BookSettingsCompanion extends UpdateCompanion<BookSetting> {
   final Value<String?> cropOdd;
   final Value<String?> cropEven;
   final Value<int> columnMode;
+  final Value<bool> splitPages;
+  final Value<bool> splitRightToLeft;
+  final Value<bool> splitPrompted;
+  final Value<bool> cropPrompted;
   final Value<bool> showSourceAnnots;
   final Value<String> updatedAt;
   const BookSettingsCompanion({
@@ -2255,6 +2440,10 @@ class BookSettingsCompanion extends UpdateCompanion<BookSetting> {
     this.cropOdd = const Value.absent(),
     this.cropEven = const Value.absent(),
     this.columnMode = const Value.absent(),
+    this.splitPages = const Value.absent(),
+    this.splitRightToLeft = const Value.absent(),
+    this.splitPrompted = const Value.absent(),
+    this.cropPrompted = const Value.absent(),
     this.showSourceAnnots = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
@@ -2270,6 +2459,10 @@ class BookSettingsCompanion extends UpdateCompanion<BookSetting> {
     this.cropOdd = const Value.absent(),
     this.cropEven = const Value.absent(),
     this.columnMode = const Value.absent(),
+    this.splitPages = const Value.absent(),
+    this.splitRightToLeft = const Value.absent(),
+    this.splitPrompted = const Value.absent(),
+    this.cropPrompted = const Value.absent(),
     this.showSourceAnnots = const Value.absent(),
     required String updatedAt,
   }) : updatedAt = Value(updatedAt);
@@ -2285,6 +2478,10 @@ class BookSettingsCompanion extends UpdateCompanion<BookSetting> {
     Expression<String>? cropOdd,
     Expression<String>? cropEven,
     Expression<int>? columnMode,
+    Expression<bool>? splitPages,
+    Expression<bool>? splitRightToLeft,
+    Expression<bool>? splitPrompted,
+    Expression<bool>? cropPrompted,
     Expression<bool>? showSourceAnnots,
     Expression<String>? updatedAt,
   }) {
@@ -2300,6 +2497,10 @@ class BookSettingsCompanion extends UpdateCompanion<BookSetting> {
       if (cropOdd != null) 'crop_odd': cropOdd,
       if (cropEven != null) 'crop_even': cropEven,
       if (columnMode != null) 'column_mode': columnMode,
+      if (splitPages != null) 'split_pages': splitPages,
+      if (splitRightToLeft != null) 'split_right_to_left': splitRightToLeft,
+      if (splitPrompted != null) 'split_prompted': splitPrompted,
+      if (cropPrompted != null) 'crop_prompted': cropPrompted,
       if (showSourceAnnots != null) 'show_source_annots': showSourceAnnots,
       if (updatedAt != null) 'updated_at': updatedAt,
     });
@@ -2317,6 +2518,10 @@ class BookSettingsCompanion extends UpdateCompanion<BookSetting> {
     Value<String?>? cropOdd,
     Value<String?>? cropEven,
     Value<int>? columnMode,
+    Value<bool>? splitPages,
+    Value<bool>? splitRightToLeft,
+    Value<bool>? splitPrompted,
+    Value<bool>? cropPrompted,
     Value<bool>? showSourceAnnots,
     Value<String>? updatedAt,
   }) {
@@ -2332,6 +2537,10 @@ class BookSettingsCompanion extends UpdateCompanion<BookSetting> {
       cropOdd: cropOdd ?? this.cropOdd,
       cropEven: cropEven ?? this.cropEven,
       columnMode: columnMode ?? this.columnMode,
+      splitPages: splitPages ?? this.splitPages,
+      splitRightToLeft: splitRightToLeft ?? this.splitRightToLeft,
+      splitPrompted: splitPrompted ?? this.splitPrompted,
+      cropPrompted: cropPrompted ?? this.cropPrompted,
       showSourceAnnots: showSourceAnnots ?? this.showSourceAnnots,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -2373,6 +2582,18 @@ class BookSettingsCompanion extends UpdateCompanion<BookSetting> {
     if (columnMode.present) {
       map['column_mode'] = Variable<int>(columnMode.value);
     }
+    if (splitPages.present) {
+      map['split_pages'] = Variable<bool>(splitPages.value);
+    }
+    if (splitRightToLeft.present) {
+      map['split_right_to_left'] = Variable<bool>(splitRightToLeft.value);
+    }
+    if (splitPrompted.present) {
+      map['split_prompted'] = Variable<bool>(splitPrompted.value);
+    }
+    if (cropPrompted.present) {
+      map['crop_prompted'] = Variable<bool>(cropPrompted.value);
+    }
     if (showSourceAnnots.present) {
       map['show_source_annots'] = Variable<bool>(showSourceAnnots.value);
     }
@@ -2396,6 +2617,10 @@ class BookSettingsCompanion extends UpdateCompanion<BookSetting> {
           ..write('cropOdd: $cropOdd, ')
           ..write('cropEven: $cropEven, ')
           ..write('columnMode: $columnMode, ')
+          ..write('splitPages: $splitPages, ')
+          ..write('splitRightToLeft: $splitRightToLeft, ')
+          ..write('splitPrompted: $splitPrompted, ')
+          ..write('cropPrompted: $cropPrompted, ')
           ..write('showSourceAnnots: $showSourceAnnots, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -6314,6 +6539,10 @@ typedef $$BookSettingsTableCreateCompanionBuilder =
       Value<String?> cropOdd,
       Value<String?> cropEven,
       Value<int> columnMode,
+      Value<bool> splitPages,
+      Value<bool> splitRightToLeft,
+      Value<bool> splitPrompted,
+      Value<bool> cropPrompted,
       Value<bool> showSourceAnnots,
       required String updatedAt,
     });
@@ -6330,6 +6559,10 @@ typedef $$BookSettingsTableUpdateCompanionBuilder =
       Value<String?> cropOdd,
       Value<String?> cropEven,
       Value<int> columnMode,
+      Value<bool> splitPages,
+      Value<bool> splitRightToLeft,
+      Value<bool> splitPrompted,
+      Value<bool> cropPrompted,
       Value<bool> showSourceAnnots,
       Value<String> updatedAt,
     });
@@ -6412,6 +6645,26 @@ class $$BookSettingsTableFilterComposer
 
   ColumnFilters<int> get columnMode => $composableBuilder(
     column: $table.columnMode,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get splitPages => $composableBuilder(
+    column: $table.splitPages,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get splitRightToLeft => $composableBuilder(
+    column: $table.splitRightToLeft,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get splitPrompted => $composableBuilder(
+    column: $table.splitPrompted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get cropPrompted => $composableBuilder(
+    column: $table.cropPrompted,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6508,6 +6761,26 @@ class $$BookSettingsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get splitPages => $composableBuilder(
+    column: $table.splitPages,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get splitRightToLeft => $composableBuilder(
+    column: $table.splitRightToLeft,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get splitPrompted => $composableBuilder(
+    column: $table.splitPrompted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get cropPrompted => $composableBuilder(
+    column: $table.cropPrompted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get showSourceAnnots => $composableBuilder(
     column: $table.showSourceAnnots,
     builder: (column) => ColumnOrderings(column),
@@ -6587,6 +6860,26 @@ class $$BookSettingsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<bool> get splitPages => $composableBuilder(
+    column: $table.splitPages,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get splitRightToLeft => $composableBuilder(
+    column: $table.splitRightToLeft,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get splitPrompted => $composableBuilder(
+    column: $table.splitPrompted,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get cropPrompted => $composableBuilder(
+    column: $table.cropPrompted,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<bool> get showSourceAnnots => $composableBuilder(
     column: $table.showSourceAnnots,
     builder: (column) => column,
@@ -6658,6 +6951,10 @@ class $$BookSettingsTableTableManager
                 Value<String?> cropOdd = const Value.absent(),
                 Value<String?> cropEven = const Value.absent(),
                 Value<int> columnMode = const Value.absent(),
+                Value<bool> splitPages = const Value.absent(),
+                Value<bool> splitRightToLeft = const Value.absent(),
+                Value<bool> splitPrompted = const Value.absent(),
+                Value<bool> cropPrompted = const Value.absent(),
                 Value<bool> showSourceAnnots = const Value.absent(),
                 Value<String> updatedAt = const Value.absent(),
               }) => BookSettingsCompanion(
@@ -6672,6 +6969,10 @@ class $$BookSettingsTableTableManager
                 cropOdd: cropOdd,
                 cropEven: cropEven,
                 columnMode: columnMode,
+                splitPages: splitPages,
+                splitRightToLeft: splitRightToLeft,
+                splitPrompted: splitPrompted,
+                cropPrompted: cropPrompted,
                 showSourceAnnots: showSourceAnnots,
                 updatedAt: updatedAt,
               ),
@@ -6688,6 +6989,10 @@ class $$BookSettingsTableTableManager
                 Value<String?> cropOdd = const Value.absent(),
                 Value<String?> cropEven = const Value.absent(),
                 Value<int> columnMode = const Value.absent(),
+                Value<bool> splitPages = const Value.absent(),
+                Value<bool> splitRightToLeft = const Value.absent(),
+                Value<bool> splitPrompted = const Value.absent(),
+                Value<bool> cropPrompted = const Value.absent(),
                 Value<bool> showSourceAnnots = const Value.absent(),
                 required String updatedAt,
               }) => BookSettingsCompanion.insert(
@@ -6702,6 +7007,10 @@ class $$BookSettingsTableTableManager
                 cropOdd: cropOdd,
                 cropEven: cropEven,
                 columnMode: columnMode,
+                splitPages: splitPages,
+                splitRightToLeft: splitRightToLeft,
+                splitPrompted: splitPrompted,
+                cropPrompted: cropPrompted,
                 showSourceAnnots: showSourceAnnots,
                 updatedAt: updatedAt,
               ),

@@ -120,6 +120,22 @@ class BookSettings extends Table {
   /// 다단 순차 보기 컬럼 수 (0=사용 안 함)
   IntColumn get columnMode => integer().withDefault(const Constant(0))();
 
+  /// **한 장에 든 두 쪽을 좌·우로 나눠 본다.**
+  ///
+  /// 책을 펼친 채 스캔하면 PDF 한 장에 두 쪽이 들어간다. 그대로 보면 폰에서
+  /// 글자가 절반 크기가 되어 읽을 수 없다. `view_mode` 의 `spread`(두 장을 붙이는 것)와
+  /// 반대 방향이라 별도 값으로 둔다.
+  BoolColumn get splitPages => boolean().withDefault(const Constant(false))();
+
+  /// 오른쪽 반쪽을 먼저 읽는가 (세로쓰기 등). 기본은 왼쪽 → 오른쪽
+  BoolColumn get splitRightToLeft => boolean().withDefault(const Constant(false))();
+
+  /// 좌우 분할을 권해 봤는가. 거절한 사람에게 매번 묻지 않기 위한 표시
+  BoolColumn get splitPrompted => boolean().withDefault(const Constant(false))();
+
+  /// 자동 여백 크롭을 권해 봤는가
+  BoolColumn get cropPrompted => boolean().withDefault(const Constant(false))();
+
   BoolColumn get showSourceAnnots => boolean().withDefault(const Constant(true))();
 
   TextColumn get updatedAt => text()();
