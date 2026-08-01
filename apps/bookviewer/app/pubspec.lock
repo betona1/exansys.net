@@ -193,6 +193,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.9"
+  dbus:
+    dependency: transitive
+    description:
+      name: dbus
+      sha256: "792974a4007974fbc5c1b5433eb2330a9db3e368c3f906253af4c007d0f49a91"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.7.13"
   drift:
     dependency: "direct main"
     description:
@@ -237,10 +245,10 @@ packages:
     dependency: "direct main"
     description:
       name: file_picker
-      sha256: "36a1652d99cb6bf8ccc8b9f43aded1fd60b234d23ce78af422c07f950a436ef7"
+      sha256: "27c58ff4ec17d8e05b8b27fa66175bf5786b9ff9bd94ca418a571c7f6771b27b"
       url: "https://pub.dev"
     source: hosted
-    version: "10.0.0"
+    version: "11.0.0"
   fixnum:
     dependency: transitive
     description:

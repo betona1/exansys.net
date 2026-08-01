@@ -27,7 +27,8 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     if (_picking) return;
     setState(() => _picking = true);
     try {
-      final result = await FilePicker.platform.pickFiles(
+      // file_picker 11 부터 정적 메서드다 (10 까지는 FilePicker.platform.pickFiles)
+      final result = await FilePicker.pickFiles(
         type: FileType.custom,
         allowedExtensions: const ['pdf'],
       );
