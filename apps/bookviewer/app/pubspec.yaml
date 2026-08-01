@@ -35,6 +35,10 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   pdfrx: ^2.4.7
+  file_picker: ^10.0.0
+  path_provider: ^2.1.6
+  share_plus: ^12.0.0
+  shared_preferences: ^2.5.5
 
 dev_dependencies:
   flutter_test:
@@ -74,6 +78,8 @@ flutter:
 
   assets:
     - assets/
+    # 하위 폴더는 따로 적어야 한다 — `assets/` 만으로는 포함되지 않는다
+    - assets/icon/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

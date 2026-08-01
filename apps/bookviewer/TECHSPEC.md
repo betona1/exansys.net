@@ -108,6 +108,39 @@ await doc.loadPagesProgressively();
 final doc = await PdfDocument.openAsset(path, useProgressiveLoading: false);
 ```
 
+---
+
+## 3-2. MVP 구현 상태 (2단계)
+
+`app/lib/` 구성:
+
+| 경로 | 맡은 일 |
+|---|---|
+| `main.dart` | 앱 진입, pdfrx 초기화, 테마 |
+| `models/book_entry.dart` | 책 한 권 (경로·제목·마지막 쪽·쪽 수) |
+| `services/library_store.dart` | 책장 저장 (SharedPreferences JSON). 3단계에서 SQLite 로 옮긴다 |
+| `services/capture_service.dart` | 영역 → 고해상도 렌더 → 출처 띠 → PNG |
+| `screens/library_screen.dart` | 책장 · PDF 열기 · 빈 상태 |
+| `screens/reader_screen.dart` | 읽기 · 도구막대 · 쪽 이동 · 캡처 연결 |
+| `widgets/search_sheet.dart` | 검색 입력 · 결과 목록 · 앞뒤 이동 |
+| `widgets/capture_overlay.dart` | 드래그로 영역 고르기 |
+
+### 캡처는 화면을 찍지 않는다
+
+화면 캡처는 기기 해상도에 묶여 확대하면 뭉개진다. 대신 **고른 영역을 원본 쪽에서
+3배(약 220dpi)로 다시 렌더**한다. 화면 좌표 → 문서 좌표(`globalToDocument`) →
+가장 많이 겹치는 쪽 → 쪽 좌표 순으로 옮긴 뒤 `page.render()` 로 그 영역만 그린다.
+
+### 알려진 한계 (MVP 기준, 고쳐야 할 것)
+
+- **안드로이드에서 file_picker 는 원본을 앱 캐시로 복사한다.** 시스템 피커가
+  `content://` 를 주기 때문인데, 이는 "원본을 복사하지 않는다"는 원칙과 어긋난다.
+  SAF 영구 권한(`takePersistableUriPermission`)으로 URI 를 들고 있다가
+  스트림으로 여는 방식으로 바꿔야 한다. 데스크톱은 실제 경로라 문제없다
+- **두 쪽에 걸친 캡처는 안 된다.** 겹친 넓이가 큰 쪽 하나만 잘라 낸다
+- **책장은 SharedPreferences** 라 책이 많아지면 느려진다. 책갈피가 들어오는
+  3단계에서 SQLite 로 옮긴다
+
 ### 아직 확인하지 않은 것
 
 - **스캔본 PDF(텍스트 레이어 없음)** — 표본이 없어 미검증. `loadText()` 가 `null` 을
