@@ -7,6 +7,7 @@ import '../../data/source/book_source.dart';
 import '../../core/router.dart';
 import '../../core/tokens.dart';
 import '../../domain/entities/book.dart';
+import '../account/widgets/account_button.dart';
 import 'widgets/book_tile.dart';
 import 'widgets/empty_library.dart';
 
@@ -69,6 +70,9 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
       appBar: AppBar(
         title: const Text('내 서재'),
         actions: [
+          // 로그인은 눈에 보이는 자리에. 예전에는 스캔본 → 돋보기 → 유료 안내까지
+          // 가야만 나왔다 — 거기까지 가는 사람만 로그인할 수 있었다는 뜻이다
+          const AccountButton(),
           IconButton(
             onPressed: () => context.go(AppRoutes.search),
             icon: const Icon(Icons.search),
