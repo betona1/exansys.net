@@ -1,10 +1,6 @@
-import 'dart:io';
-
 import 'package:drift/drift.dart';
-import 'package:drift/native.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 
+import 'connection/connection.dart';
 import 'tables.dart';
 
 part 'database.g.dart';
@@ -23,17 +19,18 @@ part 'database.g.dart';
     Captures,
     Bookmarks,
     PageTexts,
+    BookBlobs,
     AppMeta,
   ],
 )
 class AppDatabase extends _$AppDatabase {
-  AppDatabase() : super(_open());
+  AppDatabase() : super(openConnection());
 
   /// 테스트용 — 메모리 DB
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -69,6 +66,9 @@ class AppDatabase extends _$AppDatabase {
       if (from < 8) {
         await m.addColumn(bookSettings, bookSettings.zoomLocked);
         await m.addColumn(bookSettings, bookSettings.panX);
+      }
+      if (from < 9) {
+        await m.createTable(bookBlobs);
       }
     },
     beforeOpen: (details) async {
@@ -111,13 +111,4 @@ class AppDatabase extends _$AppDatabase {
       END
     ''');
   }
-}
-
-LazyDatabase _open() {
-  return LazyDatabase(() async {
-    final dir = await getApplicationSupportDirectory();
-    return NativeDatabase.createInBackground(
-      File(p.join(dir.path, 'bookviewer.sqlite')),
-    );
-  });
 }

@@ -1,9 +1,9 @@
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/providers.dart';
+import '../../data/source/book_source.dart';
 import '../../core/router.dart';
 import '../../core/tokens.dart';
 import '../../domain/entities/book.dart';
@@ -27,14 +27,10 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     if (_picking) return;
     setState(() => _picking = true);
     try {
-      // file_picker 11 부터 정적 메서드다 (10 까지는 FilePicker.platform.pickFiles)
-      final result = await FilePicker.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: const ['pdf'],
-      );
-      final path = result?.files.single.path;
-      if (path == null) return; // 취소 — 조용히 돌아간다
-      final book = await ref.read(libraryRepositoryProvider).addBook(path);
+      // 플랫폼마다 고르는 방법이 다르다 — 네이티브는 경로, 웹은 바이트
+      final source = await pickBook();
+      if (source == null) return; // 취소 — 조용히 돌아간다
+      final book = await ref.read(libraryRepositoryProvider).addBook(source);
       if (!mounted) return;
       context.go(AppRoutes.bookPath(book.id));
     } on Object catch (e) {

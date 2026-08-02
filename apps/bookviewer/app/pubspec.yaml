@@ -35,9 +35,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   pdfrx: ^2.4.7
-  file_picker: ^11.0.0
   path_provider: ^2.1.6
-  share_plus: ^12.0.0
   shared_preferences: ^2.5.5
   flutter_riverpod: ^2.6.1
   go_router: ^17.3.0
@@ -50,6 +48,8 @@ dependencies:
   image: ^4.9.1
   archive: ^4.0.9
   pdfrx_engine: ^0.4.6
+  pdfrx_wasm: ^1.1.11
+  file_selector: ^1.1.0
 
 dev_dependencies:
   flutter_test:
@@ -93,6 +93,16 @@ flutter:
     - assets/
     # 하위 폴더는 따로 적어야 한다 — `assets/` 만으로는 포함되지 않는다
     - assets/icon/
+
+  # 한글 폰트를 직접 싣는다.
+  # Flutter 웹은 한글 글리프를 들고 있지 않아 네모(□)로 깨진다.
+  # Pretendard 는 BRAND.md §4 가 지정한 폰트이기도 하다 (SIL OFL 1.1 — 임베딩 자유).
+  fonts:
+    - family: Pretendard
+      fonts:
+        - asset: assets/fonts/Pretendard-Regular.otf
+        - asset: assets/fonts/Pretendard-Bold.otf
+          weight: 700
 
   # To add assets to your application, add an assets section, like this:
   # assets:

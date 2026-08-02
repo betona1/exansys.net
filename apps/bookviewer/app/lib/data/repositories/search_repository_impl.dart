@@ -5,6 +5,7 @@ import '../../core/korean.dart';
 import '../../domain/entities/search_hit.dart';
 import '../../domain/repositories/search_repository.dart';
 import '../db/database.dart';
+import '../source/book_source.dart';
 
 class SearchRepositoryImpl implements SearchRepository {
   SearchRepositoryImpl(this._db);
@@ -25,7 +26,12 @@ class SearchRepositoryImpl implements SearchRepository {
     // 뷰어와 별개로 문서를 연다. **점진 로드를 끈다** —
     // 켜져 있으면 1쪽 말고는 loadText() 가 조용히 빈 값을 준다
     // (docs/engine-verification.md 의 점진 로드 함정).
-    final doc = await PdfDocument.openFile(book.filePath, useProgressiveLoading: false);
+    // 웹은 경로가 없어 담아 둔 바이트로 연다
+    final blob = await (_db.select(_db.bookBlobs)..where((t) => t.bookId.equals(bookId)))
+        .getSingleOrNull();
+    final doc = blob != null
+        ? await openDocument(book.filePath, bytes: blob.bytes)
+        : await PdfDocument.openFile(book.filePath, useProgressiveLoading: false);
     try {
       final total = doc.pages.length;
       yield IndexProgress(bookId: bookId, done: 0, total: total);

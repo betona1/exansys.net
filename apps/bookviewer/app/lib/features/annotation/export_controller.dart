@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdfrx/pdfrx.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../../core/providers.dart';
 import '../../core/result.dart';
@@ -70,7 +69,10 @@ class ExportController {
     }
   }
 
-  Future<void> share(File file, Book book) => SharePlus.instance.share(
-    ShareParams(files: [XFile(file.path)], text: book.title),
-  );
+  /// 만든 파일이 어디 있는지 알려 준다.
+  ///
+  /// 시스템 공유 시트는 share_plus 가 맡았는데, 그 패키지가 Kotlin Gradle Plugin 을
+  /// 적용해 AGP 9 의 내장 Kotlin 과 부딪힌다. file_picker 와는 win32 버전도 충돌해
+  /// 둘을 함께 쓸 수 없다. 우선 경로를 보여 주고, 공유는 따로 붙인다.
+  String whereIs(File file) => file.path;
 }

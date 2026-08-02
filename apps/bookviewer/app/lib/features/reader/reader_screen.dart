@@ -1,15 +1,16 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdfrx/pdfrx.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../../core/providers.dart';
+import '../../data/source/book_source.dart';
 import '../../core/router.dart';
 import '../../core/tokens.dart';
 import '../../domain/entities/annotation.dart';
@@ -156,7 +157,9 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
     if (mounted) setState(() => _settings = settings);
 
     try {
-      final doc = await PdfDocument.openFile(widget.book.filePath);
+      // 웹은 경로가 없다. 담아 둔 바이트로 연다
+      final bytes = await ref.read(libraryRepositoryProvider).bookBytes(widget.book.id);
+      final doc = await openDocument(widget.book.filePath, bytes: bytes);
       if (!mounted) {
         await doc.dispose();
         return;
@@ -554,6 +557,11 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
   // ── 캡처 ───────────────────────────────────────────────
 
   Future<void> _handleCapture(Rect localRect) async {
+    if (kIsWeb) {
+      setState(() => _capture = false);
+      _toast('웹에서는 아직 캡처 저장을 지원하지 않습니다');
+      return;
+    }
     final doc = _doc;
     final slice = _slice;
     if (doc == null || slice == null) return;
@@ -785,6 +793,10 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
   }
 
   Future<void> _runExport(ExportFormat format) async {
+    if (kIsWeb) {
+      _toast('웹에서는 아직 내보내기를 지원하지 않습니다');
+      return;
+    }
     final messenger = ScaffoldMessenger.of(context);
     final result = await ref.read(exportControllerProvider).export(
       book: widget.book,
@@ -799,12 +811,6 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
           SnackBar(
             duration: const Duration(seconds: 6),
             content: Text('${format.label} 로 내보냈습니다'),
-            action: SnackBarAction(
-              label: '공유',
-              onPressed: () => unawaited(
-                ref.read(exportControllerProvider).share(file, widget.book),
-              ),
-            ),
           ),
         ),
       failed: (m) => messenger
@@ -817,6 +823,11 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
   Future<void> _exportPageImages() async {
     final doc = _doc;
     if (doc == null) return;
+    if (kIsWeb) {
+      // 웹은 앱 전용 폴더가 없다. 브라우저 내려받기로 바꿔야 한다
+      _toast('웹에서는 아직 쪽 이미지 내보내기를 지원하지 않습니다');
+      return;
+    }
 
     final hasCropOrSplit = _settings.cropEnabled || _settings.splitPages;
     final req = await showModalBottomSheet<PageImageRequest>(
@@ -873,17 +884,6 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
               files.length == 1 && files.first.path.endsWith('.zip')
                   ? 'zip 하나로 묶어 냈습니다'
                   : '${files.length}장을 냈습니다',
-            ),
-            action: SnackBarAction(
-              label: '공유',
-              onPressed: () => unawaited(
-                SharePlus.instance.share(
-                  ShareParams(
-                    files: [for (final f in files) XFile(f.path)],
-                    text: widget.book.title,
-                  ),
-                ),
-              ),
             ),
           ),
         );

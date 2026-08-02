@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:crypto/crypto.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
@@ -12,6 +10,7 @@ import '../../domain/entities/reading_theme.dart';
 import '../../domain/entities/reader_settings.dart';
 import '../../domain/repositories/library_repository.dart';
 import '../db/database.dart';
+import '../source/book_source.dart';
 
 class LibraryRepositoryImpl implements LibraryRepository {
   LibraryRepositoryImpl(this._db);
@@ -62,18 +61,16 @@ class LibraryRepositoryImpl implements LibraryRepository {
       lastReadAt: pr?.lastReadAt == null ? null : DateTime.tryParse(pr!.lastReadAt!),
       hasTextLayer: b.hasTextLayer,
       // 책장에서 지우지 않는다. 배지로 알리고 "위치 다시 지정"을 유도한다 (techspec §13)
-      fileMissing: !File(b.filePath).existsSync(),
+      // 웹은 바이트를 들고 있으므로 사라질 일이 없다
+      fileMissing: !sourceExists(b.filePath),
     );
   }
 
   @override
-  Future<Book> addBook(String filePath) async {
-    final file = File(filePath);
-    if (!file.existsSync()) {
-      throw FileSystemException('파일을 찾을 수 없습니다', filePath);
-    }
-    final checksum = await _checksum(file);
-    final size = await file.length();
+  Future<Book> addBook(BookSource source) async {
+    final filePath = source.locator;
+    final checksum = await _checksum(source);
+    final size = source.size;
     final now = _now();
 
     // 같은 파일이 이미 있으면 새로 만들지 않는다. 파일을 옮겼으면 경로만 고쳐 준다
@@ -94,11 +91,18 @@ class LibraryRepositoryImpl implements LibraryRepository {
             filePath: filePath,
             fileChecksum: checksum,
             fileSize: Value(size),
-            title: Value(_titleFromPath(filePath)),
+            title: Value(_titleFromPath(source.displayName)),
             addedAt: now,
             updatedAt: now,
           ),
         );
+    // 웹은 경로가 없어 원본을 들고 있어야 다시 열 수 있다
+    final blob = source.bytesToStore;
+    if (blob != null) {
+      await _db.into(_db.bookBlobs).insert(
+            BookBlobsCompanion.insert(bookId: Value(id), bytes: blob),
+          );
+    }
     await _db.into(_db.readingProgress).insert(
           ReadingProgressCompanion.insert(bookId: Value(id)),
           mode: InsertMode.insertOrIgnore,
@@ -216,16 +220,27 @@ class LibraryRepositoryImpl implements LibraryRepository {
         );
   }
 
+  @override
+  Future<Uint8List?> bookBytes(int bookId) async {
+    final row = await (_db.select(_db.bookBlobs)..where((t) => t.bookId.equals(bookId)))
+        .getSingleOrNull();
+    return row?.bytes;
+  }
+
   /// 앞 [_hashHeadBytes] + 파일 크기로 만든 SHA-256.
-  Future<String> _checksum(File file) async {
-    final raf = await file.open();
-    try {
-      final head = await raf.read(_hashHeadBytes);
-      final size = await file.length();
-      return sha256.convert([...head, ...'$size'.codeUnits]).toString();
-    } finally {
-      await raf.close();
+  ///
+  /// 파일 전체를 해싱하면 300MB PDF 에서 UI 가 멈춘다.
+  Future<String> _checksum(BookSource source) async {
+    final bytes = source.bytesToStore;
+    if (bytes != null) {
+      final head = bytes.length <= _hashHeadBytes
+          ? bytes
+          : Uint8List.sublistView(bytes, 0, _hashHeadBytes);
+      return sha256.convert([...head, ...'${source.size}'.codeUnits]).toString();
     }
+    return sha256
+        .convert([...await readHead(source.locator, _hashHeadBytes), ...'${source.size}'.codeUnits])
+        .toString();
   }
 
   static String _now() => DateTime.now().toUtc().toIso8601String();

@@ -5703,6 +5703,200 @@ class PageTextsCompanion extends UpdateCompanion<PageTextRow> {
   }
 }
 
+class $BookBlobsTable extends BookBlobs
+    with TableInfo<$BookBlobsTable, BookBlob> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $BookBlobsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _bookIdMeta = const VerificationMeta('bookId');
+  @override
+  late final GeneratedColumn<int> bookId = GeneratedColumn<int>(
+    'book_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES books (id)',
+    ),
+  );
+  static const VerificationMeta _bytesMeta = const VerificationMeta('bytes');
+  @override
+  late final GeneratedColumn<Uint8List> bytes = GeneratedColumn<Uint8List>(
+    'bytes',
+    aliasedName,
+    false,
+    type: DriftSqlType.blob,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [bookId, bytes];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'book_blobs';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<BookBlob> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('book_id')) {
+      context.handle(
+        _bookIdMeta,
+        bookId.isAcceptableOrUnknown(data['book_id']!, _bookIdMeta),
+      );
+    }
+    if (data.containsKey('bytes')) {
+      context.handle(
+        _bytesMeta,
+        bytes.isAcceptableOrUnknown(data['bytes']!, _bytesMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bytesMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {bookId};
+  @override
+  BookBlob map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return BookBlob(
+      bookId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}book_id'],
+      )!,
+      bytes: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}bytes'],
+      )!,
+    );
+  }
+
+  @override
+  $BookBlobsTable createAlias(String alias) {
+    return $BookBlobsTable(attachedDatabase, alias);
+  }
+}
+
+class BookBlob extends DataClass implements Insertable<BookBlob> {
+  final int bookId;
+  final Uint8List bytes;
+  const BookBlob({required this.bookId, required this.bytes});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['book_id'] = Variable<int>(bookId);
+    map['bytes'] = Variable<Uint8List>(bytes);
+    return map;
+  }
+
+  BookBlobsCompanion toCompanion(bool nullToAbsent) {
+    return BookBlobsCompanion(bookId: Value(bookId), bytes: Value(bytes));
+  }
+
+  factory BookBlob.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return BookBlob(
+      bookId: serializer.fromJson<int>(json['bookId']),
+      bytes: serializer.fromJson<Uint8List>(json['bytes']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'bookId': serializer.toJson<int>(bookId),
+      'bytes': serializer.toJson<Uint8List>(bytes),
+    };
+  }
+
+  BookBlob copyWith({int? bookId, Uint8List? bytes}) =>
+      BookBlob(bookId: bookId ?? this.bookId, bytes: bytes ?? this.bytes);
+  BookBlob copyWithCompanion(BookBlobsCompanion data) {
+    return BookBlob(
+      bookId: data.bookId.present ? data.bookId.value : this.bookId,
+      bytes: data.bytes.present ? data.bytes.value : this.bytes,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BookBlob(')
+          ..write('bookId: $bookId, ')
+          ..write('bytes: $bytes')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(bookId, $driftBlobEquality.hash(bytes));
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is BookBlob &&
+          other.bookId == this.bookId &&
+          $driftBlobEquality.equals(other.bytes, this.bytes));
+}
+
+class BookBlobsCompanion extends UpdateCompanion<BookBlob> {
+  final Value<int> bookId;
+  final Value<Uint8List> bytes;
+  const BookBlobsCompanion({
+    this.bookId = const Value.absent(),
+    this.bytes = const Value.absent(),
+  });
+  BookBlobsCompanion.insert({
+    this.bookId = const Value.absent(),
+    required Uint8List bytes,
+  }) : bytes = Value(bytes);
+  static Insertable<BookBlob> custom({
+    Expression<int>? bookId,
+    Expression<Uint8List>? bytes,
+  }) {
+    return RawValuesInsertable({
+      if (bookId != null) 'book_id': bookId,
+      if (bytes != null) 'bytes': bytes,
+    });
+  }
+
+  BookBlobsCompanion copyWith({Value<int>? bookId, Value<Uint8List>? bytes}) {
+    return BookBlobsCompanion(
+      bookId: bookId ?? this.bookId,
+      bytes: bytes ?? this.bytes,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (bookId.present) {
+      map['book_id'] = Variable<int>(bookId.value);
+    }
+    if (bytes.present) {
+      map['bytes'] = Variable<Uint8List>(bytes.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BookBlobsCompanion(')
+          ..write('bookId: $bookId, ')
+          ..write('bytes: $bytes')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $AppMetaTable extends AppMeta with TableInfo<$AppMetaTable, AppMetaData> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -5923,6 +6117,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $CapturesTable captures = $CapturesTable(this);
   late final $BookmarksTable bookmarks = $BookmarksTable(this);
   late final $PageTextsTable pageTexts = $PageTextsTable(this);
+  late final $BookBlobsTable bookBlobs = $BookBlobsTable(this);
   late final $AppMetaTable appMeta = $AppMetaTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
@@ -5937,6 +6132,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     captures,
     bookmarks,
     pageTexts,
+    bookBlobs,
     appMeta,
   ];
 }
@@ -6117,6 +6313,24 @@ final class $$BooksTableReferences
     ).filter((f) => f.bookId.id.sqlEquals($_itemColumn<int>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_pageTextsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$BookBlobsTable, List<BookBlob>>
+  _bookBlobsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.bookBlobs,
+    aliasName: 'books__id__book_blobs__book_id',
+  );
+
+  $$BookBlobsTableProcessedTableManager get bookBlobsRefs {
+    final manager = $$BookBlobsTableTableManager(
+      $_db,
+      $_db.bookBlobs,
+    ).filter((f) => f.bookId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_bookBlobsRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -6397,6 +6611,31 @@ class $$BooksTableFilterComposer extends Composer<_$AppDatabase, $BooksTable> {
           }) => $$PageTextsTableFilterComposer(
             $db: $db,
             $table: $db.pageTexts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> bookBlobsRefs(
+    Expression<bool> Function($$BookBlobsTableFilterComposer f) f,
+  ) {
+    final $$BookBlobsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.bookBlobs,
+      getReferencedColumn: (t) => t.bookId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BookBlobsTableFilterComposer(
+            $db: $db,
+            $table: $db.bookBlobs,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -6770,6 +7009,31 @@ class $$BooksTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> bookBlobsRefs<T extends Object>(
+    Expression<T> Function($$BookBlobsTableAnnotationComposer a) f,
+  ) {
+    final $$BookBlobsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.bookBlobs,
+      getReferencedColumn: (t) => t.bookId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BookBlobsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.bookBlobs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$BooksTableTableManager
@@ -6793,6 +7057,7 @@ class $$BooksTableTableManager
             bool capturesRefs,
             bool bookmarksRefs,
             bool pageTextsRefs,
+            bool bookBlobsRefs,
           })
         > {
   $$BooksTableTableManager(_$AppDatabase db, $BooksTable table)
@@ -6909,6 +7174,7 @@ class $$BooksTableTableManager
                 capturesRefs = false,
                 bookmarksRefs = false,
                 pageTextsRefs = false,
+                bookBlobsRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
@@ -6920,6 +7186,7 @@ class $$BooksTableTableManager
                     if (capturesRefs) db.captures,
                     if (bookmarksRefs) db.bookmarks,
                     if (pageTextsRefs) db.pageTexts,
+                    if (bookBlobsRefs) db.bookBlobs,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -7063,6 +7330,27 @@ class $$BooksTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (bookBlobsRefs)
+                        await $_getPrefetchedData<
+                          BookRow,
+                          $BooksTable,
+                          BookBlob
+                        >(
+                          currentTable: table,
+                          referencedTable: $$BooksTableReferences
+                              ._bookBlobsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$BooksTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).bookBlobsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.bookId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -7091,6 +7379,7 @@ typedef $$BooksTableProcessedTableManager =
         bool capturesRefs,
         bool bookmarksRefs,
         bool pageTextsRefs,
+        bool bookBlobsRefs,
       })
     >;
 typedef $$ReadingProgressTableCreateCompanionBuilder =
@@ -10468,6 +10757,248 @@ typedef $$PageTextsTableProcessedTableManager =
       PageTextRow,
       PrefetchHooks Function({bool bookId})
     >;
+typedef $$BookBlobsTableCreateCompanionBuilder =
+    BookBlobsCompanion Function({Value<int> bookId, required Uint8List bytes});
+typedef $$BookBlobsTableUpdateCompanionBuilder =
+    BookBlobsCompanion Function({Value<int> bookId, Value<Uint8List> bytes});
+
+final class $$BookBlobsTableReferences
+    extends BaseReferences<_$AppDatabase, $BookBlobsTable, BookBlob> {
+  $$BookBlobsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $BooksTable _bookIdTable(_$AppDatabase db) =>
+      db.books.createAlias('book_blobs__book_id__books__id');
+
+  $$BooksTableProcessedTableManager get bookId {
+    final $_column = $_itemColumn<int>('book_id')!;
+
+    final manager = $$BooksTableTableManager(
+      $_db,
+      $_db.books,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_bookIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$BookBlobsTableFilterComposer
+    extends Composer<_$AppDatabase, $BookBlobsTable> {
+  $$BookBlobsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<Uint8List> get bytes => $composableBuilder(
+    column: $table.bytes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$BooksTableFilterComposer get bookId {
+    final $$BooksTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.bookId,
+      referencedTable: $db.books,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BooksTableFilterComposer(
+            $db: $db,
+            $table: $db.books,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$BookBlobsTableOrderingComposer
+    extends Composer<_$AppDatabase, $BookBlobsTable> {
+  $$BookBlobsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<Uint8List> get bytes => $composableBuilder(
+    column: $table.bytes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$BooksTableOrderingComposer get bookId {
+    final $$BooksTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.bookId,
+      referencedTable: $db.books,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BooksTableOrderingComposer(
+            $db: $db,
+            $table: $db.books,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$BookBlobsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $BookBlobsTable> {
+  $$BookBlobsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<Uint8List> get bytes =>
+      $composableBuilder(column: $table.bytes, builder: (column) => column);
+
+  $$BooksTableAnnotationComposer get bookId {
+    final $$BooksTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.bookId,
+      referencedTable: $db.books,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BooksTableAnnotationComposer(
+            $db: $db,
+            $table: $db.books,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$BookBlobsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $BookBlobsTable,
+          BookBlob,
+          $$BookBlobsTableFilterComposer,
+          $$BookBlobsTableOrderingComposer,
+          $$BookBlobsTableAnnotationComposer,
+          $$BookBlobsTableCreateCompanionBuilder,
+          $$BookBlobsTableUpdateCompanionBuilder,
+          (BookBlob, $$BookBlobsTableReferences),
+          BookBlob,
+          PrefetchHooks Function({bool bookId})
+        > {
+  $$BookBlobsTableTableManager(_$AppDatabase db, $BookBlobsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$BookBlobsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$BookBlobsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$BookBlobsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> bookId = const Value.absent(),
+                Value<Uint8List> bytes = const Value.absent(),
+              }) => BookBlobsCompanion(bookId: bookId, bytes: bytes),
+          createCompanionCallback:
+              ({
+                Value<int> bookId = const Value.absent(),
+                required Uint8List bytes,
+              }) => BookBlobsCompanion.insert(bookId: bookId, bytes: bytes),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$BookBlobsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({bookId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (bookId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.bookId,
+                                referencedTable: $$BookBlobsTableReferences
+                                    ._bookIdTable(db),
+                                referencedColumn: $$BookBlobsTableReferences
+                                    ._bookIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$BookBlobsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $BookBlobsTable,
+      BookBlob,
+      $$BookBlobsTableFilterComposer,
+      $$BookBlobsTableOrderingComposer,
+      $$BookBlobsTableAnnotationComposer,
+      $$BookBlobsTableCreateCompanionBuilder,
+      $$BookBlobsTableUpdateCompanionBuilder,
+      (BookBlob, $$BookBlobsTableReferences),
+      BookBlob,
+      PrefetchHooks Function({bool bookId})
+    >;
 typedef $$AppMetaTableCreateCompanionBuilder =
     AppMetaCompanion Function({
       required String key,
@@ -10621,6 +11152,8 @@ class $AppDatabaseManager {
       $$BookmarksTableTableManager(_db, _db.bookmarks);
   $$PageTextsTableTableManager get pageTexts =>
       $$PageTextsTableTableManager(_db, _db.pageTexts);
+  $$BookBlobsTableTableManager get bookBlobs =>
+      $$BookBlobsTableTableManager(_db, _db.bookBlobs);
   $$AppMetaTableTableManager get appMeta =>
       $$AppMetaTableTableManager(_db, _db.appMeta);
 }

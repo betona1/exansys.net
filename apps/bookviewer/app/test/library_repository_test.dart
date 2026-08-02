@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:bookviewer/data/db/database.dart';
 import 'package:bookviewer/data/repositories/library_repository_impl.dart';
+import 'package:bookviewer/data/source/book_source.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -27,25 +28,25 @@ void main() {
   });
 
   test('같은 파일을 두 번 넣어도 책이 하나만 생긴다', () async {
-    final a = await repo.addBook(pdf.path);
-    final b = await repo.addBook(pdf.path);
+    final a = await repo.addBook(FileBookSource(File(pdf.path)));
+    final b = await repo.addBook(FileBookSource(File(pdf.path)));
     expect(a.id, b.id);
     expect((await repo.listBooks()).length, 1);
   });
 
   test('파일을 옮기면 새 책이 아니라 경로만 갱신된다', () async {
-    final first = await repo.addBook(pdf.path);
+    final first = await repo.addBook(FileBookSource(File(pdf.path)));
     final moved = File('${tmp.path}${Platform.pathSeparator}옮긴책.pdf');
     pdf.copySync(moved.path);
 
-    final again = await repo.addBook(moved.path);
+    final again = await repo.addBook(FileBookSource(File(moved.path)));
     expect(again.id, first.id, reason: 'checksum 이 같으면 같은 책이다');
     expect(again.filePath, moved.path);
     expect((await repo.listBooks()).length, 1);
   });
 
   test('가장 멀리 읽은 쪽은 뒤로 가지 않는다', () async {
-    final book = await repo.addBook(pdf.path);
+    final book = await repo.addBook(FileBookSource(File(pdf.path)));
     await repo.updateDocumentInfo(book.id, pageCount: 200, hasTextLayer: true);
 
     await repo.saveProgress(book.id, lastPage: 120, pageCount: 200);
@@ -60,13 +61,13 @@ void main() {
   });
 
   test('쪽 수를 모르면 진행률은 0 이다', () async {
-    final book = await repo.addBook(pdf.path);
+    final book = await repo.addBook(FileBookSource(File(pdf.path)));
     await repo.saveProgress(book.id, lastPage: 5);
     expect((await repo.findById(book.id))!.progress, 0.0);
   });
 
   test('서재에서 빼도 원본 파일은 남는다', () async {
-    final book = await repo.addBook(pdf.path);
+    final book = await repo.addBook(FileBookSource(File(pdf.path)));
     await repo.removeBook(book.id);
 
     expect(await repo.listBooks(), isEmpty);
@@ -74,7 +75,7 @@ void main() {
   });
 
   test('파일이 사라지면 목록에서 빼지 않고 표시만 한다', () async {
-    final book = await repo.addBook(pdf.path);
+    final book = await repo.addBook(FileBookSource(File(pdf.path)));
     pdf.deleteSync();
 
     final list = await repo.listBooks();

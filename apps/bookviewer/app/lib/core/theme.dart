@@ -62,6 +62,9 @@ abstract final class AppTheme {
 
     return ThemeData(
       useMaterial3: true,
+      // 한글 폰트를 명시한다. 웹에서는 이것이 없으면 글자가 네모로 깨지고,
+      // 네이티브에서도 기기마다 다른 폰트가 잡혀 조판이 흔들린다 (BRAND.md §4)
+      fontFamily: 'Pretendard',
       brightness: brightness,
       colorScheme: scheme,
       scaffoldBackgroundColor: background,

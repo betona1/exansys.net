@@ -287,6 +287,18 @@ class PageTexts extends Table {
   ];
 }
 
+/// 웹에서만 쓰는 원본 보관함.
+///
+/// 브라우저는 파일 경로를 주지 않는다. 다시 열려면 바이트를 들고 있어야 한다.
+/// 네이티브에서는 쓰지 않는다 — 원본을 복사하지 않는다는 원칙이 그대로다.
+class BookBlobs extends Table {
+  IntColumn get bookId => integer().references(Books, #id)();
+  BlobColumn get bytes => blob()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {bookId};
+}
+
 /// 앱 메타 — 스키마 버전 등
 class AppMeta extends Table {
   TextColumn get key => text()();

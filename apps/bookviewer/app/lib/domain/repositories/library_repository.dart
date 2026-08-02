@@ -1,3 +1,6 @@
+import 'dart:typed_data';
+
+import '../../data/source/book_source.dart';
 import '../entities/book.dart';
 import '../entities/reader_settings.dart';
 
@@ -11,10 +14,14 @@ abstract interface class LibraryRepository {
   /// 목록이 바뀔 때마다 흘려보낸다
   Stream<List<Book>> watchBooks();
 
-  /// 경로의 PDF 를 서재에 넣는다. 이미 있으면 그 책을 돌려준다.
+  /// 고른 PDF 를 서재에 넣는다. 이미 있으면 그 책을 돌려준다.
   ///
   /// checksum 으로 같은 파일을 알아보므로, 파일을 옮겼어도 새 책이 되지 않는다.
-  Future<Book> addBook(String filePath);
+  /// 웹에서는 경로가 없어 원본 바이트를 함께 담는다.
+  Future<Book> addBook(BookSource source);
+
+  /// 웹에서 담아 둔 원본 바이트. 네이티브면 null
+  Future<Uint8List?> bookBytes(int bookId);
 
   Future<Book?> findById(int id);
 

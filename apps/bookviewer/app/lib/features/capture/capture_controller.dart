@@ -4,7 +4,6 @@ import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pdfrx/pdfrx.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../core/providers.dart';
@@ -109,15 +108,6 @@ SnackBar captureSavedSnackBar(CaptureResult result, Book book) {
         const SizedBox(width: 12),
         Expanded(child: Text('${result.pageNumber}쪽을 잘라 저장했습니다')),
       ],
-    ),
-    action: SnackBarAction(
-      label: '공유',
-      onPressed: () => SharePlus.instance.share(
-        ShareParams(
-          files: [XFile(result.file.path)],
-          text: '${book.title} · ${result.pageNumber}쪽',
-        ),
-      ),
     ),
   );
 }

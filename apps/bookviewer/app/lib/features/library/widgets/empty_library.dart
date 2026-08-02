@@ -19,8 +19,14 @@ class EmptyLibrary extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(AppTokens.radiusCard),
+            // 아이콘 배경이 앱 배경과 같은 딥네이비라 그냥 두면 보이지 않는다.
+            // 테두리로 경계를 준다
+            Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(AppTokens.radiusCard),
+                border: Border.all(color: AppTokens.borderDark),
+              ),
+              clipBehavior: Clip.antiAlias,
               child: Image.asset('assets/icon/icon.png', width: 104, height: 104),
             ),
             const SizedBox(height: AppTokens.space5),
