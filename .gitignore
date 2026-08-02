@@ -7,3 +7,6 @@ dist/
 worker-configuration.d.ts
 .claude/
 *.tsbuildinfo
+
+# 설치 프로그램 산출물 — GitHub 릴리스로 배포한다 (저장소에 18MB 바이너리를 쌓지 않는다)
+apps/exapdf/installer/out/
