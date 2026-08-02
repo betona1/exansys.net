@@ -20,6 +20,7 @@ part 'database.g.dart';
     Bookmarks,
     PageTexts,
     BookBlobs,
+    OcrJobs,
     AppMeta,
   ],
 )
@@ -30,7 +31,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 10;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -69,6 +70,9 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 9) {
         await m.createTable(bookBlobs);
+      }
+      if (from < 10) {
+        await m.createTable(ocrJobs);
       }
     },
     beforeOpen: (details) async {

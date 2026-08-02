@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../features/help/manual_screen.dart';
 import '../features/library/library_screen.dart';
 import '../features/reader/reader_screen.dart';
 import '../features/search/global_search_screen.dart';
@@ -13,6 +14,7 @@ abstract final class AppRoutes {
   static const library = '/';
   static const book = '/book/:id';
   static const search = '/search';
+  static const manual = '/help';
 
   static String bookPath(int id, {int? page}) =>
       page == null ? '/book/$id' : '/book/$id?page=$page';
@@ -32,6 +34,10 @@ final appRouter = GoRouter(
         GoRoute(
           path: 'search',
           builder: (_, _) => const GlobalSearchScreen(),
+        ),
+        GoRoute(
+          path: 'help',
+          builder: (_, _) => const ManualScreen(),
         ),
         GoRoute(
           path: 'book/:id',

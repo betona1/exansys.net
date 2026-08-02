@@ -28,6 +28,13 @@ import '../annotation/widgets/highlight_bar.dart';
 import '../annotation/widgets/highlight_layer.dart';
 import '../annotation/widgets/marks_sheet.dart';
 import '../capture/capture_controller.dart';
+import '../help/help_settings.dart';
+import '../help/widgets/reader_coach.dart';
+import '../ocr/ocr_client.dart';
+import '../ocr/ocr_controller.dart';
+import '../ocr/ocr_settings.dart';
+import '../ocr/widgets/ocr_progress_bar.dart';
+import '../ocr/widgets/ocr_sheet.dart';
 import '../capture/widgets/capture_overlay.dart';
 import '../search/indexer.dart';
 import 'crop_detector.dart';
@@ -116,6 +123,14 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
 
   /// 지금 고른 하이라이트. 옆에 색·메모·휴지통 막대가 뜨고 Del 로 지운다
   int? _selectedHighlight;
+
+  /// 처음 여는 사람에게 조작을 알려 주는 안내. 껐거나 이미 봤으면 뜨지 않는다
+  HelpSettings _help = const HelpSettings(readerIntroSeen: true);
+  bool _coach = false;
+
+  /// 글자로 바꾸는 중인 진행 상태. null 이면 돌고 있지 않다
+  ({int done, int total})? _ocrProgress;
+  ExportCancelToken? _ocrCancel;
   int _colorSlot = 1;
 
   /// 이 문서에 글자 레이어가 있는가. 없으면 검색이 성립하지 않는다
@@ -172,7 +187,14 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
 
   Future<void> _open() async {
     final settings = await ref.read(libraryRepositoryProvider).readerSettings(widget.book.id);
-    if (mounted) setState(() => _settings = settings);
+    final help = await HelpSettings.load(ref.read(databaseProvider));
+    if (mounted) {
+      setState(() {
+        _settings = settings;
+        _help = help;
+        _coach = help.shouldShowReaderIntro;
+      });
+    }
 
     try {
       // 웹은 경로가 없다. 담아 둔 바이트로 연다
@@ -910,33 +932,83 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
   /// "안 됩니다"로 끝내지 않는다. 왜 안 되는지와 무엇을 하면 되는지를 함께 준다.
   /// 글자로 바꾸는 일(OCR)은 서버가 맡는다 — 무거운 처리는 앱에 넣지 않는다
   /// (CLAUDE.md §4). 유료 기능으로 예정돼 있다 (SPEC §7).
-  void _offerOcr() {
-    unawaited(
-      showDialog<void>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('글자로 된 문서만 찾을 수 있습니다'),
-          content: const Text(
-            '이 책은 글자가 아니라 사진으로 된 스캔본입니다.\n'
-            '글자로 바꾸면(OCR) 찾기와 복사가 됩니다.\n\n'
-            '변환은 서버에서 처리하며, 준비되면 알려 드리겠습니다.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('닫기'),
-            ),
-            FilledButton(
-              onPressed: () {
-                Navigator.pop(ctx);
-                _toast('OCR 변환은 아직 준비 중입니다');
-              },
-              child: const Text('글자로 바꾸기'),
-            ),
-          ],
-        ),
+  Future<void> _offerOcr() async {
+    final doc = _doc;
+    if (doc == null) return;
+    if (_ocrProgress != null) {
+      _toast('이미 글자로 바꾸는 중입니다');
+      return;
+    }
+
+    final db = ref.read(databaseProvider);
+    final settings = await OcrSettings.load(db);
+    final pending = await OcrController(db).pendingPages(widget.book.id, doc.pages.length);
+    if (!mounted) return;
+
+    final chosen = await showModalBottomSheet<OcrSettings>(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) => OcrSheet(
+        settings: settings,
+        pageCount: doc.pages.length,
+        remaining: pending.length,
       ),
     );
+    if (chosen == null || !mounted) return;
+    await chosen.save(db);
+    await _runOcr(doc, chosen);
+  }
+
+  /// 스캔본을 글자로 바꾼다.
+  ///
+  /// 화면을 덮지 않는다 — 두 시간이 걸릴 수 있어서 그동안 책을 못 읽으면
+  /// 안 된다. 한 쪽 끝날 때마다 DB 에 남으므로 중간에 멈춰도 잃는 것이 없다.
+  Future<void> _runOcr(PdfDocument doc, OcrSettings settings) async {
+    final cancel = ExportCancelToken();
+    setState(() {
+      _ocrCancel = cancel;
+      _ocrProgress = (done: 0, total: doc.pages.length);
+    });
+
+    final client = OcrClient(endpoint: settings.endpoint, model: settings.model);
+    try {
+      final stream = OcrController(ref.read(databaseProvider)).run(
+        bookId: widget.book.id,
+        doc: doc,
+        client: client,
+        cropFor: _settings.cropFor,
+        split: _settings.splitPages,
+        cancel: cancel,
+      );
+      await for (final p in stream) {
+        if (!mounted) return;
+        setState(() => _ocrProgress = (done: p.done, total: p.total));
+      }
+      if (!mounted) return;
+      setState(() => _hasTextLayer = true);
+      _toast(cancel.isCancelled ? '멈췄습니다. 다음에 이어서 합니다' : '글자로 바꿨습니다. 이제 찾을 수 있습니다');
+    } on Object catch (e) {
+      if (mounted) _toast('$e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _ocrProgress = null;
+          _ocrCancel = null;
+        });
+      }
+    }
+  }
+
+  /// 안내를 닫는다.
+  ///
+  /// [never] 면 앞으로 아예 띄우지 않는다. 그냥 닫으면 이 책에서는 봤다고만
+  /// 적어 둔다 — 두 번 보여 주지 않으면서, 설정에서 다시 켤 길은 남긴다
+  void _closeCoach({bool remember = false, bool never = false}) {
+    setState(() => _coach = false);
+    if (!remember) return;
+    final next = _help.copyWith(readerIntroSeen: true, showTips: never ? false : null);
+    _help = next;
+    unawaited(next.save(ref.read(databaseProvider)));
   }
 
   void _toast(String message) {
@@ -1178,6 +1250,22 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
               onDelete: _deleteHighlight,
             ),
 
+          if (_coach)
+            ReaderCoach(
+              onClose: () => _closeCoach(remember: true),
+              onNeverShow: () => _closeCoach(remember: true, never: true),
+            ),
+
+          if (_ocrProgress != null)
+            OcrProgressBar(
+              done: _ocrProgress!.done,
+              total: _ocrProgress!.total,
+              onStop: () {
+                _ocrCancel?.cancel();
+                _toast('이 쪽을 마치고 멈춥니다');
+              },
+            ),
+
           if (_exportProgress != null)
             ExportProgressOverlay(
               done: _exportProgress!.done,
@@ -1270,7 +1358,7 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
               },
               onToggleSearch: () {
                 if (!_hasTextLayer) {
-                  _offerOcr();
+                  unawaited(_offerOcr());
                   return;
                 }
                 setState(() => _search = !_search);

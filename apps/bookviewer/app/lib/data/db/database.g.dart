@@ -5897,6 +5897,508 @@ class BookBlobsCompanion extends UpdateCompanion<BookBlob> {
   }
 }
 
+class $OcrJobsTable extends OcrJobs with TableInfo<$OcrJobsTable, OcrJob> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $OcrJobsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _bookIdMeta = const VerificationMeta('bookId');
+  @override
+  late final GeneratedColumn<int> bookId = GeneratedColumn<int>(
+    'book_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES books (id)',
+    ),
+  );
+  static const VerificationMeta _doneMeta = const VerificationMeta('done');
+  @override
+  late final GeneratedColumn<int> done = GeneratedColumn<int>(
+    'done',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _totalMeta = const VerificationMeta('total');
+  @override
+  late final GeneratedColumn<int> total = GeneratedColumn<int>(
+    'total',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('idle'),
+  );
+  static const VerificationMeta _lastErrorMeta = const VerificationMeta(
+    'lastError',
+  );
+  @override
+  late final GeneratedColumn<String> lastError = GeneratedColumn<String>(
+    'last_error',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _endpointMeta = const VerificationMeta(
+    'endpoint',
+  );
+  @override
+  late final GeneratedColumn<String> endpoint = GeneratedColumn<String>(
+    'endpoint',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _modelMeta = const VerificationMeta('model');
+  @override
+  late final GeneratedColumn<String> model = GeneratedColumn<String>(
+    'model',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<String> updatedAt = GeneratedColumn<String>(
+    'updated_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    bookId,
+    done,
+    total,
+    status,
+    lastError,
+    endpoint,
+    model,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'ocr_jobs';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<OcrJob> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('book_id')) {
+      context.handle(
+        _bookIdMeta,
+        bookId.isAcceptableOrUnknown(data['book_id']!, _bookIdMeta),
+      );
+    }
+    if (data.containsKey('done')) {
+      context.handle(
+        _doneMeta,
+        done.isAcceptableOrUnknown(data['done']!, _doneMeta),
+      );
+    }
+    if (data.containsKey('total')) {
+      context.handle(
+        _totalMeta,
+        total.isAcceptableOrUnknown(data['total']!, _totalMeta),
+      );
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('last_error')) {
+      context.handle(
+        _lastErrorMeta,
+        lastError.isAcceptableOrUnknown(data['last_error']!, _lastErrorMeta),
+      );
+    }
+    if (data.containsKey('endpoint')) {
+      context.handle(
+        _endpointMeta,
+        endpoint.isAcceptableOrUnknown(data['endpoint']!, _endpointMeta),
+      );
+    }
+    if (data.containsKey('model')) {
+      context.handle(
+        _modelMeta,
+        model.isAcceptableOrUnknown(data['model']!, _modelMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {bookId};
+  @override
+  OcrJob map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return OcrJob(
+      bookId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}book_id'],
+      )!,
+      done: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}done'],
+      )!,
+      total: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}total'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      lastError: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_error'],
+      ),
+      endpoint: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}endpoint'],
+      ),
+      model: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}model'],
+      ),
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}updated_at'],
+      ),
+    );
+  }
+
+  @override
+  $OcrJobsTable createAlias(String alias) {
+    return $OcrJobsTable(attachedDatabase, alias);
+  }
+}
+
+class OcrJob extends DataClass implements Insertable<OcrJob> {
+  final int bookId;
+
+  /// 마친 쪽 수 / 전체 쪽 수. 진행률 표시에 쓴다
+  final int done;
+  final int total;
+
+  /// idle · running · paused · done · failed
+  final String status;
+
+  /// 마지막으로 실패한 까닭. 성공하면 지운다
+  final String? lastError;
+
+  /// 어느 서버·모델로 돌렸는지. 나중에 결과를 의심할 때 근거가 된다
+  final String? endpoint;
+  final String? model;
+  final String? updatedAt;
+  const OcrJob({
+    required this.bookId,
+    required this.done,
+    required this.total,
+    required this.status,
+    this.lastError,
+    this.endpoint,
+    this.model,
+    this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['book_id'] = Variable<int>(bookId);
+    map['done'] = Variable<int>(done);
+    map['total'] = Variable<int>(total);
+    map['status'] = Variable<String>(status);
+    if (!nullToAbsent || lastError != null) {
+      map['last_error'] = Variable<String>(lastError);
+    }
+    if (!nullToAbsent || endpoint != null) {
+      map['endpoint'] = Variable<String>(endpoint);
+    }
+    if (!nullToAbsent || model != null) {
+      map['model'] = Variable<String>(model);
+    }
+    if (!nullToAbsent || updatedAt != null) {
+      map['updated_at'] = Variable<String>(updatedAt);
+    }
+    return map;
+  }
+
+  OcrJobsCompanion toCompanion(bool nullToAbsent) {
+    return OcrJobsCompanion(
+      bookId: Value(bookId),
+      done: Value(done),
+      total: Value(total),
+      status: Value(status),
+      lastError: lastError == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastError),
+      endpoint: endpoint == null && nullToAbsent
+          ? const Value.absent()
+          : Value(endpoint),
+      model: model == null && nullToAbsent
+          ? const Value.absent()
+          : Value(model),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
+    );
+  }
+
+  factory OcrJob.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return OcrJob(
+      bookId: serializer.fromJson<int>(json['bookId']),
+      done: serializer.fromJson<int>(json['done']),
+      total: serializer.fromJson<int>(json['total']),
+      status: serializer.fromJson<String>(json['status']),
+      lastError: serializer.fromJson<String?>(json['lastError']),
+      endpoint: serializer.fromJson<String?>(json['endpoint']),
+      model: serializer.fromJson<String?>(json['model']),
+      updatedAt: serializer.fromJson<String?>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'bookId': serializer.toJson<int>(bookId),
+      'done': serializer.toJson<int>(done),
+      'total': serializer.toJson<int>(total),
+      'status': serializer.toJson<String>(status),
+      'lastError': serializer.toJson<String?>(lastError),
+      'endpoint': serializer.toJson<String?>(endpoint),
+      'model': serializer.toJson<String?>(model),
+      'updatedAt': serializer.toJson<String?>(updatedAt),
+    };
+  }
+
+  OcrJob copyWith({
+    int? bookId,
+    int? done,
+    int? total,
+    String? status,
+    Value<String?> lastError = const Value.absent(),
+    Value<String?> endpoint = const Value.absent(),
+    Value<String?> model = const Value.absent(),
+    Value<String?> updatedAt = const Value.absent(),
+  }) => OcrJob(
+    bookId: bookId ?? this.bookId,
+    done: done ?? this.done,
+    total: total ?? this.total,
+    status: status ?? this.status,
+    lastError: lastError.present ? lastError.value : this.lastError,
+    endpoint: endpoint.present ? endpoint.value : this.endpoint,
+    model: model.present ? model.value : this.model,
+    updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
+  );
+  OcrJob copyWithCompanion(OcrJobsCompanion data) {
+    return OcrJob(
+      bookId: data.bookId.present ? data.bookId.value : this.bookId,
+      done: data.done.present ? data.done.value : this.done,
+      total: data.total.present ? data.total.value : this.total,
+      status: data.status.present ? data.status.value : this.status,
+      lastError: data.lastError.present ? data.lastError.value : this.lastError,
+      endpoint: data.endpoint.present ? data.endpoint.value : this.endpoint,
+      model: data.model.present ? data.model.value : this.model,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OcrJob(')
+          ..write('bookId: $bookId, ')
+          ..write('done: $done, ')
+          ..write('total: $total, ')
+          ..write('status: $status, ')
+          ..write('lastError: $lastError, ')
+          ..write('endpoint: $endpoint, ')
+          ..write('model: $model, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    bookId,
+    done,
+    total,
+    status,
+    lastError,
+    endpoint,
+    model,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is OcrJob &&
+          other.bookId == this.bookId &&
+          other.done == this.done &&
+          other.total == this.total &&
+          other.status == this.status &&
+          other.lastError == this.lastError &&
+          other.endpoint == this.endpoint &&
+          other.model == this.model &&
+          other.updatedAt == this.updatedAt);
+}
+
+class OcrJobsCompanion extends UpdateCompanion<OcrJob> {
+  final Value<int> bookId;
+  final Value<int> done;
+  final Value<int> total;
+  final Value<String> status;
+  final Value<String?> lastError;
+  final Value<String?> endpoint;
+  final Value<String?> model;
+  final Value<String?> updatedAt;
+  const OcrJobsCompanion({
+    this.bookId = const Value.absent(),
+    this.done = const Value.absent(),
+    this.total = const Value.absent(),
+    this.status = const Value.absent(),
+    this.lastError = const Value.absent(),
+    this.endpoint = const Value.absent(),
+    this.model = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  OcrJobsCompanion.insert({
+    this.bookId = const Value.absent(),
+    this.done = const Value.absent(),
+    this.total = const Value.absent(),
+    this.status = const Value.absent(),
+    this.lastError = const Value.absent(),
+    this.endpoint = const Value.absent(),
+    this.model = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  static Insertable<OcrJob> custom({
+    Expression<int>? bookId,
+    Expression<int>? done,
+    Expression<int>? total,
+    Expression<String>? status,
+    Expression<String>? lastError,
+    Expression<String>? endpoint,
+    Expression<String>? model,
+    Expression<String>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (bookId != null) 'book_id': bookId,
+      if (done != null) 'done': done,
+      if (total != null) 'total': total,
+      if (status != null) 'status': status,
+      if (lastError != null) 'last_error': lastError,
+      if (endpoint != null) 'endpoint': endpoint,
+      if (model != null) 'model': model,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  OcrJobsCompanion copyWith({
+    Value<int>? bookId,
+    Value<int>? done,
+    Value<int>? total,
+    Value<String>? status,
+    Value<String?>? lastError,
+    Value<String?>? endpoint,
+    Value<String?>? model,
+    Value<String?>? updatedAt,
+  }) {
+    return OcrJobsCompanion(
+      bookId: bookId ?? this.bookId,
+      done: done ?? this.done,
+      total: total ?? this.total,
+      status: status ?? this.status,
+      lastError: lastError ?? this.lastError,
+      endpoint: endpoint ?? this.endpoint,
+      model: model ?? this.model,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (bookId.present) {
+      map['book_id'] = Variable<int>(bookId.value);
+    }
+    if (done.present) {
+      map['done'] = Variable<int>(done.value);
+    }
+    if (total.present) {
+      map['total'] = Variable<int>(total.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (lastError.present) {
+      map['last_error'] = Variable<String>(lastError.value);
+    }
+    if (endpoint.present) {
+      map['endpoint'] = Variable<String>(endpoint.value);
+    }
+    if (model.present) {
+      map['model'] = Variable<String>(model.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<String>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OcrJobsCompanion(')
+          ..write('bookId: $bookId, ')
+          ..write('done: $done, ')
+          ..write('total: $total, ')
+          ..write('status: $status, ')
+          ..write('lastError: $lastError, ')
+          ..write('endpoint: $endpoint, ')
+          ..write('model: $model, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $AppMetaTable extends AppMeta with TableInfo<$AppMetaTable, AppMetaData> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -6118,6 +6620,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $BookmarksTable bookmarks = $BookmarksTable(this);
   late final $PageTextsTable pageTexts = $PageTextsTable(this);
   late final $BookBlobsTable bookBlobs = $BookBlobsTable(this);
+  late final $OcrJobsTable ocrJobs = $OcrJobsTable(this);
   late final $AppMetaTable appMeta = $AppMetaTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
@@ -6133,6 +6636,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     bookmarks,
     pageTexts,
     bookBlobs,
+    ocrJobs,
     appMeta,
   ];
 }
@@ -6331,6 +6835,25 @@ final class $$BooksTableReferences
     ).filter((f) => f.bookId.id.sqlEquals($_itemColumn<int>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_bookBlobsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$OcrJobsTable, List<OcrJob>> _ocrJobsRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.ocrJobs,
+    aliasName: 'books__id__ocr_jobs__book_id',
+  );
+
+  $$OcrJobsTableProcessedTableManager get ocrJobsRefs {
+    final manager = $$OcrJobsTableTableManager(
+      $_db,
+      $_db.ocrJobs,
+    ).filter((f) => f.bookId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_ocrJobsRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -6636,6 +7159,31 @@ class $$BooksTableFilterComposer extends Composer<_$AppDatabase, $BooksTable> {
           }) => $$BookBlobsTableFilterComposer(
             $db: $db,
             $table: $db.bookBlobs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> ocrJobsRefs(
+    Expression<bool> Function($$OcrJobsTableFilterComposer f) f,
+  ) {
+    final $$OcrJobsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.ocrJobs,
+      getReferencedColumn: (t) => t.bookId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$OcrJobsTableFilterComposer(
+            $db: $db,
+            $table: $db.ocrJobs,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -7034,6 +7582,31 @@ class $$BooksTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> ocrJobsRefs<T extends Object>(
+    Expression<T> Function($$OcrJobsTableAnnotationComposer a) f,
+  ) {
+    final $$OcrJobsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.ocrJobs,
+      getReferencedColumn: (t) => t.bookId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$OcrJobsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.ocrJobs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$BooksTableTableManager
@@ -7058,6 +7631,7 @@ class $$BooksTableTableManager
             bool bookmarksRefs,
             bool pageTextsRefs,
             bool bookBlobsRefs,
+            bool ocrJobsRefs,
           })
         > {
   $$BooksTableTableManager(_$AppDatabase db, $BooksTable table)
@@ -7175,6 +7749,7 @@ class $$BooksTableTableManager
                 bookmarksRefs = false,
                 pageTextsRefs = false,
                 bookBlobsRefs = false,
+                ocrJobsRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
@@ -7187,6 +7762,7 @@ class $$BooksTableTableManager
                     if (bookmarksRefs) db.bookmarks,
                     if (pageTextsRefs) db.pageTexts,
                     if (bookBlobsRefs) db.bookBlobs,
+                    if (ocrJobsRefs) db.ocrJobs,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -7351,6 +7927,19 @@ class $$BooksTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (ocrJobsRefs)
+                        await $_getPrefetchedData<BookRow, $BooksTable, OcrJob>(
+                          currentTable: table,
+                          referencedTable: $$BooksTableReferences
+                              ._ocrJobsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$BooksTableReferences(db, table, p0).ocrJobsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.bookId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -7380,6 +7969,7 @@ typedef $$BooksTableProcessedTableManager =
         bool bookmarksRefs,
         bool pageTextsRefs,
         bool bookBlobsRefs,
+        bool ocrJobsRefs,
       })
     >;
 typedef $$ReadingProgressTableCreateCompanionBuilder =
@@ -10999,6 +11589,374 @@ typedef $$BookBlobsTableProcessedTableManager =
       BookBlob,
       PrefetchHooks Function({bool bookId})
     >;
+typedef $$OcrJobsTableCreateCompanionBuilder =
+    OcrJobsCompanion Function({
+      Value<int> bookId,
+      Value<int> done,
+      Value<int> total,
+      Value<String> status,
+      Value<String?> lastError,
+      Value<String?> endpoint,
+      Value<String?> model,
+      Value<String?> updatedAt,
+    });
+typedef $$OcrJobsTableUpdateCompanionBuilder =
+    OcrJobsCompanion Function({
+      Value<int> bookId,
+      Value<int> done,
+      Value<int> total,
+      Value<String> status,
+      Value<String?> lastError,
+      Value<String?> endpoint,
+      Value<String?> model,
+      Value<String?> updatedAt,
+    });
+
+final class $$OcrJobsTableReferences
+    extends BaseReferences<_$AppDatabase, $OcrJobsTable, OcrJob> {
+  $$OcrJobsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $BooksTable _bookIdTable(_$AppDatabase db) =>
+      db.books.createAlias('ocr_jobs__book_id__books__id');
+
+  $$BooksTableProcessedTableManager get bookId {
+    final $_column = $_itemColumn<int>('book_id')!;
+
+    final manager = $$BooksTableTableManager(
+      $_db,
+      $_db.books,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_bookIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$OcrJobsTableFilterComposer
+    extends Composer<_$AppDatabase, $OcrJobsTable> {
+  $$OcrJobsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get done => $composableBuilder(
+    column: $table.done,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get total => $composableBuilder(
+    column: $table.total,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lastError => $composableBuilder(
+    column: $table.lastError,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get endpoint => $composableBuilder(
+    column: $table.endpoint,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get model => $composableBuilder(
+    column: $table.model,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$BooksTableFilterComposer get bookId {
+    final $$BooksTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.bookId,
+      referencedTable: $db.books,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BooksTableFilterComposer(
+            $db: $db,
+            $table: $db.books,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$OcrJobsTableOrderingComposer
+    extends Composer<_$AppDatabase, $OcrJobsTable> {
+  $$OcrJobsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get done => $composableBuilder(
+    column: $table.done,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get total => $composableBuilder(
+    column: $table.total,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lastError => $composableBuilder(
+    column: $table.lastError,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get endpoint => $composableBuilder(
+    column: $table.endpoint,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get model => $composableBuilder(
+    column: $table.model,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$BooksTableOrderingComposer get bookId {
+    final $$BooksTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.bookId,
+      referencedTable: $db.books,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BooksTableOrderingComposer(
+            $db: $db,
+            $table: $db.books,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$OcrJobsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $OcrJobsTable> {
+  $$OcrJobsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get done =>
+      $composableBuilder(column: $table.done, builder: (column) => column);
+
+  GeneratedColumn<int> get total =>
+      $composableBuilder(column: $table.total, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get lastError =>
+      $composableBuilder(column: $table.lastError, builder: (column) => column);
+
+  GeneratedColumn<String> get endpoint =>
+      $composableBuilder(column: $table.endpoint, builder: (column) => column);
+
+  GeneratedColumn<String> get model =>
+      $composableBuilder(column: $table.model, builder: (column) => column);
+
+  GeneratedColumn<String> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$BooksTableAnnotationComposer get bookId {
+    final $$BooksTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.bookId,
+      referencedTable: $db.books,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BooksTableAnnotationComposer(
+            $db: $db,
+            $table: $db.books,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$OcrJobsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $OcrJobsTable,
+          OcrJob,
+          $$OcrJobsTableFilterComposer,
+          $$OcrJobsTableOrderingComposer,
+          $$OcrJobsTableAnnotationComposer,
+          $$OcrJobsTableCreateCompanionBuilder,
+          $$OcrJobsTableUpdateCompanionBuilder,
+          (OcrJob, $$OcrJobsTableReferences),
+          OcrJob,
+          PrefetchHooks Function({bool bookId})
+        > {
+  $$OcrJobsTableTableManager(_$AppDatabase db, $OcrJobsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$OcrJobsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$OcrJobsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$OcrJobsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> bookId = const Value.absent(),
+                Value<int> done = const Value.absent(),
+                Value<int> total = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<String?> lastError = const Value.absent(),
+                Value<String?> endpoint = const Value.absent(),
+                Value<String?> model = const Value.absent(),
+                Value<String?> updatedAt = const Value.absent(),
+              }) => OcrJobsCompanion(
+                bookId: bookId,
+                done: done,
+                total: total,
+                status: status,
+                lastError: lastError,
+                endpoint: endpoint,
+                model: model,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> bookId = const Value.absent(),
+                Value<int> done = const Value.absent(),
+                Value<int> total = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<String?> lastError = const Value.absent(),
+                Value<String?> endpoint = const Value.absent(),
+                Value<String?> model = const Value.absent(),
+                Value<String?> updatedAt = const Value.absent(),
+              }) => OcrJobsCompanion.insert(
+                bookId: bookId,
+                done: done,
+                total: total,
+                status: status,
+                lastError: lastError,
+                endpoint: endpoint,
+                model: model,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$OcrJobsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({bookId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (bookId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.bookId,
+                                referencedTable: $$OcrJobsTableReferences
+                                    ._bookIdTable(db),
+                                referencedColumn: $$OcrJobsTableReferences
+                                    ._bookIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$OcrJobsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $OcrJobsTable,
+      OcrJob,
+      $$OcrJobsTableFilterComposer,
+      $$OcrJobsTableOrderingComposer,
+      $$OcrJobsTableAnnotationComposer,
+      $$OcrJobsTableCreateCompanionBuilder,
+      $$OcrJobsTableUpdateCompanionBuilder,
+      (OcrJob, $$OcrJobsTableReferences),
+      OcrJob,
+      PrefetchHooks Function({bool bookId})
+    >;
 typedef $$AppMetaTableCreateCompanionBuilder =
     AppMetaCompanion Function({
       required String key,
@@ -11154,6 +12112,8 @@ class $AppDatabaseManager {
       $$PageTextsTableTableManager(_db, _db.pageTexts);
   $$BookBlobsTableTableManager get bookBlobs =>
       $$BookBlobsTableTableManager(_db, _db.bookBlobs);
+  $$OcrJobsTableTableManager get ocrJobs =>
+      $$OcrJobsTableTableManager(_db, _db.ocrJobs);
   $$AppMetaTableTableManager get appMeta =>
       $$AppMetaTableTableManager(_db, _db.appMeta);
 }

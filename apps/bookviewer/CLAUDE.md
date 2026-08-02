@@ -56,6 +56,7 @@ PDF 를 "문서"가 아니라 **책**으로 읽는 앱. Android 폰·태블릿 �
 | 상태관리 | **Riverpod** |
 | 로컬 DB | **Drift** + `sqlite3_flutter_libs` (FTS5 포함 SQLite 번들) |
 | 서버 | **Django** (기존 스택). 영상→북 파이프라인 + 동기화 API |
+| OCR | **Ollama 비전 모델**(`qwen2.5vl:7b`). 앱은 그림을 보내고 글자를 받을 뿐 — 추론은 서버에서 (§4). 실측·함정은 `docs/engine-verification.md` |
 | 서버 DB | **MySQL** `192.168.219.200` (utf8mb4) |
 | 검색 | FTS5 + **앱 레벨 bigram 정규화** (한국어). 토크나이저 교체 가능하게 추상화 |
 | 주석 | 앱 DB 오버레이 → checksum 불일치 시 **자동 퍼지 재부착**, 실패분만 경고 |

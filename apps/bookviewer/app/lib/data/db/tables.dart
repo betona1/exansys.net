@@ -299,6 +299,35 @@ class BookBlobs extends Table {
   Set<Column<Object>> get primaryKey => {bookId};
 }
 
+/// OCR 작업의 현재 상태 — **쪽 단위 체크포인트** (CLAUDE.md §2 규칙 7).
+///
+/// 스캔본 한 권이 두 시간 가까이 걸린다. 중간에 앱이 죽거나 사용자가
+/// 나가는 일이 반드시 생기고, 그때 처음부터 다시 도는 설계는 그 자체로 실패다.
+/// 어디까지 했는지는 `page_texts` 에 그 쪽 행이 있는지로 판정하고,
+/// 이 표에는 **다시 열었을 때 이어서 물어보기 위한 상태**만 남긴다.
+class OcrJobs extends Table {
+  IntColumn get bookId => integer().references(Books, #id)();
+
+  /// 마친 쪽 수 / 전체 쪽 수. 진행률 표시에 쓴다
+  IntColumn get done => integer().withDefault(const Constant(0))();
+  IntColumn get total => integer().withDefault(const Constant(0))();
+
+  /// idle · running · paused · done · failed
+  TextColumn get status => text().withDefault(const Constant('idle'))();
+
+  /// 마지막으로 실패한 까닭. 성공하면 지운다
+  TextColumn get lastError => text().nullable()();
+
+  /// 어느 서버·모델로 돌렸는지. 나중에 결과를 의심할 때 근거가 된다
+  TextColumn get endpoint => text().nullable()();
+  TextColumn get model => text().nullable()();
+
+  TextColumn get updatedAt => text().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {bookId};
+}
+
 /// 앱 메타 — 스키마 버전 등
 class AppMeta extends Table {
   TextColumn get key => text()();

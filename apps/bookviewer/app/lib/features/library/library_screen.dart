@@ -79,6 +79,12 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
             icon: const Icon(Icons.add),
             tooltip: 'PDF 가져오기',
           ),
+          // 설명서는 찾기 쉬운 자리에 둔다. 메뉴 안에 숨기면 없는 것과 같다
+          IconButton(
+            onPressed: () => context.go(AppRoutes.manual),
+            icon: const Icon(Icons.help_outline),
+            tooltip: '사용 설명서',
+          ),
         ],
       ),
       body: books.when(

@@ -263,6 +263,15 @@ class _PageSliceState extends State<_PageSlice> {
 
   bool _zoomedIn = false;
 
+  /// 지금 그림이 화면보다 가로로 넘치는가.
+  /// 넘칠 때만 좌우로 밀게 풀어 준다 — 안 그러면 쪽 넘김과 싸운다
+  bool get _overflowsHorizontally {
+    final box = _renderedFor;
+    final drawn = _drawnSize();
+    if (box == null || drawn == null) return false;
+    return drawn.width * _transform.value.getMaxScaleOnAxis() - box.width > 1;
+  }
+
   void _onTransform() {
     // 배율이 1 보다 크면 확대 중으로 본다
     final z = _transform.value.getMaxScaleOnAxis() > 1.01;
@@ -578,9 +587,20 @@ class _PageSliceState extends State<_PageSlice> {
             minScale: 1,
             // 잠갔으면 배율을 바꾸지 못하게 한다
             scaleEnabled: !widget.locked,
-            // 잠갔으면 세로로만. 확대하지 않았을 때도 세로로만 —
-            // 좌우로도 밀리면 PageView 의 쪽 넘김과 싸운다
-            panAxis: (widget.locked || !_zoomedIn) ? PanAxis.vertical : PanAxis.free,
+            // 잠갔으면 세로로만.
+            //
+            // 예전에는 확대하기 전에도 세로로만 막아 두었다. 좌우로 밀리면
+            // 쪽 넘김과 싸운다는 이유였는데, 그 바람에 **가로로 넘친 쪽의
+            // 왼쪽에 영영 닿을 수 없었다** — 반 가르기를 켰을 때 잘려 보이던
+            // 것이 이것이다. 이제 가로로 실제로 넘칠 때만 좌우를 풀어 준다.
+            // 넘치지 않으면 예전처럼 세로로만 — 그때는 좌우 드래그가
+            // 쪽 넘김이어야 맞다
+            panAxis: widget.locked
+                ? PanAxis.vertical
+                : (_zoomedIn || _overflowsHorizontally) ? PanAxis.free : PanAxis.vertical,
+            // 끌기를 놓을 때마다 화면 안으로 도로 붙인다.
+            // 이게 없으면 그림을 화면 밖으로 끌어내 잃어버릴 수 있다
+            onInteractionEnd: (_) => _clampTranslation(),
             boundaryMargin: const EdgeInsets.all(double.infinity),
             clipBehavior: Clip.hardEdge,
               child: SizedBox.expand(
