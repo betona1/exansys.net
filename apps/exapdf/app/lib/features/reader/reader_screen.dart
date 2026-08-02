@@ -1341,6 +1341,9 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
     },
     onViewSheet: _openViewSheet,
     onCapture: () => setState(() => _capture = true),
+    // 글자가 없는 책에서만 보여 준다. 있는 책에는 필요 없는 단추다
+    showOcr: !_hasTextLayer,
+    onOcr: () => unawaited(_offerOcr()),
     splitOn: _settings.splitPages,
     onToggleSplit: () => unawaited(_toggleSplit()),
     zoomLocked: _settings.zoomLocked,
@@ -1546,6 +1549,8 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
                 setState(() => _search = !_search);
               },
               onCapture: () => setState(() => _capture = true),
+              showOcr: !_hasTextLayer,
+              onOcr: () => unawaited(_offerOcr()),
               splitOn: _settings.splitPages,
               onToggleSplit: () => unawaited(_toggleSplit()),
               zoomLocked: _settings.zoomLocked,

@@ -28,6 +28,8 @@ class ReaderRail extends StatelessWidget {
     required this.onSearch,
     required this.onViewSheet,
     required this.onCapture,
+    required this.showOcr,
+    required this.onOcr,
     required this.onPrev,
     required this.onNext,
     required this.canPrev,
@@ -70,6 +72,10 @@ class ReaderRail extends StatelessWidget {
   final VoidCallback onSearch;
   final VoidCallback onViewSheet;
   final VoidCallback onCapture;
+
+  /// 스캔본일 때만 보인다
+  final bool showOcr;
+  final VoidCallback onOcr;
   final VoidCallback onPrev;
   final VoidCallback onNext;
   final bool canPrev;
@@ -102,53 +108,72 @@ class ReaderRail extends StatelessWidget {
                 tooltip: '서재로',
               ),
               const Divider(indent: 16, endIndent: 16),
-              IconButton(
-                onPressed: canSearch ? onSearch : null,
-                icon: const Icon(Icons.search),
-                tooltip: searchDisabledReason ?? '이 책에서 찾기',
-              ),
-              IconButton(
-                onPressed: onViewSheet,
-                icon: const Icon(Icons.tune),
-                tooltip: '보기 — 맞춤 · 나눠 보기 · 여백 · 테마',
-                color: viewChanged ? AppTokens.amber : null,
-              ),
-              IconButton(
-                onPressed: onCapture,
-                icon: const Icon(Icons.crop_free),
-                tooltip: '영역 캡처',
-              ),
-              IconButton(
-                onPressed: onToggleSplit,
-                icon: const Icon(Icons.vertical_split),
-                tooltip: splitOn ? '한 장씩 보기' : '좌우 나눠 보기',
-                color: splitOn ? AppTokens.amber : null,
-              ),
-              IconButton(
-                onPressed: onToggleZoomLock,
-                icon: Icon(zoomLocked ? Icons.lock : Icons.lock_open),
-                tooltip: zoomLocked ? '좌우 고정 풀기' : '좌우·크기 고정',
-                color: zoomLocked ? AppTokens.amber : null,
-              ),
-              IconButton(
-                onPressed: onToggleHighlight,
-                icon: const Icon(Icons.brush),
-                tooltip: highlighting ? '형광펜 끄기' : '형광펜',
-                color: highlighting ? AppTokens.amber : null,
-              ),
-              IconButton(
-                onPressed: onToggleBookmark,
-                icon: Icon(bookmarked ? Icons.bookmark : Icons.bookmark_border),
-                tooltip: bookmarked ? '북마크 빼기' : '이 쪽 북마크',
-                color: bookmarked ? AppTokens.amber : null,
-              ),
-              IconButton(
-                onPressed: onOpenMarks,
-                icon: const Icon(Icons.list),
-                tooltip: '하이라이트·북마크 목록',
-              ),
+              // **가로모드 폰에서는 세로가 짧아 아이콘이 잘려 나간다.**
+              // 화면 높이가 400dp 남짓인데 단추가 열 개 넘게 쌓이기 때문이다.
+              // 가운데 구역만 스크롤되게 하고, 쪽 이동은 아래에 붙박아 둔다
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                    IconButton(
+                      onPressed: canSearch ? onSearch : null,
+                      icon: const Icon(Icons.search),
+                      tooltip: searchDisabledReason ?? '이 책에서 찾기',
+                    ),
+                    IconButton(
+                      onPressed: onViewSheet,
+                      icon: const Icon(Icons.tune),
+                      tooltip: '보기 — 맞춤 · 나눠 보기 · 여백 · 테마',
+                      color: viewChanged ? AppTokens.amber : null,
+                    ),
+                    IconButton(
+                      onPressed: onCapture,
+                      icon: const Icon(Icons.crop_free),
+                      tooltip: '영역 캡처',
+                    ),
+                    // 스캔본에서만. 돋보기 뒤에 숨겨 두었더니 아무도 못 찾았다
+                    if (showOcr)
+                      IconButton(
+                        onPressed: onOcr,
+                        icon: const Icon(Icons.text_fields),
+                        tooltip: '글자로 바꾸기 (OCR)',
+                        color: AppTokens.amber,
+                      ),
+                    IconButton(
+                      onPressed: onToggleSplit,
+                      icon: const Icon(Icons.vertical_split),
+                      tooltip: splitOn ? '한 장씩 보기' : '좌우 나눠 보기',
+                      color: splitOn ? AppTokens.amber : null,
+                    ),
+                    IconButton(
+                      onPressed: onToggleZoomLock,
+                      icon: Icon(zoomLocked ? Icons.lock : Icons.lock_open),
+                      tooltip: zoomLocked ? '좌우 고정 풀기' : '좌우·크기 고정',
+                      color: zoomLocked ? AppTokens.amber : null,
+                    ),
+                    IconButton(
+                      onPressed: onToggleHighlight,
+                      icon: const Icon(Icons.brush),
+                      tooltip: highlighting ? '형광펜 끄기' : '형광펜',
+                      color: highlighting ? AppTokens.amber : null,
+                    ),
+                    IconButton(
+                      onPressed: onToggleBookmark,
+                      icon: Icon(bookmarked ? Icons.bookmark : Icons.bookmark_border),
+                      tooltip: bookmarked ? '북마크 빼기' : '이 쪽 북마크',
+                      color: bookmarked ? AppTokens.amber : null,
+                    ),
+                    IconButton(
+                      onPressed: onOpenMarks,
+                      icon: const Icon(Icons.list),
+                      tooltip: '하이라이트·북마크 목록',
+                    ),
 
-              const Spacer(),
+                    ],
+                  ),
+                ),
+              ),
 
               // 쪽 번호와 앞뒤 이동. 세로로 쌓아 폭을 아낀다
               IconButton(

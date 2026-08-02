@@ -13,6 +13,8 @@ class ReaderTopBar extends StatelessWidget {
     required this.canSearch,
     required this.searchDisabledReason,
     required this.canCapture,
+    required this.showOcr,
+    required this.onOcr,
     required this.onBack,
     required this.onToggleSearch,
     required this.onCapture,
@@ -41,9 +43,13 @@ class ReaderTopBar extends StatelessWidget {
   final String? searchDisabledReason;
   final bool canCapture;
 
+  /// 스캔본일 때만 보인다. 글자가 있는 PDF 에는 필요 없는 단추다
+  final bool showOcr;
+
   final VoidCallback onBack;
   final VoidCallback onToggleSearch;
   final VoidCallback onCapture;
+  final VoidCallback onOcr;
 
 
 
@@ -163,6 +169,16 @@ class ReaderTopBar extends StatelessWidget {
         iconSize: iconSize,
         visualDensity: density,
       ),
+      // 스캔본에서만. 돋보기 뒤에 숨겨 두었더니 아무도 못 찾았다
+      if (showOcr)
+        IconButton(
+          onPressed: onOcr,
+          icon: const Icon(Icons.text_fields),
+          tooltip: '글자로 바꾸기 (OCR)',
+          color: AppTokens.amber,
+          iconSize: iconSize,
+          visualDensity: density,
+        ),
     ];
 
     final oneRow = fitsOneRow(width, icons.length);
@@ -200,11 +216,16 @@ class ReaderTopBar extends StatelessWidget {
                   if (oneRow) ...[...icons, const SizedBox(width: AppTokens.space1)],
                 ],
               ),
-              // 좁으면 아랫줄에 고르게 펼친다. 잘려 보이는 것보다 낫다
+              // 좁으면 아랫줄에 펼친다. **Row 가 아니라 Wrap 이다** —
+              // 360dp 폰에서 아이콘 열 개는 한 줄에도 안 들어가서,
+              // Row 로 두면 또 잘려 나간다. Wrap 은 모자라면 한 줄 더 쓴다
               if (!oneRow)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: icons,
+                Padding(
+                  padding: const EdgeInsets.only(bottom: AppTokens.space1),
+                  child: Wrap(
+                    alignment: WrapAlignment.center,
+                    children: icons,
+                  ),
                 ),
               ?searchSheet,
             ],
