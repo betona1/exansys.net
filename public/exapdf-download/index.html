@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ExaPDF 내려받기 — EXANSYS</title>
+<meta name="description" content="PDF 를 문서가 아니라 책으로 읽는 ExaPDF. 윈도우 설치 파일과 웹(PWA) 안내.">
+<link rel="icon" type="image/png" href="/exapdf/favicon.png">
+<style>
+  :root{
+    --bg:#0D1117; --card:#161B22; --line:#243040;
+    --ink:#E6EDF3; --dim:#9AA7B4; --action:#2F6BFF; --amber:#FFC24B;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+    line-height:1.65; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:760px; margin:0 auto; padding:56px 20px 80px}
+  header{display:flex; align-items:center; gap:14px; margin-bottom:8px}
+  header img{width:56px; height:56px; border-radius:14px; border:1px solid var(--line)}
+  h1{font-size:30px; margin:0; letter-spacing:-.02em}
+  .tag{color:var(--dim); margin:6px 0 34px}
+  .card{
+    background:var(--card); border:1px solid var(--line);
+    border-radius:16px; padding:24px; margin-bottom:18px;
+  }
+  .card h2{font-size:19px; margin:0 0 6px}
+  .card p{color:var(--dim); margin:0 0 18px; font-size:15px}
+  .btn{
+    display:inline-block; background:var(--action); color:#fff; text-decoration:none;
+    padding:13px 24px; border-radius:10px; font-weight:700; font-size:16px;
+  }
+  .btn:hover{filter:brightness(1.08)}
+  .meta{color:var(--dim); font-size:13px; margin-top:12px}
+  ol{color:var(--dim); font-size:15px; padding-left:20px; margin:0}
+  ol li{margin-bottom:8px}
+  ol li b{color:var(--ink)}
+  .note{
+    border-left:3px solid var(--amber); padding:12px 0 12px 16px;
+    color:var(--dim); font-size:14px; margin-top:18px;
+  }
+  .note b{color:var(--ink)}
+  footer{margin-top:36px; color:var(--dim); font-size:13px}
+  footer a{color:var(--dim)}
+  a.plain{color:var(--action); text-decoration:none}
+  a.plain:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <img src="/exapdf/icons/Icon-192.png" alt="ExaPDF 아이콘">
+    <div>
+      <h1>ExaPDF</h1>
+      <div class="tag">PDF 를 문서가 아니라 <b>책</b>으로 읽습니다.</div>
+    </div>
+  </header>
+
+  <div class="card">
+    <h2>윈도우</h2>
+    <p>설치 파일을 받아 실행하세요. 설치 폴더는 원하는 드라이브로 바꿀 수 있고,
+       관리자 권한이 필요 없습니다.</p>
+    <a class="btn" href="./ExaPDF-설치-1.0.0.exe" download>설치 파일 내려받기</a>
+    <div class="meta">ExaPDF-설치-1.0.0.exe · 약 19MB · Windows 10/11 (64비트)</div>
+    <div class="note">
+      <b>“Windows의 PC 보호” 창이 뜨면</b> — 코드 서명 인증서를 붙이지 않아 나오는
+      경고입니다. <b>추가 정보 → 실행</b> 을 누르면 설치됩니다.
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>아이폰 · 아이패드 · 안드로이드</h2>
+    <p>설치 없이 웹에서 바로 씁니다. 홈 화면에 넣으면 앱처럼 전체 화면으로 열립니다.</p>
+    <a class="btn" href="/exapdf/">웹에서 열기</a>
+    <div class="meta" style="margin-top:18px">
+      <ol>
+        <li><b>아이폰·아이패드</b> — 사파리로 열고 <b>공유 → 홈 화면에 추가</b>
+            (크롬이 아니라 사파리여야 합니다)</li>
+        <li><b>안드로이드</b> — 크롬 메뉴 <b>→ 앱 설치</b></li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>무엇을 할 수 있나</h2>
+    <ol>
+      <li><b>넘겨 읽기</b> — 가장자리 탭·좌우 밀기·키보드</li>
+      <li><b>한 장에 든 두 쪽 나눠 보기</b> — 스캔한 책을 폰에서도 읽을 만하게</li>
+      <li><b>여백 자르기</b> — 같은 화면에서 글자가 훨씬 커집니다</li>
+      <li><b>한국어 전체 검색</b> — 띄어쓰기가 달라도 찾습니다</li>
+      <li><b>칠하기·북마크·내보내기</b>, 쪽을 <b>JPG</b> 로 (5장 넘으면 zip)</li>
+      <li><b>다크 리딩</b> — 밝기만 뒤집고 사진은 원래 색을 지킵니다</li>
+      <li><b>스캔본을 글자로</b> — 직접 지정한 서버로 OCR (선택)</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>개인정보</h2>
+    <p>회원가입이 없습니다. 책도, 읽던 자리도, 칠한 것도 전부 여러분 기기 안에만
+       있습니다. 밖으로 나가는 것은 여러분이 직접 서버를 지정해 <b>글자로 바꾸기</b>를
+       시작했을 때의 쪽 그림 하나뿐입니다.</p>
+    <a class="plain" href="https://github.com/betona1/exansys.net/blob/main/apps/exapdf/docs/PRIVACY.md">
+      개인정보처리방침 전문 보기 →</a>
+  </div>
+
+  <footer>
+    만든 곳 <b>EXANSYS Co., Ltd.</b> ·
+    <a href="https://exansys.net">exansys.net</a> ·
+    <a href="mailto:netkjy@gmail.com">netkjy@gmail.com</a>
+  </footer>
+
+</div>
+</body>
+</html>
