@@ -179,18 +179,38 @@ adminRoutes.delete("/apps/:id", requireRole("crew"), async (c) => {
 // 회원 목록/승격 — admin 전용 (crew 승격 등, CLAUDE.md 4절)
 adminRoutes.get("/users", requireRole("admin"), async (c) => {
   const db = drizzle(c.env.DB);
-  const rows = await db
-    .select({
-      id: users.id,
-      provider: users.provider,
-      name: users.name,
-      avatarUrl: users.avatarUrl,
-      role: users.role,
-      createdAt: users.createdAt,
-    })
-    .from(users)
-    .orderBy(asc(users.id));
-  return c.json(ok({ users: rows }));
+  // 요금제 컬럼은 나중에 붙였다. 없는 DB 에서도 목록이 떠야 하므로 보정한다
+  await ensureColumns(db, "users", [
+    { name: "plan", ddl: "plan text DEFAULT 'free' NOT NULL" },
+    { name: "pro_until", ddl: "pro_until integer" },
+  ]);
+  const rows = await db.all<{
+    id: number;
+    provider: string;
+    name: string;
+    avatar_url: string | null;
+    role: string;
+    created_at: number;
+    plan: string | null;
+    pro_until: number | null;
+  }>(sql`SELECT id, provider, name, avatar_url, role, created_at, plan, pro_until
+         FROM users ORDER BY id ASC`);
+  const now = Math.floor(Date.now() / 1000);
+  return c.json(
+    ok({
+      users: rows.map((r) => ({
+        id: r.id,
+        provider: r.provider,
+        name: r.name,
+        avatarUrl: r.avatar_url,
+        role: r.role,
+        createdAt: r.created_at,
+        // 기한이 지났으면 무료로 보여 준다 — 화면과 서버 판정이 어긋나면 안 된다
+        plan: r.plan === "pro" && (r.pro_until === null || r.pro_until > now) ? "pro" : "free",
+        proUntil: r.pro_until,
+      })),
+    }),
+  );
 });
 
 // ── 앱 스크린샷/미디어 관리 (admin) — R2 shots/ 저장 ──

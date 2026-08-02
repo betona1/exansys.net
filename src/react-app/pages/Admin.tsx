@@ -10,6 +10,10 @@ type UserRow = {
   name: string;
   avatarUrl: string | null;
   role: "member" | "crew" | "staff" | "admin";
+  /** ExaPDF 요금제 — free 또는 pro */
+  plan?: "free" | "pro";
+  /** 유료 기한(초). 무기한이면 null */
+  proUntil?: number | null;
 };
 
 type StatsData = {
@@ -149,6 +153,16 @@ export default function Admin({ me, meLoading }: { me: Me; meLoading: boolean })
     } else {
       window.alert(`삭제 실패: ${(res as { error: string }).error}`);
     }
+  };
+
+  /** ExaPDF Pro 를 켜고 끈다. 결제가 붙기 전까지 손으로 여는 통로다 */
+  const changePlan = async (id: number, plan: "free" | "pro", days = 30) => {
+    const res = await api(`/api/exapdf/admin/plan`, {
+      method: "POST",
+      body: JSON.stringify({ userId: id, plan, days }),
+    });
+    if (res.ok) void loadUsers();
+    else alert("요금제를 바꾸지 못했습니다");
   };
 
   const changeRole = async (id: number, role: string) => {
@@ -394,15 +408,33 @@ export default function Admin({ me, meLoading }: { me: Me; meLoading: boolean })
                 <div className="truncate font-semibold">{u.name}</div>
                 <div className="text-xs text-muted">#{u.id} · {u.provider}</div>
               </div>
+              {/* ExaPDF 요금제 — 결제가 붙기 전까지 여기서 손으로 연다 */}
+              <div className="flex shrink-0 items-center gap-2">
+                {u.plan === "pro" && (
+                  <span
+                    title={u.proUntil ? `~ ${new Date(u.proUntil * 1000).toLocaleDateString("ko-KR")}` : "무기한"}
+                    className="rounded-full bg-green px-2.5 py-1 text-xs font-bold text-white"
+                  >
+                    Pro
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => void changePlan(u.id, u.plan === "pro" ? "free" : "pro", 365)}
+                  className="rounded-xl border border-line px-3 py-2 text-xs font-semibold transition hover:bg-bg"
+                >
+                  {u.plan === "pro" ? "Pro 끄기" : "Pro 켜기"}
+                </button>
+              </div>
               {u.id === me!.id ? (
-                <span className="rounded-full bg-lime/25 px-3 py-1 text-xs font-semibold text-green-deep">
+                <span className="shrink-0 rounded-full bg-lime/25 px-3 py-1 text-xs font-semibold text-green-deep">
                   나 ({u.role})
                 </span>
               ) : (
                 <select
                   value={u.role}
                   onChange={(e) => void changeRole(u.id, e.target.value)}
-                  className="rounded-xl border border-line bg-card px-3 py-2 text-sm"
+                  className="shrink-0 rounded-xl border border-line bg-card px-3 py-2 text-sm"
                 >
                   <option value="member">member</option>
                   <option value="crew">crew</option>
