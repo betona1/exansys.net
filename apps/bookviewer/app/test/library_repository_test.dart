@@ -1,8 +1,8 @@
 import 'dart:io';
 
-import 'package:bookviewer/data/db/database.dart';
-import 'package:bookviewer/data/repositories/library_repository_impl.dart';
-import 'package:bookviewer/data/source/book_source.dart';
+import 'package:exapdf/data/db/database.dart';
+import 'package:exapdf/data/repositories/library_repository_impl.dart';
+import 'package:exapdf/data/source/book_source.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -17,7 +17,7 @@ void main() {
   setUp(() async {
     db = AppDatabase.forTesting(NativeDatabase.memory());
     repo = LibraryRepositoryImpl(db);
-    tmp = await Directory.systemTemp.createTemp('bookviewer_test');
+    tmp = await Directory.systemTemp.createTemp('exapdf_test');
     pdf = File('${tmp.path}${Platform.pathSeparator}책.pdf')
       ..writeAsBytesSync(List<int>.generate(2048, (i) => i % 256));
   });

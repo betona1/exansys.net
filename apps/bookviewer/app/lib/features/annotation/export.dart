@@ -33,9 +33,9 @@ class ExportItem {
 /// **딥링크를 반드시 붙인다.** 없이 내보낸 노트는 원문으로 돌아갈 수 없는
 /// 죽은 텍스트가 된다 (ADR-0002).
 abstract final class AnnotationExport {
-  /// `bookviewer://book/{id}/page/{n}?anno={uuid}`
+  /// `exapdf://book/{id}/page/{n}?anno={uuid}`
   static String deepLink(int bookId, int pageNo, [String? annoUuid]) {
-    final base = 'bookviewer://book/$bookId/page/$pageNo';
+    final base = 'exapdf://book/$bookId/page/$pageNo';
     return annoUuid == null ? base : '$base?anno=$annoUuid';
   }
 
@@ -70,7 +70,7 @@ abstract final class AnnotationExport {
       out
         ..writeln('---')
         ..writeln('title: "${book.title}"')
-        ..writeln('source: bookviewer')
+        ..writeln('source: exapdf')
         ..writeln('pages: ${book.pageCount}')
         ..writeln('highlights: ${items.length}')
         ..writeln('---')

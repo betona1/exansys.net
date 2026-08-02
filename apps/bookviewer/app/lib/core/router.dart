@@ -8,7 +8,7 @@ import '../features/search/global_search_screen.dart';
 
 /// 라우팅 — `Navigator.push` 대신 go_router 를 쓴다 (CLAUDE.md §5).
 ///
-/// 딥링크 `bookviewer://book/{id}/page/{n}?anno={uuid}` 를 여기서 받는다.
+/// 딥링크 `exapdf://book/{id}/page/{n}?anno={uuid}` 를 여기서 받는다.
 /// Obsidian 으로 내보낸 노트가 원문으로 돌아오는 경로다 (ADR-0002).
 abstract final class AppRoutes {
   static const library = '/';
@@ -50,7 +50,7 @@ final appRouter = GoRouter(
           },
           routes: [
             // 내보낸 노트가 돌아오는 길 — ADR-0002 가 정한 형식
-            //   bookviewer://book/{id}/page/{n}?anno={uuid}
+            //   exapdf://book/{id}/page/{n}?anno={uuid}
             GoRoute(
               path: 'page/:page',
               builder: (_, state) {

@@ -1,4 +1,4 @@
-# techspec.md — BookViewer (북뷰) UI/UX 기술 명세 v0.2 (Flutter)
+# techspec.md — ExaPDF (ExaPDF) UI/UX 기술 명세 v0.2 (Flutter)
 
 `SPEC.md` 가 "무엇을 만드는가", `BRAND.md` 가 "어떤 얼굴인가"라면
 이 문서는 **"화면에 무엇이 놓이고 어떤 버튼이 무엇을 하는가"** 다.
@@ -46,7 +46,7 @@ LibraryScreen (서재)  ⇄  ReaderScreen (읽기)
    ├ 카드 탭 → Reader        ├ 검색 · 캡처 · 주석 · 설정 시트
    └ ＋ → 가져오기 시트       └ (v2) VideoSyncScreen 분할
 
-전역: GlobalSearch · Settings · JobsScreen(변환 작업) · 딥링크(bookviewer://)
+전역: GlobalSearch · Settings · JobsScreen(변환 작업) · 딥링크(exapdf://)
 ```
 
 ---

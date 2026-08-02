@@ -18,7 +18,7 @@ abstract final class AppTokens {
   /// Paper — 라이트 배경
   static const paper = Color(0xFFF5F6F8);
 
-  // ── 북뷰 제품 색 (BRAND.md §3.2) ────────────────────────
+  // ── ExaPDF 제품 색 (BRAND.md §3.2) ────────────────────────
   /// 브랜드 액센트. **누르는 것에는 쓰지 않는다** — 흰 배경 대비 1.8:1 로 WCAG 미달
   static const amber = Color(0xFFFFC24B);
 

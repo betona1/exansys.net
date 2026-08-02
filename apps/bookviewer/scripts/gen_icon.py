@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""BookViewer(북뷰) 앱 아이콘 생성 — 마스코트 비비(바브바브 1단계).
+"""ExaPDF(ExaPDF) 앱 아이콘 생성 — 마스코트 비비(바브바브 1단계).
 
 비비가 펼친 책 너머로 빼꼼 내다보는 구도. 작은 크기(48dp)에서도
 '캐릭터 + 읽기'가 한눈에 읽히도록 요소를 셋(배경·얼굴·책)으로 제한한다.
@@ -19,11 +19,11 @@ import os
 from PIL import Image, ImageDraw, ImageFilter
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-OUT = os.path.join(ROOT, "apps", "bookviewer", "design")
+OUT = os.path.join(ROOT, "apps", "exapdf", "design")
 MASCOT_SRC = os.path.join(ROOT, "vavevave", "바브바브01.png")
 SS = 4
 
-# 북뷰 색 — 사이트 브랜드(딥네이비 + 시안)를 따른다
+# ExaPDF 색 — 사이트 브랜드(딥네이비 + 시안)를 따른다
 NAVY_HI = (23, 62, 107)
 NAVY_LO = (7, 15, 27)
 CYAN = (34, 184, 255)

@@ -1,5 +1,5 @@
-import 'package:bookviewer/core/korean.dart';
-import 'package:bookviewer/data/db/database.dart';
+import 'package:exapdf/core/korean.dart';
+import 'package:exapdf/data/db/database.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';

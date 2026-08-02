@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
-import 'package:bookviewer/domain/entities/crop_rect.dart';
-import 'package:bookviewer/features/reader/crop_detector.dart';
+import 'package:exapdf/domain/entities/crop_rect.dart';
+import 'package:exapdf/features/reader/crop_detector.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// 크롭 좌표 계산은 CLAUDE.md §9 가 **반드시 테스트하라**고 지정한 항목이다.

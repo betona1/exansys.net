@@ -42,6 +42,17 @@ export default function App() {
     }
   }, []);
 
+  // exapdf.exansys.net → Flutter 웹 PWA(/exapdf/)로 이동
+  useEffect(() => {
+    if (
+      typeof window !== "undefined" &&
+      /^exapdf\./i.test(window.location.hostname) &&
+      !window.location.pathname.startsWith("/exapdf/")
+    ) {
+      window.location.replace("/exapdf/");
+    }
+  }, []);
+
   useEffect(() => {
     if (visitTracked) return;
     visitTracked = true;

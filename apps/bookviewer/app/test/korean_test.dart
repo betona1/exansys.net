@@ -1,4 +1,4 @@
-import 'package:bookviewer/core/korean.dart';
+import 'package:exapdf/core/korean.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// CLAUDE.md §9 가 **반드시 테스트하라**고 지정한 항목: 한국어 정규화·bigram 변환,

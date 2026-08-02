@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
-import 'package:bookviewer/features/export/page_image_export.dart';
+import 'package:exapdf/features/export/page_image_export.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// 쪽 이미지 내보내기에서 사람이 실제로 겪는 것들:

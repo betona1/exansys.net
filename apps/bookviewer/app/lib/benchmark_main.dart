@@ -64,7 +64,7 @@ class _BenchmarkAppState extends State<_BenchmarkApp> {
     }
     _say('FILE | ${file.path.split(RegExp(r"[/\\]")).last} · ${_mb(file.lengthSync())}');
 
-    final tmp = await Directory.systemTemp.createTemp('bookviewer_bench');
+    final tmp = await Directory.systemTemp.createTemp('exapdf_bench');
     final dbFile = File('${tmp.path}${Platform.pathSeparator}bench.sqlite');
     final db = AppDatabase.forTesting(NativeDatabase(dbFile));
 

@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:bookviewer/features/ocr/ocr_client.dart';
-import 'package:bookviewer/features/ocr/ocr_settings.dart';
+import 'package:exapdf/features/ocr/ocr_client.dart';
+import 'package:exapdf/features/ocr/ocr_settings.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';

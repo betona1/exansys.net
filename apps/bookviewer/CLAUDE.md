@@ -1,4 +1,4 @@
-# CLAUDE.md — BookViewer (북뷰) 작업 규칙
+# CLAUDE.md — ExaPDF (ExaPDF) 작업 규칙
 
 이 저장소에서 작업하는 Claude(및 사람 개발자)를 위한 규칙서.
 코드를 쓰기 전에 이 문서와 `BRAND.md`, `docs/SPEC.md`, `docs/techspec.md`, `docs/adr/*` 를 먼저 읽는다.
@@ -6,9 +6,9 @@
 > **v0.2 변경 이력**: 초기 설계는 PySide6 데스크톱이었으나 **Flutter 크로스플랫폼**으로 전환했다.
 > 예전 파이썬 스켈레톤은 `_to_delete/` 에 있으며 참고하지 않는다.
 
-> **위치**: 이 프로젝트는 `exansys.net` 저장소의 `apps/bookviewer/` 안에 있다.
+> **위치**: 이 프로젝트는 `exansys.net` 저장소의 `apps/exapdf/` 안에 있다.
 > 저장소 루트 `CLAUDE.md` 12절이 웹/앱을 나누며, **앱 폴더에서는 이 문서가 우선**한다.
-> 아래 4절의 `BookViewer/` 는 `apps/bookviewer/` 를 가리킨다.
+> 아래 4절의 `ExaPDF/` 는 `apps/exapdf/` 를 가리킨다.
 > `server/`(Django)는 아직 만들지 않았다.
 >
 > 엔진을 실제로 돌려 확인한 결과와 함정은 `docs/engine-verification.md` 에 있다.
@@ -74,7 +74,7 @@ PDF 를 "문서"가 아니라 **책**으로 읽는 앱. Android 폰·태블릿 �
 ## 4. 저장소 구조
 
 ```
-BookViewer/
+ExaPDF/
   BRAND.md                브랜드·캐릭터 (모든 디자인의 단일 진실 소스)
   CLAUDE.md               이 문서
   docs/                   SPEC / techspec / ADR / DB스키마.xlsx
@@ -112,7 +112,7 @@ BookViewer/
 - `build()` 안에서 Provider 를 생성하지 않는다. `ref.watch` 로 구독만
 - 화면 하나 = 파일 하나. 200줄 넘으면 위젯을 분리한다
 - 색·간격·폰트는 **반드시 `AppTokens` 를 통해서** 쓴다. `Color(0xFF...)` 직접 작성 금지
-- `Navigator.push` 대신 `go_router` 사용. 딥링크(`bookviewer://`) 를 여기서 받는다
+- `Navigator.push` 대신 `go_router` 사용. 딥링크(`exapdf://`) 를 여기서 받는다
 - 에러는 `Result<T>` 또는 `AsyncValue` 로 다룬다. `catch (e) {}` 로 삼키지 않는다
 - 반응형: `LayoutBuilder` 로 **compact(<600) / medium(600~1024) / expanded(≥1024)** 3분기.
   기기 종류로 분기하지 않는다 (폴더블·분할화면에서 깨진다)
@@ -139,7 +139,7 @@ BookViewer/
 
 ## 7. DB 규칙
 
-- 스키마 변경은 Drift 스키마 · `docs/BookViewer_DB스키마.xlsx` · Django 모델 **셋을 함께** 갱신
+- 스키마 변경은 Drift 스키마 · `docs/ExaPDF_DB스키마.xlsx` · Django 모델 **셋을 함께** 갱신
 - 필드명 영문, 설명 한글 주석
 - 삭제는 `deleted_at` 소프트 삭제. 물리 삭제하면 동기화 시 다른 기기에서 되살아난다
 - 동기화 기준 키는 `uuid`. AUTOINCREMENT `id` 는 기기마다 다르므로 절대 쓰지 않는다

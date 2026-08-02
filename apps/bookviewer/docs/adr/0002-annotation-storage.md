@@ -28,7 +28,7 @@
 실패 시 "위치를 잃은 주석" 목록으로 사용자에게 노출한다.
 
 ## 내보내기
-- Markdown / Obsidian — **`bookviewer://book/{id}/page/{n}?anno={uuid}` 딥링크 필수**
+- Markdown / Obsidian — **`exapdf://book/{id}/page/{n}?anno={uuid}` 딥링크 필수**
   (딥링크 없이 내보낸 노트는 원문으로 못 돌아가는 죽은 텍스트가 된다)
 - 주석 포함 PDF 굽기 (pypdf `add_annotation`, 사본 생성)
 - JSON / CSV 원시 데이터

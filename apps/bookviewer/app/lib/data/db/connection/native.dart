@@ -10,7 +10,7 @@ QueryExecutor openConnection() {
   return LazyDatabase(() async {
     final dir = await getApplicationSupportDirectory();
     return NativeDatabase.createInBackground(
-      File(p.join(dir.path, 'bookviewer.sqlite')),
+      File(p.join(dir.path, 'exapdf.sqlite')),
     );
   });
 }

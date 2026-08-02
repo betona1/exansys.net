@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
-import 'package:bookviewer/core/reading_filter.dart';
-import 'package:bookviewer/features/reader/page_tint.dart';
+import 'package:exapdf/core/reading_filter.dart';
+import 'package:exapdf/features/reader/page_tint.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// 다크 리딩의 핵심은 **휘도만 뒤집고 색은 남기는 것**이다.

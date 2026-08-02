@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart';
 
-/// 테이블 정의 — `docs/BookViewer_DB스키마.xlsx` 의 02_필드정의를 그대로 옮긴 것.
+/// 테이블 정의 — `docs/ExaPDF_DB스키마.xlsx` 의 02_필드정의를 그대로 옮긴 것.
 ///
 /// 스키마를 바꿀 때는 **이 파일과 xlsx 를 함께** 고친다 (CLAUDE.md §7).
 /// 규칙:

@@ -159,9 +159,9 @@ download_logs(id, app_id, ip_hash, ua_hash, date)  -- 중복 방지용, 30일 �
 |---|---|
 | `src/react-app/` | 사이트 프론트 (React SPA) — 홈·앱 쇼케이스(QR)·크루 갤러리·개발문의·AI교육·앱리뷰·앱기획·TechDex 웹·VibeQuest 신고게시판/개인정보처리방침 |
 | `src/worker/` | 백엔드 API (Hono, `/api/*`) — auth·apps·admin·crew·edu·plan(앱기획)·techdex·vibequest 라우트 |
-| `public/` | 정적 자산 — PWA(sw.js·manifest), `public/vibequest/`는 **Flutter 웹 빌드 산출물**(빌드 후 복사해 배포) |
+| `public/` | 정적 자산 — PWA(sw.js·manifest), `public/vibequest/`·`public/exapdf/`는 **Flutter 웹 빌드 산출물**(빌드 후 복사해 배포) |
 | 배포 | main push → Cloudflare Workers Builds 자동 배포 (워커 gzip 1MB 한도 주의, `?raw` 번들 남용 금지) |
-| 서브도메인 | techdex.exansys.net(운영), vibequest.exansys.net(CF 대시보드에서 커스텀 도메인 추가 시 /vibequest/로 자동 이동) |
+| 서브도메인 | techdex.exansys.net(운영), vibequest.exansys.net(→ /vibequest/), exapdf.exansys.net(→ /exapdf/). CF 대시보드에서 커스텀 도메인을 추가하면 `src/react-app/App.tsx` 가 해당 경로로 보낸다 |
 
 ### 12-2. 앱 (apps/ — 각자 독립 프로젝트)
 
@@ -169,7 +169,7 @@ download_logs(id, app_id, ip_hash, ua_hash, date)  -- 중복 방지용, 30일 �
 |---|---|---|---|
 | **VibeQuest** ⭐주력 | `apps/vibequest/` | **출시됨** | Flutter Android(net.exansys.vibequest) + 웹 PWA(exansys.net/vibequest/). 용어 867개 학습 게임. 자체 CLAUDE.md·TECHSPEC.md 필독. 제출 자료는 `store/`(앱정보.md·AAB·스크린샷). **서명키 `app/android/keystore/` 분실 금지** |
 | **TechDex** | `apps/techdex/` | 유지보수만 | 1세대 용어 게임(웹 techdex.exansys.net + Flutter). **VibeQuest가 대체** — 신규 기능 금지, 버그만 수정 |
-| **BookViewer** (북뷰) | `apps/bookviewer/` | **기획 중** | PDF로 저장한 책을 책처럼 읽는 생산성 리더 — 넘겨 읽기·전체 검색·영역 캡처·글자 복사. 자체 CLAUDE.md·TECHSPEC.md 참고 |
+| **ExaPDF** | `apps/exapdf/` | **개발 중** | PDF를 책처럼 읽는 생산성 리더(net.exansys.exapdf). Flutter Android + 웹 PWA(exapdf.exansys.net → /exapdf/). 넘겨 읽기·한국어 전체 검색·여백 크롭·다크 리딩·하이라이트·쪽 JPG·**스캔본 OCR**(Ollama 비전 모델). 자체 CLAUDE.md·docs/ 필독 |
 | **Exanode** | (코드는 별도 저장소) | **출시됨** | Play 스토어 스네이크 퍼즐(com.betona.crdl). 이 저장소에서는 사이트 쇼케이스(slug `crdl`)·홈 QR 배너로만 다룸 |
 
 ### 12-3. 앱 공통 규칙

@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'dart:ui';
 
-import 'package:bookviewer/domain/entities/annotation.dart';
-import 'package:bookviewer/domain/entities/book.dart';
-import 'package:bookviewer/features/annotation/export.dart';
-import 'package:bookviewer/features/annotation/quote_extractor.dart';
+import 'package:exapdf/domain/entities/annotation.dart';
+import 'package:exapdf/domain/entities/book.dart';
+import 'package:exapdf/features/annotation/export.dart';
+import 'package:exapdf/features/annotation/quote_extractor.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pdfrx/pdfrx.dart';
 
@@ -57,7 +57,7 @@ void main() {
         bookmarks: const [],
         format: ExportFormat.markdown,
       );
-      expect(md, contains('bookviewer://book/7/page/128?anno=h1'));
+      expect(md, contains('exapdf://book/7/page/128?anno=h1'));
       expect(md, contains('> 중요한 문장'));
       expect(md, contains('p.128'));
       expect(md, contains('중요'), reason: '색 슬롯의 뜻을 글로도 적는다');
@@ -90,7 +90,7 @@ void main() {
         bookmarks: [const BookmarkEntry(id: 1, uuid: 'bm', pageNo: 44)],
         format: ExportFormat.markdown,
       );
-      expect(md, contains('[p.44](bookviewer://book/7/page/44)'));
+      expect(md, contains('[p.44](exapdf://book/7/page/44)'));
     });
 
     test('Obsidian 은 앞머리 속성을 붙인다', () {

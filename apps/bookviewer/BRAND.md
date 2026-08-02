@@ -14,7 +14,7 @@
 | 태그라인 | **THINK AT EXA SCALE** |
 | 제품 철학 | Apps built to be opened every day — 매일 열게 되는, 작고 단단한 앱 |
 | 기반 | 10년의 IT 인프라 경험 |
-| 제품 1호 | **북뷰 / BookViewer** |
+| 제품 1호 | **ExaPDF / ExaPDF** |
 
 ### 브랜드 성격 (톤 앤 매너)
 
@@ -87,13 +87,13 @@
 | 제품 | 액센트 | 힌트 글리프 |
 |---|---|---|
 | EXANSYS (모회사) | Signal `#4CC2FF` | 없음 |
-| **북뷰 / BookViewer** | Amber `#FFC24B` | 하단에 펼친 책 실루엣 (y=41~47) |
+| **ExaPDF / ExaPDF** | Amber `#FFC24B` | 하단에 펼친 책 실루엣 (y=41~47) |
 | (향후 앱) | 각자 1색 | 각자 1글리프 |
 
 > 새 앱을 만들 때 **캐릭터를 새로 그리지 않는다.** 색 하나와 글리프 하나만 정한다.
 > 이것이 EXANSYS 앱군이 한 가족으로 보이는 유일한 이유다.
 
-### 2.5 예외 — 북뷰 스토어 아이콘은 마스코트 「바브바브」를 쓴다 (2026-08-01 결정)
+### 2.5 예외 — ExaPDF 스토어 아이콘은 마스코트 「바브바브」를 쓴다 (2026-08-01 결정)
 
 **앱 아이콘(런처·스토어)에 한해** EXA 가 아니라 EXANSYS 마스코트 **바브바브(비비)**
 1단계 캐릭터가 책 너머로 내다보는 그림을 쓴다. 사용자 결정이다.
@@ -121,7 +121,7 @@
 | `signal` | `#4CC2FF` | EXANSYS Signal | 모회사 액센트, 링크, 웹 CTA |
 | `paper` | `#F5F6F8` | Paper | 라이트 배경 |
 
-### 3.2 북뷰 제품 색
+### 3.2 ExaPDF 제품 색
 
 | 토큰 | HEX | 용도 |
 |---|---|---|
@@ -133,7 +133,7 @@
 > 쓰면 WCAG 4.5:1 을 절대 못 맞춘다. **앰버는 브랜드 표현 전용이고, 누르는 것에는 쓰지 않는다.**
 > 브랜드색과 기능색을 분리하는 것이 이 시스템의 핵심 규칙이다.
 
-### 3.3 하이라이트 5색 (북뷰 기능색)
+### 3.3 하이라이트 5색 (ExaPDF 기능색)
 
 | 슬롯 | HEX | 기본 의미 |
 |---|---|---|
@@ -233,11 +233,11 @@ ink 단색 배경 + 화면 중앙 EXA `idle` (화면 폭의 22%) + 하단 워드
 
 ```
 assets/brand/svg/
-  appicon-bookview.svg      북뷰 앱 아이콘 (풀블리드)
+  appicon-exapdf.svg      ExaPDF 앱 아이콘 (풀블리드)
   appicon-exansys.svg       EXANSYS 앱 아이콘
-  wordmark-bookview.svg     워드마크 (마크 + 북뷰 + BOOKVIEWER)
+  wordmark-exapdf.svg     워드마크 (마크 + ExaPDF + BOOKVIEWER)
   exa-{idle,read,think,found,done,error,sleep}.svg        EXA 마스터 표정 7종
-  bookview-{idle,read,think,found,done,error,sleep}.svg   북뷰 변형 7종
+  exapdf-{idle,read,think,found,done,error,sleep}.svg   ExaPDF 변형 7종
   exa-idle-light.svg        라이트 배경용 반전 마크
   favicon-16.svg            16px 단순화 버전
 ```
