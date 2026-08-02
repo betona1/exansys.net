@@ -10,6 +10,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:pdfrx/pdfrx.dart';
 
 import '../../core/providers.dart';
+import '../../data/db/database.dart';
 import '../../data/source/book_source.dart';
 import '../../core/router.dart';
 import '../../core/tokens.dart';
@@ -949,13 +950,79 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
     final pending = await OcrController(db).pendingPages(widget.book.id, doc.pages.length);
     if (!mounted) return;
 
+    // 서버 주소가 이미 있으면 설정 화면을 건너뛴다.
+    // 쓸 때마다 주소를 다시 보게 하면 그것부터가 일이다
+    if (settings.configured) {
+      final go = await _confirmOcr(remaining: pending.length);
+      if (go == null || !mounted) return;
+      if (go == 'settings') {
+        await _openOcrSettings(doc, db, settings, pending.length);
+        return;
+      }
+      await _runOcr(doc, settings, only: go == 'one' ? [_page] : null);
+      return;
+    }
+
+    await _openOcrSettings(doc, db, settings, pending.length);
+  }
+
+  /// Pro 사용자에게 한 번만 묻는다. 이 쪽만 볼지, 책 전체를 걸어 둘지
+  Future<String?> _confirmOcr({required int remaining}) {
+    // 실측 기준 반쪽당 약 33초. 두 쪽짜리 스캔본이면 쪽당 두 번 보낸다
+    final minutes = (remaining * 2 * 33 / 60).round();
+    final estimate = minutes < 60 ? '약 $minutes분' : '약 ${minutes ~/ 60}시간 ${minutes % 60}분';
+    return showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('글자로 바꿔서 찾을까요?'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              '이 책은 사진으로 된 스캔본이라 지금은 찾을 수 없습니다.\n'
+              '서버가 글자로 바꾸면 그때부터 찾기와 복사가 됩니다.',
+            ),
+            const SizedBox(height: AppTokens.space3),
+            Text(
+              '남은 $remaining쪽 · $estimate\n'
+              '중간에 멈춰도 한 쪽씩 저장되니 다음에 이어서 합니다.',
+              style: Theme.of(ctx).textTheme.bodySmall,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, 'settings'),
+            child: const Text('서버 설정'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, 'one'),
+            child: Text('이 쪽만 ($_page쪽)'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, 'all'),
+            child: const Text('전체 변환'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 서버 주소를 손보는 화면. 처음이거나 주소를 바꿀 때만 연다
+  Future<void> _openOcrSettings(
+    PdfDocument doc,
+    AppDatabase db,
+    OcrSettings settings,
+    int remaining,
+  ) async {
     final chosen = await showModalBottomSheet<OcrStart>(
       context: context,
       isScrollControlled: true,
       builder: (ctx) => OcrSheet(
         settings: settings,
         pageCount: doc.pages.length,
-        remaining: pending.length,
+        remaining: remaining,
         currentPage: _page,
       ),
     );
