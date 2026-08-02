@@ -139,14 +139,7 @@ class RenderedPageViewState extends State<RenderedPageView> {
       itemCount: viewCount,
       // 확대 중에는 쪽 넘김을 막는다. 밀기는 그림을 옮기는 데 쓴다
       physics: _zoomed ? const NeverScrollableScrollPhysics() : const PageScrollPhysics(),
-      onPageChanged: (v) {
-        // 새 쪽은 위에서부터 본다. 앞 쪽에서 내려온 위치를 그대로 물려받으면
-        // 새 쪽 중간부터 보이게 된다
-        final m = _lastTransform.clone();
-        m.storage[13] = 0;
-        _lastTransform = m;
-        widget.onViewChanged(v);
-      },
+      onPageChanged: widget.onViewChanged,
       itemBuilder: (context, view) {
         final pageIndex = view ~/ _perPage;
         final page = widget.document.pages[pageIndex];
@@ -183,7 +176,13 @@ class RenderedPageViewState extends State<RenderedPageView> {
                   1,
                   1,
                 ))
-              : _lastTransform,
+              // 배율과 좌우 위치는 물려주고, **세로만 위로 되돌린다.**
+              //
+              // 넘긴 뒤에 되돌리면 늦다 — PageView 는 넘기는 동안 다음 쪽을
+              // 미리 만들어 두므로, 그때 이미 앞 쪽의 내려온 위치를 물려받는다.
+              // 그래서 다 읽고 넘겨도 새 쪽이 아래에서 시작해 위로 올려야 했다.
+              // 물려줄 때 손봐야 맞다
+              : (_lastTransform.clone()..storage[13] = 0),
           locked: widget.settings.zoomLocked,
           onTransformChanged: (m) => _lastTransform = m,
           onSlice: widget.onSlice,
