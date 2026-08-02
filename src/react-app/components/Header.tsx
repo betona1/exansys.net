@@ -141,6 +141,24 @@ export default function Header({ me, logout }: { me: Me; logout: () => Promise<v
                 {dark ? "☀️" : "🌙"}
               </button>
             </li>
+            {/* 관리자 단추는 프로필 메뉴 안에 묻지 않는다.
+                묻어 두면 관리자조차 관리 화면이 있는 줄 모른다 */}
+            {(me?.role === "admin" || me?.role === "staff") && (
+              <li>
+                <Link
+                  to="/admin"
+                  title={me.role === "admin" ? "관리자" : "직원"}
+                  className={`flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-semibold transition ${
+                    at("/admin")
+                      ? "bg-ink text-white"
+                      : "border border-green/40 bg-green/10 text-green-deep hover:bg-green/20"
+                  }`}
+                >
+                  <span aria-hidden>⚙</span>
+                  <span className="hidden sm:inline">{t("nav.admin")}</span>
+                </Link>
+              </li>
+            )}
             <li className="relative" ref={menuRef}>
               {me ? (
                 <>
