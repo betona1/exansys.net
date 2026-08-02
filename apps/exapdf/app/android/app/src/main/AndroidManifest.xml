@@ -1,4 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- **릴리스 빌드에는 이 줄이 없으면 네트워크가 전부 막힌다.**
+         flutter create 는 debug/profile 매니페스트에만 넣어 주므로,
+         계정 연결도 OCR 서버 호출도 조용히 실패한다 -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <application
         android:label="ExaPDF"
         android:name="${applicationName}"
