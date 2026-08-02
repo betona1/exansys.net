@@ -9468,23 +9468,23 @@ atf:function atf(a){this.a=a},
 atg:function atg(){},
 ath:function ath(){},
 ati:function ati(a){this.a=a},
-atj(a){var s=0,r=A.x(t.JV),q,p,o,n,m
+atj(a){var s=0,r=A.x(t.JV),q,p,o,n,m,l
 var $async$atj=A.t(function(b,c){if(b===1)return A.u(c,r)
-for(;;)switch(s){case 0:n=t.N
-n=A.b(n,n)
-m=J
+for(;;)switch(s){case 0:m=t.N
+m=A.b(m,m)
+l=J
 s=3
 return A.n(a.jC(a.gAI(),t.Co,t.os).lb(),$async$atj)
-case 3:p=m.aO(c)
+case 3:p=l.aO(c)
 case 4:if(!p.q()){s=5
 break}o=p.gK()
-n.l(0,o.a,o.b)
+m.l(0,o.a,o.b)
 s=4
 break
-case 5:p=n.i(0,"ocr.endpoint")
-if(p==null)p=""
-n=n.i(0,"ocr.model")
-q=new A.Jd(p,n==null?"qwen2.5vl:7b":n)
+case 5:n=m.i(0,"ocr.endpoint")
+p=n==null||n.length===0?"http://192.168.219.88:11434":n
+m=m.i(0,"ocr.model")
+q=new A.Jd(p,m==null?"qwen2.5vl:7b":m)
 s=1
 break
 case 1:return A.v(q,r)}})

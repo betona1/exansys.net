@@ -29,6 +29,11 @@ void main() {
     test('빈 값은 빈 값으로 둔다', () {
       expect(OcrSettings.normalizeEndpoint('   '), '');
     });
+
+    test('기본 주소가 채워져 있어 바로 시작할 수 있다', () {
+      // 개발 편의용. 배포 전에는 비워야 한다 (OcrSettings.defaultEndpoint 주석)
+      expect(const OcrSettings().configured, isTrue);
+    });
   });
 
   group('연결 확인', () {
