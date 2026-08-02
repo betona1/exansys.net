@@ -35,6 +35,7 @@ import '../help/help_settings.dart';
 import '../help/widgets/reader_coach.dart';
 import '../ocr/ocr_client.dart';
 import '../ocr/ocr_controller.dart';
+import '../ocr/ocr_server.dart';
 import '../ocr/ocr_settings.dart';
 import '../ocr/widgets/ocr_progress_bar.dart';
 import '../ocr/widgets/ocr_sheet.dart';
@@ -959,7 +960,13 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
         await _openOcrSettings(doc, db, settings, pending.length);
         return;
       }
-      await _runOcr(doc, settings, only: go == 'one' ? [_page] : null);
+      // 서버가 있으면 맡긴다 — 앱을 켜 둘 필요가 없어진다.
+      // "이 쪽만" 은 30초면 끝나므로 앱이 직접 도는 편이 빠르다
+      if (settings.useServer && go == 'all') {
+        await _runOcrOnServer(settings);
+      } else {
+        await _runOcr(doc, settings, only: go == 'one' ? [_page] : null);
+      }
       return;
     }
 
@@ -1029,6 +1036,63 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
     if (chosen == null || !mounted) return;
     await chosen.settings.save(db);
     await _runOcr(doc, chosen.settings, only: chosen.onlyThisPage ? [_page] : null);
+  }
+
+  /// 서버에 맡겨 글자로 바꾼다.
+  ///
+  /// 올려 두고 나가면 된다. 앱을 껐다 켜도 맡겨 둔 일감에 다시 붙어
+  /// 남은 결과만 받아 온다.
+  Future<void> _runOcrOnServer(OcrSettings settings) async {
+    final bytes = await ref.read(libraryRepositoryProvider).bookBytes(widget.book.id) ??
+        await _readBookBytes();
+    if (bytes == null) {
+      _toast('책 파일을 읽지 못했습니다');
+      return;
+    }
+    final cancel = ExportCancelToken();
+    setState(() {
+      _ocrCancel = cancel;
+      _ocrProgress = (done: 0, total: _pageCount);
+    });
+    try {
+      final stream = OcrController(ref.read(databaseProvider)).runOnServer(
+        bookId: widget.book.id,
+        bytes: bytes,
+        filename: widget.book.title.isEmpty ? 'book.pdf' : '${widget.book.title}.pdf',
+        server: OcrServerClient(baseUrl: settings.server, token: settings.serverToken),
+        split: _settings.splitPages,
+        cancel: cancel,
+      );
+      await for (final p in stream) {
+        if (!mounted) return;
+        setState(() => _ocrProgress = (done: p.done, total: p.total));
+      }
+      if (!mounted) return;
+      setState(() => _hasTextLayer = true);
+      _toast(cancel.isCancelled
+          ? '멈췄습니다. 다음에 이어서 합니다'
+          : '글자로 바꿨습니다. 이제 찾을 수 있습니다');
+    } on Object catch (e) {
+      if (mounted) _toast('$e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _ocrProgress = null;
+          _ocrCancel = null;
+        });
+      }
+    }
+  }
+
+  /// 네이티브에서는 경로로 읽는다 (웹은 위에서 바이트를 이미 담아 둔다)
+  Future<Uint8List?> _readBookBytes() async {
+    try {
+      final file = File(widget.book.filePath);
+      if (!file.existsSync()) return null;
+      return await file.readAsBytes();
+    } on Object {
+      return null;
+    }
   }
 
   /// 스캔본을 글자로 바꾼다.

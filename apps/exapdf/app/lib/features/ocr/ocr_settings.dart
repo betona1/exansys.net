@@ -6,7 +6,17 @@ import '../../data/db/database.dart';
 /// 다르고, 배포본에 남의 사설망 주소가 들어가 있을 이유가 없다.
 /// 값은 `app_meta` 에 담는다 — 표를 새로 만들 만큼 큰 이야기가 아니다.
 class OcrSettings {
-  const OcrSettings({this.endpoint = defaultEndpoint, this.model = defaultModel});
+  const OcrSettings({
+    this.endpoint = defaultEndpoint,
+    this.model = defaultModel,
+    this.server = defaultServer,
+    this.serverToken = defaultServerToken,
+  });
+
+  /// OCR 서버(Django) 주소. 있으면 **서버에 맡긴다** —
+  /// 앱을 켜 둘 필요가 없어진다. 없으면 앱이 직접 Ollama 를 부른다
+  static const defaultServer = String.fromEnvironment('ocrServer');
+  static const defaultServerToken = String.fromEnvironment('ocrServerToken');
 
   /// 빌드할 때 채워 넣는 기본 서버 주소.
   ///
@@ -29,28 +39,52 @@ class OcrSettings {
 
   static const _keyEndpoint = 'ocr.endpoint';
   static const _keyModel = 'ocr.model';
+  static const _keyServer = 'ocr.server';
+  static const _keyServerToken = 'ocr.serverToken';
 
   final String endpoint;
   final String model;
 
+  /// 비어 있으면 앱이 직접 돌린다
+  final String server;
+  final String serverToken;
+
+  /// 서버에 맡길 수 있는가
+  bool get useServer => server.trim().isNotEmpty && serverToken.trim().isNotEmpty;
+
   bool get configured => endpoint.trim().isNotEmpty;
 
-  OcrSettings copyWith({String? endpoint, String? model}) =>
-      OcrSettings(endpoint: endpoint ?? this.endpoint, model: model ?? this.model);
+  OcrSettings copyWith({String? endpoint, String? model, String? server, String? serverToken}) =>
+      OcrSettings(
+        endpoint: endpoint ?? this.endpoint,
+        model: model ?? this.model,
+        server: server ?? this.server,
+        serverToken: serverToken ?? this.serverToken,
+      );
 
   static Future<OcrSettings> load(AppDatabase db) async {
     final rows = await db.select(db.appMeta).get();
     final map = {for (final r in rows) r.key: r.value};
     // 저장해 둔 값이 있으면 그것이 우선. 없으면 기본 주소를 채워 준다
     final saved = map[_keyEndpoint];
+    final savedServer = map[_keyServer];
+    final savedToken = map[_keyServerToken];
     return OcrSettings(
       endpoint: (saved == null || saved.isEmpty) ? defaultEndpoint : saved,
       model: map[_keyModel] ?? defaultModel,
+      server: (savedServer == null || savedServer.isEmpty) ? defaultServer : savedServer,
+      serverToken:
+          (savedToken == null || savedToken.isEmpty) ? defaultServerToken : savedToken,
     );
   }
 
   Future<void> save(AppDatabase db) async {
-    for (final e in {_keyEndpoint: endpoint.trim(), _keyModel: model.trim()}.entries) {
+    for (final e in {
+      _keyEndpoint: endpoint.trim(),
+      _keyModel: model.trim(),
+      _keyServer: server.trim(),
+      _keyServerToken: serverToken.trim(),
+    }.entries) {
       await db.into(db.appMeta).insertOnConflictUpdate(
             AppMetaCompanion.insert(key: e.key, value: e.value),
           );

@@ -322,6 +322,9 @@ class OcrJobs extends Table {
   TextColumn get endpoint => text().nullable()();
   TextColumn get model => text().nullable()();
 
+  /// 서버에 맡겼을 때 그 일감 번호. 앱을 껐다 켜도 이걸로 다시 붙는다
+  TextColumn get remoteUuid => text().nullable()();
+
   TextColumn get updatedAt => text().nullable()();
 
   @override

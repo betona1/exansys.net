@@ -8,6 +8,7 @@ import '../../data/db/database.dart';
 import '../../domain/entities/crop_rect.dart';
 import '../export/page_image_export.dart';
 import 'ocr_client.dart';
+import 'ocr_server.dart';
 
 /// 줄이기 거리 — 아이솔레이트로 넘긴다.
 ///
@@ -171,6 +172,86 @@ class OcrController {
             lastError: Value(error),
             endpoint: Value(client.endpoint),
             model: Value(client.model),
+            updatedAt: Value(DateTime.now().toUtc().toIso8601String()),
+          ),
+        );
+  }
+
+  // ── 서버에 맡기기 ──────────────────────────────────────
+
+  /// 서버가 대신 돌린다.
+  ///
+  /// 앱이 직접 돌리면 **앱을 켜 둔 채로 두 시간**이 필요하다 — 홈으로 나가거나
+  /// 화면이 꺼지면 안드로이드가 앱을 재워 멈춘다. 서버에 맡기면 올려 두고
+  /// 나가면 되고, 다시 들어왔을 때 남은 결과만 받아 오면 된다.
+  Stream<OcrProgress> runOnServer({
+    required int bookId,
+    required Uint8List bytes,
+    required String filename,
+    required OcrServerClient server,
+    required bool split,
+    required ExportCancelToken cancel,
+  }) async* {
+    // 이미 맡겨 둔 일감이 있으면 그것에 다시 붙는다.
+    // 없으면 올린다 — 서버가 같은 파일을 알아보고 새로 만들지 않는다
+    var uuid = (await jobOf(bookId))?.remoteUuid;
+    ServerJob job;
+    if (uuid == null) {
+      job = await server.createJob(bytes: bytes, filename: filename, split: split);
+      uuid = job.uuid;
+      await _markRemote(bookId, uuid, job);
+      yield OcrProgress(done: 0, total: job.pageCount);
+    } else {
+      job = await server.job(uuid);
+    }
+
+    // 이미 받아 둔 쪽 다음부터 달라고 한다. 전체를 매번 받으면 낭비다
+    var since = await _highestSavedPage(bookId);
+
+    while (!cancel.isCancelled) {
+      final (pages, latest) = await server.pages(uuid, since: since);
+      for (final p in pages) {
+        if (p.text.isNotEmpty) await _savePage(bookId, p.pageNo, p.text);
+        if (p.pageNo > since) since = p.pageNo;
+      }
+      job = latest;
+      await _markRemote(bookId, uuid, job);
+      yield OcrProgress(done: job.donePages, total: job.pageCount);
+
+      if (job.isFinished) break;
+      // 5초마다 묻는다. 쪽 하나가 30초 안팎이라 더 자주 물어도 얻을 것이 없다
+      await Future<void>.delayed(const Duration(seconds: 5));
+    }
+
+    if (cancel.isCancelled) {
+      await server.cancel(uuid);
+      return;
+    }
+    if (job.isFailed) throw OcrServerException(job.lastError);
+
+    await (_db.update(_db.books)..where((t) => t.id.equals(bookId)))
+        .write(const BooksCompanion(hasTextLayer: Value(true), isIndexed: Value(true)));
+  }
+
+  /// 이미 받아 둔 마지막 쪽. 여기까지는 다시 받지 않는다
+  Future<int> _highestSavedPage(int bookId) async {
+    final rows = await (_db.select(_db.pageTexts)..where((t) => t.bookId.equals(bookId))).get();
+    var max = 0;
+    for (final r in rows) {
+      if (r.pageNo > max) max = r.pageNo;
+    }
+    return max;
+  }
+
+  Future<void> _markRemote(int bookId, String uuid, ServerJob job) async {
+    await _db.into(_db.ocrJobs).insertOnConflictUpdate(
+          OcrJobsCompanion.insert(
+            bookId: Value(bookId),
+            done: Value(job.donePages),
+            total: Value(job.pageCount),
+            status: Value(job.status),
+            lastError: Value(job.lastError.isEmpty ? null : job.lastError),
+            remoteUuid: Value(uuid),
             updatedAt: Value(DateTime.now().toUtc().toIso8601String()),
           ),
         );

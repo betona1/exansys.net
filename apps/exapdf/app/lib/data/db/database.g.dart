@@ -5975,6 +5975,17 @@ class $OcrJobsTable extends OcrJobs with TableInfo<$OcrJobsTable, OcrJob> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _remoteUuidMeta = const VerificationMeta(
+    'remoteUuid',
+  );
+  @override
+  late final GeneratedColumn<String> remoteUuid = GeneratedColumn<String>(
+    'remote_uuid',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
@@ -5995,6 +6006,7 @@ class $OcrJobsTable extends OcrJobs with TableInfo<$OcrJobsTable, OcrJob> {
     lastError,
     endpoint,
     model,
+    remoteUuid,
     updatedAt,
   ];
   @override
@@ -6051,6 +6063,12 @@ class $OcrJobsTable extends OcrJobs with TableInfo<$OcrJobsTable, OcrJob> {
         model.isAcceptableOrUnknown(data['model']!, _modelMeta),
       );
     }
+    if (data.containsKey('remote_uuid')) {
+      context.handle(
+        _remoteUuidMeta,
+        remoteUuid.isAcceptableOrUnknown(data['remote_uuid']!, _remoteUuidMeta),
+      );
+    }
     if (data.containsKey('updated_at')) {
       context.handle(
         _updatedAtMeta,
@@ -6094,6 +6112,10 @@ class $OcrJobsTable extends OcrJobs with TableInfo<$OcrJobsTable, OcrJob> {
         DriftSqlType.string,
         data['${effectivePrefix}model'],
       ),
+      remoteUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}remote_uuid'],
+      ),
       updatedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}updated_at'],
@@ -6123,6 +6145,9 @@ class OcrJob extends DataClass implements Insertable<OcrJob> {
   /// 어느 서버·모델로 돌렸는지. 나중에 결과를 의심할 때 근거가 된다
   final String? endpoint;
   final String? model;
+
+  /// 서버에 맡겼을 때 그 일감 번호. 앱을 껐다 켜도 이걸로 다시 붙는다
+  final String? remoteUuid;
   final String? updatedAt;
   const OcrJob({
     required this.bookId,
@@ -6132,6 +6157,7 @@ class OcrJob extends DataClass implements Insertable<OcrJob> {
     this.lastError,
     this.endpoint,
     this.model,
+    this.remoteUuid,
     this.updatedAt,
   });
   @override
@@ -6149,6 +6175,9 @@ class OcrJob extends DataClass implements Insertable<OcrJob> {
     }
     if (!nullToAbsent || model != null) {
       map['model'] = Variable<String>(model);
+    }
+    if (!nullToAbsent || remoteUuid != null) {
+      map['remote_uuid'] = Variable<String>(remoteUuid);
     }
     if (!nullToAbsent || updatedAt != null) {
       map['updated_at'] = Variable<String>(updatedAt);
@@ -6171,6 +6200,9 @@ class OcrJob extends DataClass implements Insertable<OcrJob> {
       model: model == null && nullToAbsent
           ? const Value.absent()
           : Value(model),
+      remoteUuid: remoteUuid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(remoteUuid),
       updatedAt: updatedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(updatedAt),
@@ -6190,6 +6222,7 @@ class OcrJob extends DataClass implements Insertable<OcrJob> {
       lastError: serializer.fromJson<String?>(json['lastError']),
       endpoint: serializer.fromJson<String?>(json['endpoint']),
       model: serializer.fromJson<String?>(json['model']),
+      remoteUuid: serializer.fromJson<String?>(json['remoteUuid']),
       updatedAt: serializer.fromJson<String?>(json['updatedAt']),
     );
   }
@@ -6204,6 +6237,7 @@ class OcrJob extends DataClass implements Insertable<OcrJob> {
       'lastError': serializer.toJson<String?>(lastError),
       'endpoint': serializer.toJson<String?>(endpoint),
       'model': serializer.toJson<String?>(model),
+      'remoteUuid': serializer.toJson<String?>(remoteUuid),
       'updatedAt': serializer.toJson<String?>(updatedAt),
     };
   }
@@ -6216,6 +6250,7 @@ class OcrJob extends DataClass implements Insertable<OcrJob> {
     Value<String?> lastError = const Value.absent(),
     Value<String?> endpoint = const Value.absent(),
     Value<String?> model = const Value.absent(),
+    Value<String?> remoteUuid = const Value.absent(),
     Value<String?> updatedAt = const Value.absent(),
   }) => OcrJob(
     bookId: bookId ?? this.bookId,
@@ -6225,6 +6260,7 @@ class OcrJob extends DataClass implements Insertable<OcrJob> {
     lastError: lastError.present ? lastError.value : this.lastError,
     endpoint: endpoint.present ? endpoint.value : this.endpoint,
     model: model.present ? model.value : this.model,
+    remoteUuid: remoteUuid.present ? remoteUuid.value : this.remoteUuid,
     updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
   );
   OcrJob copyWithCompanion(OcrJobsCompanion data) {
@@ -6236,6 +6272,9 @@ class OcrJob extends DataClass implements Insertable<OcrJob> {
       lastError: data.lastError.present ? data.lastError.value : this.lastError,
       endpoint: data.endpoint.present ? data.endpoint.value : this.endpoint,
       model: data.model.present ? data.model.value : this.model,
+      remoteUuid: data.remoteUuid.present
+          ? data.remoteUuid.value
+          : this.remoteUuid,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
@@ -6250,6 +6289,7 @@ class OcrJob extends DataClass implements Insertable<OcrJob> {
           ..write('lastError: $lastError, ')
           ..write('endpoint: $endpoint, ')
           ..write('model: $model, ')
+          ..write('remoteUuid: $remoteUuid, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
@@ -6264,6 +6304,7 @@ class OcrJob extends DataClass implements Insertable<OcrJob> {
     lastError,
     endpoint,
     model,
+    remoteUuid,
     updatedAt,
   );
   @override
@@ -6277,6 +6318,7 @@ class OcrJob extends DataClass implements Insertable<OcrJob> {
           other.lastError == this.lastError &&
           other.endpoint == this.endpoint &&
           other.model == this.model &&
+          other.remoteUuid == this.remoteUuid &&
           other.updatedAt == this.updatedAt);
 }
 
@@ -6288,6 +6330,7 @@ class OcrJobsCompanion extends UpdateCompanion<OcrJob> {
   final Value<String?> lastError;
   final Value<String?> endpoint;
   final Value<String?> model;
+  final Value<String?> remoteUuid;
   final Value<String?> updatedAt;
   const OcrJobsCompanion({
     this.bookId = const Value.absent(),
@@ -6297,6 +6340,7 @@ class OcrJobsCompanion extends UpdateCompanion<OcrJob> {
     this.lastError = const Value.absent(),
     this.endpoint = const Value.absent(),
     this.model = const Value.absent(),
+    this.remoteUuid = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
   OcrJobsCompanion.insert({
@@ -6307,6 +6351,7 @@ class OcrJobsCompanion extends UpdateCompanion<OcrJob> {
     this.lastError = const Value.absent(),
     this.endpoint = const Value.absent(),
     this.model = const Value.absent(),
+    this.remoteUuid = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
   static Insertable<OcrJob> custom({
@@ -6317,6 +6362,7 @@ class OcrJobsCompanion extends UpdateCompanion<OcrJob> {
     Expression<String>? lastError,
     Expression<String>? endpoint,
     Expression<String>? model,
+    Expression<String>? remoteUuid,
     Expression<String>? updatedAt,
   }) {
     return RawValuesInsertable({
@@ -6327,6 +6373,7 @@ class OcrJobsCompanion extends UpdateCompanion<OcrJob> {
       if (lastError != null) 'last_error': lastError,
       if (endpoint != null) 'endpoint': endpoint,
       if (model != null) 'model': model,
+      if (remoteUuid != null) 'remote_uuid': remoteUuid,
       if (updatedAt != null) 'updated_at': updatedAt,
     });
   }
@@ -6339,6 +6386,7 @@ class OcrJobsCompanion extends UpdateCompanion<OcrJob> {
     Value<String?>? lastError,
     Value<String?>? endpoint,
     Value<String?>? model,
+    Value<String?>? remoteUuid,
     Value<String?>? updatedAt,
   }) {
     return OcrJobsCompanion(
@@ -6349,6 +6397,7 @@ class OcrJobsCompanion extends UpdateCompanion<OcrJob> {
       lastError: lastError ?? this.lastError,
       endpoint: endpoint ?? this.endpoint,
       model: model ?? this.model,
+      remoteUuid: remoteUuid ?? this.remoteUuid,
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
@@ -6377,6 +6426,9 @@ class OcrJobsCompanion extends UpdateCompanion<OcrJob> {
     if (model.present) {
       map['model'] = Variable<String>(model.value);
     }
+    if (remoteUuid.present) {
+      map['remote_uuid'] = Variable<String>(remoteUuid.value);
+    }
     if (updatedAt.present) {
       map['updated_at'] = Variable<String>(updatedAt.value);
     }
@@ -6393,6 +6445,7 @@ class OcrJobsCompanion extends UpdateCompanion<OcrJob> {
           ..write('lastError: $lastError, ')
           ..write('endpoint: $endpoint, ')
           ..write('model: $model, ')
+          ..write('remoteUuid: $remoteUuid, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
@@ -11598,6 +11651,7 @@ typedef $$OcrJobsTableCreateCompanionBuilder =
       Value<String?> lastError,
       Value<String?> endpoint,
       Value<String?> model,
+      Value<String?> remoteUuid,
       Value<String?> updatedAt,
     });
 typedef $$OcrJobsTableUpdateCompanionBuilder =
@@ -11609,6 +11663,7 @@ typedef $$OcrJobsTableUpdateCompanionBuilder =
       Value<String?> lastError,
       Value<String?> endpoint,
       Value<String?> model,
+      Value<String?> remoteUuid,
       Value<String?> updatedAt,
     });
 
@@ -11670,6 +11725,11 @@ class $$OcrJobsTableFilterComposer
 
   ColumnFilters<String> get model => $composableBuilder(
     column: $table.model,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get remoteUuid => $composableBuilder(
+    column: $table.remoteUuid,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -11741,6 +11801,11 @@ class $$OcrJobsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get remoteUuid => $composableBuilder(
+    column: $table.remoteUuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
@@ -11796,6 +11861,11 @@ class $$OcrJobsTableAnnotationComposer
 
   GeneratedColumn<String> get model =>
       $composableBuilder(column: $table.model, builder: (column) => column);
+
+  GeneratedColumn<String> get remoteUuid => $composableBuilder(
+    column: $table.remoteUuid,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
@@ -11859,6 +11929,7 @@ class $$OcrJobsTableTableManager
                 Value<String?> lastError = const Value.absent(),
                 Value<String?> endpoint = const Value.absent(),
                 Value<String?> model = const Value.absent(),
+                Value<String?> remoteUuid = const Value.absent(),
                 Value<String?> updatedAt = const Value.absent(),
               }) => OcrJobsCompanion(
                 bookId: bookId,
@@ -11868,6 +11939,7 @@ class $$OcrJobsTableTableManager
                 lastError: lastError,
                 endpoint: endpoint,
                 model: model,
+                remoteUuid: remoteUuid,
                 updatedAt: updatedAt,
               ),
           createCompanionCallback:
@@ -11879,6 +11951,7 @@ class $$OcrJobsTableTableManager
                 Value<String?> lastError = const Value.absent(),
                 Value<String?> endpoint = const Value.absent(),
                 Value<String?> model = const Value.absent(),
+                Value<String?> remoteUuid = const Value.absent(),
                 Value<String?> updatedAt = const Value.absent(),
               }) => OcrJobsCompanion.insert(
                 bookId: bookId,
@@ -11888,6 +11961,7 @@ class $$OcrJobsTableTableManager
                 lastError: lastError,
                 endpoint: endpoint,
                 model: model,
+                remoteUuid: remoteUuid,
                 updatedAt: updatedAt,
               ),
           withReferenceMapper: (p0) => p0
