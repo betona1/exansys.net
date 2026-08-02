@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import type { Context } from "hono";
 import { getCookie, setCookie, deleteCookie } from "hono/cookie";
 import { drizzle } from "drizzle-orm/d1";
 import { and, eq } from "drizzle-orm";
@@ -29,6 +30,28 @@ authRoutes.get("/providers", (c) =>
 
 authRoutes.route("/email", emailAuthRoutes);
 
+/** 로그인 뒤 돌아갈 곳을 담아 두는 쿠키 */
+const NEXT_COOKIE = "auth_next";
+
+/**
+ * 돌아갈 곳을 안전하게 다듬는다.
+ *
+ * **우리 사이트 안의 경로만 받는다.** `//evil.com` 같은 것을 그대로 쓰면
+ * 로그인 직후 남의 사이트로 튕기는 통로(open redirect)가 된다.
+ */
+function safeNext(raw: string | undefined): string {
+  const v = (raw ?? "").trim();
+  if (!v.startsWith("/") || v.startsWith("//")) return "/";
+  return v;
+}
+
+/** 담아 둔 곳을 꺼내고 지운다 */
+function takeNext(c: Context<{ Bindings: Env }>): string {
+  const v = getCookie(c, NEXT_COOKIE);
+  deleteCookie(c, NEXT_COOKIE, { path: "/" });
+  return safeNext(v);
+}
+
 authRoutes.get("/:provider/start", (c) => {
   const name = c.req.param("provider");
   if (!isProviderName(name)) return c.json(err("unknown_provider"), 400);
@@ -37,6 +60,16 @@ authRoutes.get("/:provider/start", (c) => {
 
   const state = crypto.randomUUID();
   setCookie(c, STATE_COOKIE, `${name}:${state}`, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "Lax",
+    path: "/",
+    maxAge: 600,
+  });
+  // 로그인 뒤 돌아갈 곳을 기억해 둔다. 없으면 늘 홈으로 떨어져서,
+  // "로그인했는데 아무 일도 안 일어난다" 가 된다 (앱 연결이 이래서 막혔다).
+  // 우리 사이트 안의 경로만 받는다 — 남의 주소로 튕기는 통로를 만들지 않는다
+  setCookie(c, NEXT_COOKIE, safeNext(c.req.query("next")), {
     httpOnly: true,
     secure: true,
     sameSite: "Lax",
@@ -109,7 +142,7 @@ authRoutes.get("/:provider/callback", async (c) => {
       avatarUrl: profile.avatarUrl,
       role,
     });
-    return c.redirect("/");
+    return c.redirect(takeNext(c));
   } catch (e) {
     console.error("oauth callback error", e);
     return c.redirect("/?login=error");

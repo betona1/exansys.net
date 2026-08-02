@@ -31,6 +31,13 @@ const SOCIAL: Record<string, { label: string; cls: string; icon: string }> = {
 
 export default function Login({ me, refresh }: { me: Me; refresh: () => Promise<void> }) {
   const navigate = useNavigate();
+
+  // 로그인 뒤 돌아갈 곳. 앱 연결(/exapdf/authorize)처럼 원래 화면으로
+  // 돌아가야 일이 끝나는 흐름이 있다. 우리 사이트 안 경로만 받는다
+  const nextPath = (() => {
+    const raw = new URLSearchParams(window.location.search).get("next") ?? "/";
+    return raw.startsWith("/") && !raw.startsWith("//") ? raw : "/";
+  })();
   const [providers, setProviders] = useState<string[]>([]);
   const [emailLogin, setEmailLogin] = useState(false);
   const [siteKey, setSiteKey] = useState<string | null>(null);
@@ -94,7 +101,7 @@ export default function Login({ me, refresh }: { me: Me; refresh: () => Promise<
     setBusy(false);
     if (res.ok) {
       await refresh();
-      navigate("/", { replace: true });
+      navigate(nextPath, { replace: true });
     } else {
       setMsg(
         res.error === "wrong_code"
@@ -134,7 +141,7 @@ export default function Login({ me, refresh }: { me: Me; refresh: () => Promise<
             return (
               <a
                 key={p}
-                href={`/api/auth/${p}/start`}
+                href={`/api/auth/${p}/start?next=${encodeURIComponent(nextPath)}`}
                 className={`flex w-full items-center justify-center gap-2.5 rounded-xl px-4 py-3 text-sm font-semibold transition ${s.cls}`}
               >
                 <span className="grid h-5 w-5 place-items-center rounded text-[10px] font-extrabold">
