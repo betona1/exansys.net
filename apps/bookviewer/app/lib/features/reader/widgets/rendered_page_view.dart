@@ -122,12 +122,31 @@ class RenderedPageViewState extends State<RenderedPageView> {
 
   @override
   Widget build(BuildContext context) {
-    return PageView.builder(
+    return ScrollConfiguration(
+      // Flutter 는 기본적으로 **마우스 드래그를 스크롤로 치지 않는다.**
+      // 그래서 웹·데스크톱에서 끌어 넘기기가 아예 먹지 않는다.
+      behavior: ScrollConfiguration.of(context).copyWith(
+        dragDevices: {
+          PointerDeviceKind.touch,
+          PointerDeviceKind.mouse,
+          PointerDeviceKind.trackpad,
+          PointerDeviceKind.stylus,
+        },
+        scrollbars: false,
+      ),
+      child: PageView.builder(
       controller: _controller,
       itemCount: viewCount,
       // 확대 중에는 쪽 넘김을 막는다. 밀기는 그림을 옮기는 데 쓴다
       physics: _zoomed ? const NeverScrollableScrollPhysics() : const PageScrollPhysics(),
-      onPageChanged: widget.onViewChanged,
+      onPageChanged: (v) {
+        // 새 쪽은 위에서부터 본다. 앞 쪽에서 내려온 위치를 그대로 물려받으면
+        // 새 쪽 중간부터 보이게 된다
+        final m = _lastTransform.clone();
+        m.storage[13] = 0;
+        _lastTransform = m;
+        widget.onViewChanged(v);
+      },
       itemBuilder: (context, view) {
         final pageIndex = view ~/ _perPage;
         final page = widget.document.pages[pageIndex];
@@ -139,7 +158,12 @@ class RenderedPageViewState extends State<RenderedPageView> {
           half = isLeft ? 0 : 1;
         }
         return _PageSlice(
-          key: ValueKey('\$view/\${crop.hashCode}/\${widget.settings.tintKey}'),
+          // 맞춤 모드·크롭·색이 바뀌면 다시 그려야 한다.
+          // 열쇠가 같으면 예전 배율로 뽑아 둔 그림이 그대로 남는다
+          key: ValueKey(
+            '$view/${crop.hashCode}/'
+            '${widget.settings.tintKey}/${widget.settings.fitMode.name}',
+          ),
           page: page,
           crop: crop,
           settings: widget.settings,
@@ -165,6 +189,7 @@ class RenderedPageViewState extends State<RenderedPageView> {
           onSlice: widget.onSlice,
         );
       },
+      ),
     );
   }
 }
@@ -295,15 +320,41 @@ class _PageSliceState extends State<_PageSlice> {
         _zoomBy(event.scrollDelta.dy > 0 ? 1 / 1.15 : 1.15, event.localPosition);
         return;
       }
-      // 확대 중이면 휠은 위아래로 밀어 본다. 넘기면 읽던 자리를 잃는다
-      if (_zoomedIn) {
-        final m = _transform.value.clone()
-          ..translateByDouble(0, -event.scrollDelta.dy, 0, 1);
-        _transform.value = m;
-        return;
+
+      // **먼저 쪽 안에서 내려간다. 바닥에 닿으면 그때 넘긴다.**
+      // 곧바로 넘겨 버리면 폭 맞춤에서 화면 아래로 넘친 부분을 영영 못 읽는다.
+      final dy = event.scrollDelta.dy;
+      final bounds = _verticalBounds();
+      if (bounds != null) {
+        final y = _transform.value.storage[13];
+        final next = (y - dy).clamp(bounds.min, 0.0);
+        if (next != y) {
+          final m = _transform.value.clone();
+          m.storage[13] = next;
+          _transform.value = m;
+          return;
+        }
       }
-      widget.onWheelTurn(event.scrollDelta.dy > 0 ? 1 : -1);
+      widget.onWheelTurn(dy > 0 ? 1 : -1);
     });
+  }
+
+  /// 지금 그림이 화면보다 세로로 얼마나 넘치는가.
+  /// 넘치지 않으면 null — 그때는 휠이 곧바로 쪽을 넘긴다
+  ({double min}) ? _verticalBounds() {
+    final img = _image;
+    final box = _renderedFor;
+    if (img == null || box == null) return null;
+
+    final scale = _transform.value.getMaxScaleOnAxis();
+    final aspect = img.width / img.height;
+    final drawnHeight = switch (widget.settings.fitMode) {
+      FitMode.width => box.width / aspect,
+      FitMode.height => box.height,
+      FitMode.page => (box.width / aspect) <= box.height ? box.width / aspect : box.height,
+    };
+    final overflow = drawnHeight * scale - box.height;
+    return overflow > 1 ? (min: -overflow) : null;
   }
 
   void _zoomBy(double factor, Offset focal) {
@@ -335,6 +386,12 @@ class _PageSliceState extends State<_PageSlice> {
     // 잠금을 켜면 저장해 둔 틀로 곧바로 맞춘다
     if (!old.locked && widget.locked) {
       _transform.value = widget.initialTransform.clone();
+    }
+    // 맞춤 모드가 바뀌면 배율·위치를 원래대로 돌리고 다시 그린다.
+    // 그러지 않으면 앞 모드에서 밀어 둔 위치가 남아 화면 밖이 보인다
+    if (old.settings.fitMode != widget.settings.fitMode) {
+      _transform.value = Matrix4.identity();
+      _renderedFor = null;
     }
   }
 

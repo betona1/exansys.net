@@ -914,6 +914,40 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
     }
   }
 
+  /// 스캔본에서 돋보기를 눌렀을 때 (techspec §11).
+  ///
+  /// "안 됩니다"로 끝내지 않는다. 왜 안 되는지와 무엇을 하면 되는지를 함께 준다.
+  /// 글자로 바꾸는 일(OCR)은 서버가 맡는다 — 무거운 처리는 앱에 넣지 않는다
+  /// (CLAUDE.md §4). 유료 기능으로 예정돼 있다 (SPEC §7).
+  void _offerOcr() {
+    unawaited(
+      showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('글자로 된 문서만 찾을 수 있습니다'),
+          content: const Text(
+            '이 책은 글자가 아니라 사진으로 된 스캔본입니다.\n'
+            '글자로 바꾸면(OCR) 찾기와 복사가 됩니다.\n\n'
+            '변환은 서버에서 처리하며, 준비되면 알려 드리겠습니다.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('닫기'),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                _toast('OCR 변환은 아직 준비 중입니다');
+              },
+              child: const Text('글자로 바꾸기'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _toast(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context)
@@ -1031,7 +1065,13 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
       _saveProgress();
       context.go(AppRoutes.library);
     },
-    onSearch: () => setState(() => _search = true),
+    onSearch: () {
+      if (!_hasTextLayer) {
+        _offerOcr();
+        return;
+      }
+      setState(() => _search = true);
+    },
     onViewSheet: _openViewSheet,
     onCapture: () => setState(() => _capture = true),
     splitOn: _settings.splitPages,
@@ -1200,14 +1240,22 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
             ReaderTopBar(
               title: widget.book.title,
               searchOpen: _search,
-              canSearch: _hasTextLayer,
-              searchDisabledReason: _hasTextLayer ? null : '스캔본이라 글자를 찾을 수 없습니다',
+              // 버튼을 막지 않는다. 눌렀을 때 사정을 설명하는 편이 낫다 —
+              // 비활성 버튼은 왜 안 되는지 알 길이 없다 (techspec §6.5)
+              canSearch: true,
+              searchDisabledReason: _hasTextLayer ? null : '이 책은 스캔본입니다',
               canCapture: doc != null,
               onBack: () {
                 _saveProgress();
                 context.go(AppRoutes.library);
               },
-              onToggleSearch: () => setState(() => _search = !_search),
+              onToggleSearch: () {
+                if (!_hasTextLayer) {
+                  _offerOcr();
+                  return;
+                }
+                setState(() => _search = !_search);
+              },
               onCapture: () => setState(() => _capture = true),
               splitOn: _settings.splitPages,
               onToggleSplit: () => unawaited(_toggleSplit()),
