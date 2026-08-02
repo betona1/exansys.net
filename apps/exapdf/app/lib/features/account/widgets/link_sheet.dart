@@ -72,7 +72,13 @@ class _LinkSheetState extends State<LinkSheet> {
     final link = _link;
     if (link == null) return;
     final url = widget.service.authorizeUrl(link.device);
-    final launched = await launchUrl(url, mode: LaunchMode.externalApplication);
+    // **앱 위에 겹쳐 띄운다** (안드로이드 Custom Tabs / iOS SFSafariViewController).
+    // 딴 앱으로 튀지 않으므로 사용자에게는 앱 안에서 로그인하는 것으로 보이고,
+    // 그러면서도 진짜 브라우저라 카카오·구글이 막는 웹뷰가 아니다.
+    // 못 띄우는 기기에서는 바깥 브라우저로 물러난다
+    var launched = await launchUrl(url, mode: LaunchMode.inAppBrowserView);
+    launched = launched ||
+        await launchUrl(url, mode: LaunchMode.externalApplication);
     if (!mounted) return;
     if (!launched) {
       // 브라우저를 못 열면 코드를 보여 준다. 막다른 길로 두지 않는다
@@ -144,24 +150,24 @@ class _LinkSheetState extends State<LinkSheet> {
                 style: FilledButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: AppTokens.space4),
                 ),
-                label: const Text('브라우저에서 로그인'),
+                label: const Text('로그인'),
               ),
               const SizedBox(height: AppTokens.space2),
               TextButton(
                 onPressed: () => setState(() => _showCode = !_showCode),
-                child: Text(_showCode ? '코드 숨기기' : '브라우저가 안 열리면'),
+                child: Text(_showCode ? '코드 숨기기' : '로그인 창이 안 뜨면'),
               ),
               if (_showCode) _CodeBox(code: link.code, service: widget.service),
             ] else ...[
               const LinearProgressIndicator(),
               const SizedBox(height: AppTokens.space3),
-              Text('브라우저에서 로그인해 주세요.', style: t.textTheme.bodyMedium),
+              Text('로그인 창에서 계속해 주세요.', style: t.textTheme.bodyMedium),
               Text(
                 '끝나면 이 화면이 저절로 넘어갑니다 · 남은 시간 ${_left ~/ 60}분 ${_left % 60}초',
                 style: t.textTheme.bodySmall,
               ),
               const SizedBox(height: AppTokens.space2),
-              TextButton(onPressed: _openBrowser, child: const Text('브라우저 다시 열기')),
+              TextButton(onPressed: _openBrowser, child: const Text('로그인 창 다시 열기')),
             ],
 
             const SizedBox(height: AppTokens.space3),
