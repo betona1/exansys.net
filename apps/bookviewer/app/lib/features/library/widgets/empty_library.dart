@@ -38,11 +38,15 @@ class EmptyLibrary extends StatelessWidget {
               style: t.textTheme.bodySmall,
             ),
             const SizedBox(height: AppTokens.space5),
-            FilledButton.icon(
+            // 큰 버튼 대신 작은 + 하나. 상단 도구막대의 + 와 같은 동작이다
+            IconButton.filled(
               onPressed: onPick,
-              icon: const Icon(Icons.picture_as_pdf),
-              label: const Text('PDF 가져오기'),
+              icon: const Icon(Icons.add),
+              tooltip: 'PDF 가져오기',
+              iconSize: 26,
             ),
+            const SizedBox(height: AppTokens.space2),
+            Text('PDF 가져오기', style: t.textTheme.labelSmall),
           ],
         ),
       ),

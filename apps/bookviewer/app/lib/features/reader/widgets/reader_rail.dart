@@ -14,6 +14,8 @@ class ReaderRail extends StatelessWidget {
     required this.sideLabel,
     required this.canSearch,
     required this.searchDisabledReason,
+    required this.splitOn,
+    required this.onToggleSplit,
     required this.zoomLocked,
     required this.onToggleZoomLock,
     required this.highlighting,
@@ -40,6 +42,12 @@ class ReaderRail extends StatelessWidget {
   final bool canSearch;
   final String? searchDisabledReason;
 
+
+
+  /// 좌우 나눠 보기가 켜져 있는가.
+  /// 시트에 묻어 두면 껐다 켜기가 번거로워 도구막대에 둔다
+  final bool splitOn;
+  final VoidCallback onToggleSplit;
 
   /// 배율·좌우 위치를 잠갔는가
   final bool zoomLocked;
@@ -109,6 +117,12 @@ class ReaderRail extends StatelessWidget {
                 onPressed: onCapture,
                 icon: const Icon(Icons.crop_free),
                 tooltip: '영역 캡처',
+              ),
+              IconButton(
+                onPressed: onToggleSplit,
+                icon: const Icon(Icons.vertical_split),
+                tooltip: splitOn ? '한 장씩 보기' : '좌우 나눠 보기',
+                color: splitOn ? AppTokens.amber : null,
               ),
               IconButton(
                 onPressed: onToggleZoomLock,

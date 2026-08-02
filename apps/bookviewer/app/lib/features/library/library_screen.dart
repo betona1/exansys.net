@@ -97,13 +97,8 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                 ),
               ),
       ),
-      floatingActionButton: books.valueOrNull?.isNotEmpty ?? false
-          ? FloatingActionButton.extended(
-              onPressed: _picking ? null : _pickAndOpen,
-              icon: const Icon(Icons.picture_as_pdf),
-              label: const Text('PDF 가져오기'),
-            )
-          : null,
+      // 큰 버튼을 따로 띄우지 않는다. 상단의 + 하나로 충분하고,
+      // 책 목록을 가리지 않는다
     );
   }
 }

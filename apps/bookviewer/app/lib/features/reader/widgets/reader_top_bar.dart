@@ -16,6 +16,8 @@ class ReaderTopBar extends StatelessWidget {
     required this.onBack,
     required this.onToggleSearch,
     required this.onCapture,
+    required this.splitOn,
+    required this.onToggleSplit,
     required this.zoomLocked,
     required this.onToggleZoomLock,
     required this.highlighting,
@@ -45,6 +47,12 @@ class ReaderTopBar extends StatelessWidget {
 
 
 
+
+  /// 좌우 나눠 보기가 켜져 있는가.
+  /// 시트에 묻어 두면 껐다 켜기가 번거로워 도구막대에 둔다
+  final bool splitOn;
+  final VoidCallback onToggleSplit;
+
   /// 배율·좌우 위치를 잠갔는가
   final bool zoomLocked;
   final VoidCallback onToggleZoomLock;
@@ -68,8 +76,16 @@ class ReaderTopBar extends StatelessWidget {
 
   final Widget? searchSheet;
 
+  /// 좁은 화면에서는 아이콘을 줄여 다 들어가게 한다.
+  /// 폰 세로에서 아이콘 여섯 개가 기본 크기로 늘어서면 제목이 밀려 사라진다
+  static double iconSizeFor(double width) => width < 400 ? 20 : (width < 600 ? 22 : 24);
+
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.sizeOf(context).width;
+    final iconSize = iconSizeFor(width);
+    final density = width < 600 ? VisualDensity.compact : VisualDensity.standard;
+
     return Positioned(
       top: 0,
       left: 0,
@@ -86,6 +102,8 @@ class ReaderTopBar extends StatelessWidget {
                     onPressed: onBack,
                     icon: const Icon(Icons.chevron_left),
                     tooltip: '서재로',
+                    iconSize: iconSize,
+                    visualDensity: density,
                   ),
                   Expanded(
                     child: Text(
@@ -99,6 +117,16 @@ class ReaderTopBar extends StatelessWidget {
                     onPressed: canSearch ? onToggleSearch : null,
                     icon: Icon(searchOpen ? Icons.search_off : Icons.search),
                     tooltip: searchDisabledReason ?? '이 책에서 찾기',
+                    iconSize: iconSize,
+                    visualDensity: density,
+                  ),
+                  IconButton(
+                    onPressed: onToggleSplit,
+                    icon: const Icon(Icons.vertical_split),
+                    tooltip: splitOn ? '한 장씩 보기' : '좌우 나눠 보기',
+                    color: splitOn ? AppTokens.amber : null,
+                    iconSize: iconSize,
+                    visualDensity: density,
                   ),
                   IconButton(
                     onPressed: onToggleZoomLock,
@@ -122,19 +150,25 @@ class ReaderTopBar extends StatelessWidget {
                     onPressed: onOpenMarks,
                     icon: const Icon(Icons.list),
                     tooltip: '하이라이트·북마크 목록',
+                    iconSize: iconSize,
+                    visualDensity: density,
                   ),
                   // 보기 관련은 시트 하나로 모은다.
                   // 도구막대에 토글이 여섯 개 늘어서면 무엇이 무엇인지 알 수 없다
                   IconButton(
                     onPressed: onOpenViewSheet,
                     icon: const Icon(Icons.tune),
-                    tooltip: '보기 — 나눠 보기 · 여백 · 테마',
+                    tooltip: '보기 — 맞춤 · 여백 · 테마',
+                    iconSize: iconSize,
+                    visualDensity: density,
                     color: viewChanged ? AppTokens.amber : null,
                   ),
                   IconButton(
                     onPressed: canCapture ? onCapture : null,
                     icon: const Icon(Icons.crop_free),
                     tooltip: '영역 캡처',
+                    iconSize: iconSize,
+                    visualDensity: density,
                   ),
                   const SizedBox(width: AppTokens.space1),
                 ],

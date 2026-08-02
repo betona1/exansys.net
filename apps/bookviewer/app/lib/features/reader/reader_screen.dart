@@ -429,9 +429,18 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
 
   void _maybeSuggestSplit(PdfDocument doc) {
     if (!mounted || _settings.splitPages || _settings.splitPrompted) return;
-    final first = doc.pages.first;
-    // 가로가 세로보다 뚜렷하게 길면 펼쳐 스캔한 책으로 본다
-    if (first.width < first.height * 1.2) return;
+
+    // 가로로 길다고 다 펼친 책은 아니다. 발표 자료·그림책도 가로로 길다.
+    // 그래서 **여러 쪽을 보고** 대부분이 뚜렷하게 가로로 길 때만 권한다.
+    // 1.2배는 너무 헐거워 오탐이 났다 — 책을 펼치면 대략 1.4배 안팎이 된다.
+    const ratio = 1.4;
+    final probe = doc.pages.length < 6 ? doc.pages.length : 6;
+    var wide = 0;
+    for (var i = 0; i < probe; i++) {
+      final page = doc.pages[(doc.pages.length * i) ~/ probe];
+      if (page.width >= page.height * ratio) wide++;
+    }
+    if (wide < probe) return; // 한 쪽이라도 아니면 권하지 않는다
 
     ScaffoldMessenger.of(context)
       ..clearMaterialBanners()
@@ -456,6 +465,12 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
           ],
         ),
       );
+
+    // 그냥 두면 읽는 내내 붙어 있다. 잠시 뒤 스스로 걷는다 —
+    // 나눠 보기는 도구막대 아이콘으로 언제든 켤 수 있다
+    Future<void>.delayed(const Duration(seconds: 8), () {
+      if (mounted) ScaffoldMessenger.of(context).clearMaterialBanners();
+    });
   }
 
   /// 좌우가 잘려 보이면 폭 맞춤을 권한다.
@@ -941,8 +956,12 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
         SingleActivator(LogicalKeyboardKey.arrowRight): _NextPageIntent(),
         SingleActivator(LogicalKeyboardKey.pageDown): _NextPageIntent(),
         SingleActivator(LogicalKeyboardKey.space): _NextPageIntent(),
+        SingleActivator(LogicalKeyboardKey.enter): _NextPageIntent(),
+        SingleActivator(LogicalKeyboardKey.numpadEnter): _NextPageIntent(),
+        SingleActivator(LogicalKeyboardKey.arrowDown): _NextPageIntent(),
         SingleActivator(LogicalKeyboardKey.arrowLeft): _PrevPageIntent(),
         SingleActivator(LogicalKeyboardKey.pageUp): _PrevPageIntent(),
+        SingleActivator(LogicalKeyboardKey.arrowUp): _PrevPageIntent(),
         SingleActivator(LogicalKeyboardKey.home): _FirstPageIntent(),
         SingleActivator(LogicalKeyboardKey.end): _LastPageIntent(),
         SingleActivator(LogicalKeyboardKey.keyF, control: true): _FindIntent(),
@@ -1015,6 +1034,8 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
     onSearch: () => setState(() => _search = true),
     onViewSheet: _openViewSheet,
     onCapture: () => setState(() => _capture = true),
+    splitOn: _settings.splitPages,
+    onToggleSplit: () => unawaited(_toggleSplit()),
     zoomLocked: _settings.zoomLocked,
     onToggleZoomLock: () => unawaited(_toggleZoomLock()),
     highlighting: _highlighting,
@@ -1079,6 +1100,10 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
                       settings: _settings,
                       onViewChanged: _onViewChanged,
                       onSlice: (s) => _slice = s,
+                      onWheelTurn: (d) {
+                        _step(d);
+                        _flashZones();
+                      },
                     ),
                   ),
           ),
@@ -1184,6 +1209,8 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
               },
               onToggleSearch: () => setState(() => _search = !_search),
               onCapture: () => setState(() => _capture = true),
+              splitOn: _settings.splitPages,
+              onToggleSplit: () => unawaited(_toggleSplit()),
               zoomLocked: _settings.zoomLocked,
               onToggleZoomLock: () => unawaited(_toggleZoomLock()),
               highlighting: _highlighting,

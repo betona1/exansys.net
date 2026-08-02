@@ -1,7 +1,9 @@
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:pdfrx/pdfrx.dart';
 
 import '../../../core/tokens.dart';
@@ -33,6 +35,7 @@ class RenderedPageView extends StatefulWidget {
     required this.cropFor,
     required this.settings,
     required this.onSlice,
+    required this.onWheelTurn,
     this.split = false,
     this.rightToLeft = false,
   });
@@ -56,6 +59,9 @@ class RenderedPageView extends StatefulWidget {
 
   /// 지금 보이는 조각의 좌표 정보. 캡처가 화면 좌표를 쪽 좌표로 옮기는 데 쓴다
   final ValueChanged<SliceMapper> onSlice;
+
+  /// 휠을 굴렸을 때 넘길 방향 (+1 다음, -1 이전)
+  final ValueChanged<int> onWheelTurn;
 
   @override
   State<RenderedPageView> createState() => RenderedPageViewState();
@@ -141,6 +147,7 @@ class RenderedPageViewState extends State<RenderedPageView> {
           onZoomChanged: (z) {
             if (z != _zoomed && mounted) setState(() => _zoomed = z);
           },
+          onWheelTurn: widget.onWheelTurn,
           initialTransform: widget.settings.zoomLocked
               // 잠갔으면 저장해 둔 배율·좌우 위치로 시작한다.
               // 세로는 0 에서 — 새 쪽은 위부터 읽는다
@@ -171,6 +178,7 @@ class _PageSlice extends StatefulWidget {
     required this.settings,
     required this.onZoomChanged,
     required this.onSlice,
+    required this.onWheelTurn,
     required this.initialTransform,
     required this.onTransformChanged,
     required this.locked,
@@ -186,6 +194,8 @@ class _PageSlice extends StatefulWidget {
 
   /// 이 조각의 좌표 정보를 위로 올린다
   final ValueChanged<SliceMapper> onSlice;
+
+  final ValueChanged<int> onWheelTurn;
 
   /// 앞 쪽에서 쓰던 확대·이동. 넘겨도 배율과 위치가 이어지게 한다
   final Matrix4 initialTransform;
@@ -270,6 +280,41 @@ class _PageSliceState extends State<_PageSlice> {
 
   /// 지금 그린 영역이 쪽의 어디인지 (PDF 포인트)
   Rect? _sliceArea;
+
+  /// 마우스 휠.
+  ///
+  /// `InteractiveViewer` 는 휠을 **확대**에 쓴다. 문서 뷰어에서는 그게 아니라
+  /// 휠은 다음 쪽으로 넘어가고, 확대는 Ctrl+휠이어야 한다.
+  /// 그래서 여기서 직접 받는다 — 안쪽에서 먼저 잡아야 뷰어가 가져가지 않는다.
+  void _onPointerSignal(PointerSignalEvent event) {
+    if (event is! PointerScrollEvent) return;
+    GestureBinding.instance.pointerSignalResolver.register(event, (_) {
+      final ctrl = HardwareKeyboard.instance.isControlPressed ||
+          HardwareKeyboard.instance.isMetaPressed;
+      if (ctrl) {
+        _zoomBy(event.scrollDelta.dy > 0 ? 1 / 1.15 : 1.15, event.localPosition);
+        return;
+      }
+      // 확대 중이면 휠은 위아래로 밀어 본다. 넘기면 읽던 자리를 잃는다
+      if (_zoomedIn) {
+        final m = _transform.value.clone()
+          ..translateByDouble(0, -event.scrollDelta.dy, 0, 1);
+        _transform.value = m;
+        return;
+      }
+      widget.onWheelTurn(event.scrollDelta.dy > 0 ? 1 : -1);
+    });
+  }
+
+  void _zoomBy(double factor, Offset focal) {
+    final current = _transform.value.getMaxScaleOnAxis();
+    final next = (current * factor).clamp(1.0, 6.0);
+    if (next == current) return;
+    final k = next / current;
+    _transform.value = _transform.value.clone()
+      ..translateByDouble(focal.dx * (1 - k), focal.dy * (1 - k), 0, 1)
+      ..scaleByDouble(k, k, 1, 1);
+  }
 
   /// 두 번 두드리면 확대/원래대로. 폰에서 핀치보다 빠르다
   void _toggleZoom(TapDownDetails d) {
@@ -427,10 +472,12 @@ class _PageSliceState extends State<_PageSlice> {
           FitMode.page => BoxFit.contain,
         };
 
-        return GestureDetector(
-          onDoubleTapDown: _toggleZoom,
-          onDoubleTap: () {},
-          child: InteractiveViewer(
+        return Listener(
+          onPointerSignal: _onPointerSignal,
+          child: GestureDetector(
+            onDoubleTapDown: _toggleZoom,
+            onDoubleTap: () {},
+            child: InteractiveViewer(
             transformationController: _transform,
             maxScale: 6,
             minScale: 1,
@@ -441,11 +488,12 @@ class _PageSliceState extends State<_PageSlice> {
             panAxis: (widget.locked || !_zoomedIn) ? PanAxis.vertical : PanAxis.free,
             boundaryMargin: const EdgeInsets.all(double.infinity),
             clipBehavior: Clip.hardEdge,
-            child: SizedBox.expand(
-              child: FittedBox(
-                fit: fitBox,
-                alignment: Alignment.topLeft,
-                child: RawImage(image: _image, filterQuality: FilterQuality.medium),
+              child: SizedBox.expand(
+                child: FittedBox(
+                  fit: fitBox,
+                  alignment: Alignment.topLeft,
+                  child: RawImage(image: _image, filterQuality: FilterQuality.medium),
+                ),
               ),
             ),
           ),
