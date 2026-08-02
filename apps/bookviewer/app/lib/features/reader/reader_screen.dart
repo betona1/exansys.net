@@ -87,7 +87,7 @@ class _ReaderView extends ConsumerStatefulWidget {
   ConsumerState<_ReaderView> createState() => _ReaderViewState();
 }
 
-class _ReaderViewState extends ConsumerState<_ReaderView> {
+class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObserver {
   final _renderKey = GlobalKey<RenderedPageViewState>();
   final _viewerKey = GlobalKey();
 
@@ -113,6 +113,9 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
 
   /// 하이라이트 긋는 중인가. 켜져 있으면 드래그가 칠하기가 된다
   bool _highlighting = false;
+
+  /// 지금 고른 하이라이트. 옆에 색·메모·휴지통 막대가 뜨고 Del 로 지운다
+  int? _selectedHighlight;
   int _colorSlot = 1;
 
   /// 이 문서에 글자 레이어가 있는가. 없으면 검색이 성립하지 않는다
@@ -135,16 +138,31 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
     // 읽는 동안 시스템 바를 숨긴다.
     // 가로로 들면 위아래 검은 바가 책을 눌러 화면이 확 좁아진다
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    WidgetsBinding.instance.addObserver(this);
     unawaited(_open());
     // 처음 열 때 한 번 알려 준다. 영역이 눈에 안 보이면 아무도 쓰지 않는다
     WidgetsBinding.instance.addPostFrameCallback((_) => _flashZones());
+  }
+
+  /// 앱을 내리거나 브라우저 탭을 덮을 때 보던 자리를 남긴다.
+  ///
+  /// 저장은 700ms 미뤄 두는데, 그 사이에 앱이 내려가면 그대로 날아간다.
+  /// 폰에서 홈으로 나가는 것도, 웹에서 탭을 닫는 것도 여기로 온다
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) return;
+    _saveDebounce?.cancel();
+    _saveProgress();
   }
 
   @override
   void dispose() {
     // 서재로 돌아가면 시스템 바를 되돌린다
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    WidgetsBinding.instance.removeObserver(this);
+    // **미뤄 둔 저장을 버리지 않는다.** 넘기자마자 나가면 그 쪽을 잃는다
     _saveDebounce?.cancel();
+    _saveProgress();
     _zonesTimer?.cancel();
     _doc?.dispose();
     super.dispose();
@@ -247,6 +265,8 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
     setState(() {
       _view = view;
       _page = (view ~/ _perPage) + 1;
+      // 쪽을 넘기면 고른 것을 푼다. 안 보이는 것이 골라져 있으면 Del 이 엉뚱하게 먹는다
+      _selectedHighlight = null;
     });
     // 쪽을 넘길 때마다 쓰지 않는다 — 잠깐 멈췄을 때 한 번만 저장한다
     _saveDebounce?.cancel();
@@ -630,70 +650,41 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
     _toast(added ? '$_page쪽을 북마크했습니다' : '북마크를 뺐습니다');
   }
 
-  /// 하이라이트를 누르면 색을 바꾸거나 지운다
-  void _onTapHighlight(Highlight h) {
-    unawaited(
-      showModalBottomSheet<void>(
-        context: context,
-        builder: (ctx) => SafeArea(
-          top: false,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(AppTokens.space3),
-                child: Row(
-                  children: [
-                    for (var slot = 1; slot <= AppTokens.highlights.length; slot++)
-                      Expanded(
-                        child: InkWell(
-                          onTap: () {
-                            Navigator.pop(ctx);
-                            unawaited(
-                              ref
-                                  .read(annotationRepositoryProvider)
-                                  .updateHighlight(h.id, colorSlot: slot),
-                            );
-                          },
-                          child: Container(
-                            height: 34,
-                            margin: const EdgeInsets.symmetric(horizontal: 3),
-                            decoration: BoxDecoration(
-                              color: AppTokens.highlights[slot - 1],
-                              borderRadius: BorderRadius.circular(6),
-                              border: slot == h.colorSlot
-                                  ? Border.all(color: Colors.black87, width: 2.5)
-                                  : null,
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-              ListTile(
-                leading: const Icon(Icons.edit_note),
-                title: const Text('메모'),
-                subtitle: h.note == null ? null : Text(h.note!),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  unawaited(_editNote(h));
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.delete_outline),
-                title: const Text('삭제'),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  unawaited(ref.read(annotationRepositoryProvider).deleteHighlight(h.id));
-                },
-              ),
-              const SizedBox(height: AppTokens.space2),
-            ],
+  /// 고른 하이라이트를 지운다 — 옆에 뜬 휴지통, 또는 Del 키.
+  ///
+  /// 확인 대화상자로 막지 않는다. 한 번 더 묻는 것보다 **되돌리기**가 낫다 —
+  /// 잘못 지웠을 때만 손이 가고, 제대로 지울 때는 걸리적거리지 않는다.
+  void _deleteHighlight(Highlight h) {
+    setState(() => _selectedHighlight = null);
+    final repo = ref.read(annotationRepositoryProvider);
+    unawaited(repo.deleteHighlight(h.id));
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..clearSnackBars()
+      ..showSnackBar(
+        SnackBar(
+          content: const Text('칠한 것을 지웠습니다'),
+          duration: const Duration(seconds: 4),
+          action: SnackBarAction(
+            label: '되돌리기',
+            onPressed: () => unawaited(_restoreHighlight(h)),
           ),
         ),
-      ),
+      );
+  }
+
+  /// 되돌리기 — 같은 자리·같은 색으로 다시 만든다.
+  /// id 는 새로 붙지만 사용자가 보는 것은 그대로다. 메모가 있었으면 함께 살린다
+  Future<void> _restoreHighlight(Highlight h) async {
+    final repo = ref.read(annotationRepositoryProvider);
+    final again = await repo.addHighlight(
+      bookId: widget.book.id,
+      pageNo: h.pageNo,
+      rect: h.rect,
+      colorSlot: h.colorSlot,
+      documentChecksum: '',
     );
+    if (h.note != null) await repo.updateHighlight(again.id, note: h.note);
   }
 
   Future<void> _editNote(Highlight h) async {
@@ -1000,9 +991,31 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
         SingleActivator(LogicalKeyboardKey.end): _LastPageIntent(),
         SingleActivator(LogicalKeyboardKey.keyF, control: true): _FindIntent(),
         SingleActivator(LogicalKeyboardKey.f11): _ToggleChromeIntent(),
+        // 고른 하이라이트 지우기. 맥 키보드에는 Del 이 없어 Backspace 도 받는다
+        SingleActivator(LogicalKeyboardKey.delete): _DeleteMarkIntent(),
+        SingleActivator(LogicalKeyboardKey.backspace): _DeleteMarkIntent(),
+        SingleActivator(LogicalKeyboardKey.escape): _DeselectIntent(),
       },
       child: Actions(
         actions: <Type, Action<Intent>>{
+          _DeleteMarkIntent: CallbackAction<_DeleteMarkIntent>(
+            onInvoke: (_) {
+              final id = _selectedHighlight;
+              if (id == null) return null;
+              final list = ref.read(highlightsProvider(widget.book.id)).valueOrNull;
+              final h = list?.where((e) => e.id == id).firstOrNull;
+              if (h != null) _deleteHighlight(h);
+              return null;
+            },
+          ),
+          _DeselectIntent: CallbackAction<_DeselectIntent>(
+            onInvoke: (_) {
+              if (_selectedHighlight != null) {
+                setState(() => _selectedHighlight = null);
+              }
+              return null;
+            },
+          ),
           _NextPageIntent: CallbackAction<_NextPageIntent>(
             onInvoke: (_) {
               _step(1);
@@ -1155,8 +1168,14 @@ class _ReaderViewState extends ConsumerState<_ReaderView> {
               highlights: highlights,
               drawing: _highlighting,
               colorSlot: _colorSlot,
+              selectedId: _selectedHighlight,
               onAdd: (r) => unawaited(_addHighlight(r)),
-              onTapHighlight: _onTapHighlight,
+              onSelect: (h) => setState(() => _selectedHighlight = h?.id),
+              onRecolor: (h, slot) => unawaited(
+                ref.read(annotationRepositoryProvider).updateHighlight(h.id, colorSlot: slot),
+              ),
+              onNote: (h) => unawaited(_editNote(h)),
+              onDelete: _deleteHighlight,
             ),
 
           if (_exportProgress != null)
@@ -1350,6 +1369,14 @@ class _FindIntent extends Intent {
 
 class _ToggleChromeIntent extends Intent {
   const _ToggleChromeIntent();
+}
+
+class _DeleteMarkIntent extends Intent {
+  const _DeleteMarkIntent();
+}
+
+class _DeselectIntent extends Intent {
+  const _DeselectIntent();
 }
 
 /// 문서를 열지 못했을 때 (techspec §17 — 무엇이 실패 / 원인 / 다음 행동)

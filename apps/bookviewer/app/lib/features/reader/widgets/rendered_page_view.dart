@@ -312,6 +312,14 @@ class _PageSliceState extends State<_PageSlice> {
   /// 휠은 다음 쪽으로 넘어가고, 확대는 Ctrl+휠이어야 한다.
   /// 그래서 여기서 직접 받는다 — 안쪽에서 먼저 잡아야 뷰어가 가져가지 않는다.
   void _onPointerSignal(PointerSignalEvent event) {
+    // 브라우저·트랙패드는 Ctrl+휠(과 두 손가락 오므리기)을 스크롤이 아니라
+    // **크기 조절 신호**로 바꿔 보낸다. 이걸 안 받으면 웹에서 확대가 안 된다
+    if (event is PointerScaleEvent) {
+      GestureBinding.instance.pointerSignalResolver.register(event, (_) {
+        _zoomBy(event.scale, event.localPosition);
+      });
+      return;
+    }
     if (event is! PointerScrollEvent) return;
     GestureBinding.instance.pointerSignalResolver.register(event, (_) {
       final ctrl = HardwareKeyboard.instance.isControlPressed ||
@@ -339,22 +347,51 @@ class _PageSliceState extends State<_PageSlice> {
     });
   }
 
-  /// 지금 그림이 화면보다 세로로 얼마나 넘치는가.
-  /// 넘치지 않으면 null — 그때는 휠이 곧바로 쪽을 넘긴다
-  ({double min}) ? _verticalBounds() {
+  /// 지금 배율에서 그림이 실제로 차지하는 크기.
+  /// 맞춤 모드마다 다르므로 한곳에서 계산한다
+  Size? _drawnSize() {
     final img = _image;
     final box = _renderedFor;
     if (img == null || box == null) return null;
 
-    final scale = _transform.value.getMaxScaleOnAxis();
     final aspect = img.width / img.height;
-    final drawnHeight = switch (widget.settings.fitMode) {
-      FitMode.width => box.width / aspect,
-      FitMode.height => box.height,
-      FitMode.page => (box.width / aspect) <= box.height ? box.width / aspect : box.height,
+    final byWidth = Size(box.width, box.width / aspect);
+    final byHeight = Size(box.height * aspect, box.height);
+    return switch (widget.settings.fitMode) {
+      FitMode.width => byWidth,
+      FitMode.height => byHeight,
+      FitMode.page => byWidth.height <= box.height ? byWidth : byHeight,
     };
-    final overflow = drawnHeight * scale - box.height;
+  }
+
+  /// 지금 그림이 화면보다 세로로 얼마나 넘치는가.
+  /// 넘치지 않으면 null — 그때는 휠이 곧바로 쪽을 넘긴다
+  ({double min}) ? _verticalBounds() {
+    final box = _renderedFor;
+    final drawn = _drawnSize();
+    if (box == null || drawn == null) return null;
+
+    final overflow = drawn.height * _transform.value.getMaxScaleOnAxis() - box.height;
     return overflow > 1 ? (min: -overflow) : null;
+  }
+
+  /// 그림을 화면 안에 붙들어 둔다.
+  ///
+  /// 확대할 때 손가락 자리를 축으로 밀어 놓으면 그 밀린 값이 남는다. 그대로
+  /// 축소하면 **왼쪽이 화면 밖으로 나가 잘려 보인다.** 배율이 바뀔 때마다
+  /// 넘치는 만큼만 밀 수 있게 다시 묶어 준다. 넘치지 않으면 0 으로 되돌린다.
+  void _clampTranslation() {
+    final box = _renderedFor;
+    final drawn = _drawnSize();
+    if (box == null || drawn == null) return;
+
+    final scale = _transform.value.getMaxScaleOnAxis();
+    final m = _transform.value.clone();
+    final overX = drawn.width * scale - box.width;
+    final overY = drawn.height * scale - box.height;
+    m.storage[12] = overX > 1 ? m.storage[12].clamp(-overX, 0.0) : 0.0;
+    m.storage[13] = overY > 1 ? m.storage[13].clamp(-overY, 0.0) : 0.0;
+    _transform.value = m;
   }
 
   void _zoomBy(double factor, Offset focal) {
@@ -365,6 +402,7 @@ class _PageSliceState extends State<_PageSlice> {
     _transform.value = _transform.value.clone()
       ..translateByDouble(focal.dx * (1 - k), focal.dy * (1 - k), 0, 1)
       ..scaleByDouble(k, k, 1, 1);
+    _clampTranslation();
   }
 
   /// 두 번 두드리면 확대/원래대로. 폰에서 핀치보다 빠르다
