@@ -30,9 +30,10 @@ void main() {
       expect(OcrSettings.normalizeEndpoint('   '), '');
     });
 
-    test('기본 주소가 채워져 있어 바로 시작할 수 있다', () {
-      // 개발 편의용. 배포 전에는 비워야 한다 (OcrSettings.defaultEndpoint 주석)
-      expect(const OcrSettings().configured, isTrue);
+    test('주소를 안 넘기면 설정되지 않은 것으로 본다', () {
+      // 테스트는 --dart-define 없이 돈다. 즉 배포 기본 상태와 같다 —
+      // 주소가 없으면 시작 버튼이 눌리지 않아야 한다
+      expect(const OcrSettings().configured, isFalse);
     });
   });
 

@@ -8,19 +8,24 @@ import '../../data/db/database.dart';
 class OcrSettings {
   const OcrSettings({this.endpoint = defaultEndpoint, this.model = defaultModel});
 
-  /// 개발 중에 쓰는 내 서버. 매번 손으로 넣지 않으려고 채워 둔다.
+  /// 빌드할 때 채워 넣는 기본 서버 주소.
   ///
-  /// **밖에 내보내기 전에 비운다.** 남의 사설망 주소가 배포본에 들어 있을
-  /// 이유가 없다. 지울 곳은 여기 한 줄이고, 다른 빌드로 덮어쓸 수도 있다:
-  ///   flutter build apk --dart-define=ocrEndpoint=http://내서버:11434
-  static const defaultEndpoint = String.fromEnvironment(
-    'ocrEndpoint',
-    defaultValue: 'http://192.168.219.88:11434',
-  );
+  /// **소스에 박지 않는다** (CLAUDE.md §2 규칙 3). `.env.json` 에 적고
+  /// 빌드에 넘긴다 — 그 파일은 커밋되지 않으므로 남의 사설망 주소가
+  /// 배포본이나 저장소에 남지 않는다.
+  ///
+  ///   flutter build apk --release --dart-define-from-file=.env.json
+  ///
+  /// 넘기지 않으면 빈 값이고, 그때는 앱에서 직접 입력한다.
+  /// 무엇을 적는지는 `.env.example` 에 있다.
+  static const defaultEndpoint = String.fromEnvironment('ocrEndpoint');
 
   /// 실측에서 쓴 모델. 3b 는 오히려 느렸다 — 병목이 그림 인코딩이라
   /// 파라미터 수와 상관이 없다 (docs/engine-verification.md)
-  static const defaultModel = 'qwen2.5vl:7b';
+  static const defaultModel = String.fromEnvironment(
+    'ocrModel',
+    defaultValue: 'qwen2.5vl:7b',
+  );
 
   static const _keyEndpoint = 'ocr.endpoint';
   static const _keyModel = 'ocr.model';

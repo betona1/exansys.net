@@ -34,6 +34,9 @@ PDF 를 "문서"가 아니라 **책**으로 읽는 앱. Android 폰·태블릿 �
 2. **원본 PDF 파일을 수정하지 않는다.** 주석은 앱 DB 에 저장하고, 내보낼 때만 **사본**에 쓴다. → ADR-0002
 3. **DB 접속정보와 API 키는 `.env` 에서만 읽는다.**
    - Flutter: `--dart-define-from-file=.env.json` 또는 `flutter_dotenv`. **소스에 하드코딩 금지**
+     - 실제로 쓰는 곳: `app/.env.json` (커밋 안 함) → `app/.env.example` 에 무엇을 적는지 적어 둔다.
+       빌드할 때 반드시 `--dart-define-from-file=.env.json` 을 붙인다.
+       지금 들어 있는 키: `ocrEndpoint`(OCR 서버 주소) · `ocrModel`(비전 모델)
    - ⚠ 클라이언트 번들은 디컴파일 가능하다. **MySQL 접속정보를 앱에 절대 넣지 않는다.**
      앱은 Django API 만 호출하고, DB 는 서버만 만진다. 이건 타협 대상이 아니다
    - Django: `python-dotenv`. `.env` 는 커밋 금지, 새 키는 `.env.example` 에 **한글 주석과 함께** 추가
