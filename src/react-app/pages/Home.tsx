@@ -243,6 +243,99 @@ export default function Home() {
         </section>
       )}
 
+
+      {/* ---------- ExaPDF — 쓰는 법과 요금을 한자리에 ---------- */}
+      <section id="exapdf" className="scroll-mt-20 px-3 pt-14 sm:px-6">
+        <Reveal className="mx-auto max-w-[1100px] rounded-[2rem] border border-line bg-card p-7 sm:p-12">
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:gap-10">
+            <img
+              src="/exapdf/icons/Icon-192.png"
+              alt=""
+              className="h-20 w-20 shrink-0 rounded-[1.3rem] border border-line sm:h-24 sm:w-24"
+            />
+            <div>
+              <span className="inline-block rounded-full bg-green px-3 py-1 text-xs font-bold text-white">
+                새로 나왔습니다
+              </span>
+              <h2 className="font-display mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">
+                ExaPDF
+              </h2>
+              <p className="mt-2 max-w-xl text-[15px] text-muted sm:text-lg">
+                PDF 를 문서가 아니라 <b>책</b>으로 읽습니다. 넘겨 읽고, 여백을 걷어 내고,
+                한 장에 든 두 쪽을 나눠 보고, 한국어로 찾습니다.
+              </p>
+            </div>
+          </div>
+
+          {/* 어디서 쓰나 — 기기마다 방법이 다르다. 안 적으면 아무도 모른다 */}
+          <div className="mt-9 grid gap-4 sm:grid-cols-3">
+            {[
+              {
+                title: "웹 브라우저",
+                body: "설치 없이 바로. 주소만 열면 됩니다.",
+                action: "exapdf.exansys.net 열기",
+                href: "https://exapdf.exansys.net",
+              },
+              {
+                title: "아이폰 · 아이패드",
+                body: "사파리로 열고 공유 → 홈 화면에 추가. 앱처럼 전체 화면으로 뜹니다.",
+                action: "설치 방법 보기",
+                href: "/exapdf-download/",
+              },
+              {
+                title: "안드로이드 · 윈도우",
+                body: "크롬 메뉴 → 앱 설치, 또는 윈도우 설치 파일을 받으세요.",
+                action: "내려받기",
+                href: "/exapdf-download/",
+              },
+            ].map((c) => (
+              <div key={c.title} className="rounded-2xl border border-line bg-bg p-5">
+                <h3 className="font-semibold">{c.title}</h3>
+                <p className="mt-1.5 text-sm text-muted">{c.body}</p>
+                <a
+                  href={c.href}
+                  className="mt-3 inline-block text-sm font-semibold text-green-deep hover:underline"
+                >
+                  {c.action} →
+                </a>
+              </div>
+            ))}
+          </div>
+
+          {/* 요금 — 무엇이 공짜고 무엇이 아닌지 숨기지 않는다 */}
+          <div className="mt-6 grid gap-4 sm:grid-cols-2">
+            <div className="rounded-2xl border border-line bg-bg p-6">
+              <div className="flex items-baseline gap-2">
+                <h3 className="font-display text-xl font-extrabold">무료</h3>
+                <span className="text-sm text-muted">계속 무료</span>
+              </div>
+              <ul className="mt-4 space-y-2 text-sm text-muted">
+                <li>· 넘겨 읽기 · 확대 · 좌우 고정</li>
+                <li>· 한 장에 든 두 쪽 나눠 보기 · 여백 자르기</li>
+                <li>· 한국어 전체 검색 (글자가 있는 PDF)</li>
+                <li>· 칠하기 · 북마크 · 내보내기</li>
+                <li>· 쪽을 JPG 로 (5장 넘으면 zip)</li>
+                <li>· 다크 리딩</li>
+              </ul>
+            </div>
+            <div className="rounded-2xl border border-green/40 bg-gradient-to-br from-green/10 to-lime/10 p-6">
+              <div className="flex items-baseline gap-2">
+                <h3 className="font-display text-xl font-extrabold">Pro</h3>
+                <span className="font-semibold text-green-deep">월 4,900원</span>
+              </div>
+              <ul className="mt-4 space-y-2 text-sm text-muted">
+                <li>· <b className="text-ink">스캔본을 글자로 (OCR)</b> — 사진뿐인 책도 찾고 복사</li>
+                <li>· <b className="text-ink">이미지에서 글자 뽑기</b> — 쪽·영역을 골라 텍스트로</li>
+                <li>· 무료 기능 전부 포함</li>
+              </ul>
+              <p className="mt-4 text-xs text-muted">
+                아직 준비 중입니다. 열리면 알려 드리겠습니다.
+              </p>
+            </div>
+          </div>
+        </Reveal>
+      </section>
+
       {/* ---------- 소셜 프루프 + 지표 ---------- */}
       <section className="px-6 py-24 text-center sm:py-32">
         <Reveal className="mx-auto max-w-3xl">

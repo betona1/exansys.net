@@ -44,6 +44,20 @@
   .note b{color:var(--ink)}
   footer{margin-top:36px; color:var(--dim); font-size:13px}
   footer a{color:var(--dim)}
+  .plans{display:grid; gap:14px; grid-template-columns:1fr}
+  @media(min-width:620px){ .plans{grid-template-columns:1fr 1fr} }
+  .plan{border:1px solid var(--line); border-radius:12px; padding:18px; background:var(--bg)}
+  .plan.pro{border-color:rgba(47,107,255,.45)}
+  .plan-h{display:flex; align-items:baseline; gap:10px; margin-bottom:12px}
+  .plan-h b{font-size:19px}
+  .plan-h span{color:var(--dim); font-size:14px}
+  .plan-h .price{color:var(--action); font-weight:700; font-size:15px}
+  .plan ul{list-style:none; padding:0; margin:0; font-size:14px; color:var(--dim)}
+  .plan li{margin-bottom:9px; padding-left:14px; position:relative}
+  .plan li:before{content:"·"; position:absolute; left:2px; color:var(--action)}
+  .plan li b{color:var(--ink)}
+  .plan li em{font-style:normal; font-size:13px; opacity:.85}
+  .soon{margin-top:14px; font-size:13px; color:var(--amber)}
   a.plain{color:var(--action); text-decoration:none}
   a.plain:hover{text-decoration:underline}
 </style>
@@ -95,6 +109,39 @@
       <li><b>다크 리딩</b> — 밝기만 뒤집고 사진은 원래 색을 지킵니다</li>
       <li><b>스캔본을 글자로</b> — 직접 지정한 서버로 OCR (선택)</li>
     </ol>
+  </div>
+
+
+  <div class="card">
+    <h2>요금</h2>
+    <p>읽는 데 필요한 것은 전부 무료입니다. 서버가 일해야 하는 것만 유료입니다.</p>
+    <div class="plans">
+      <div class="plan">
+        <div class="plan-h"><b>무료</b><span>계속 무료</span></div>
+        <ul>
+          <li>넘겨 읽기 · 확대 · 좌우 고정</li>
+          <li>한 장에 든 두 쪽 나눠 보기</li>
+          <li>여백 자르기 · 다크 리딩</li>
+          <li>한국어 전체 검색 <em>(글자가 있는 PDF)</em></li>
+          <li>칠하기 · 북마크 · 내보내기</li>
+          <li>쪽을 JPG 로 (5장 넘으면 zip)</li>
+        </ul>
+      </div>
+      <div class="plan pro">
+        <div class="plan-h"><b>Pro</b><span class="price">월 4,900원</span></div>
+        <ul>
+          <li><b>스캔본을 글자로 (OCR)</b><br><em>사진뿐인 책도 찾고 복사할 수 있게</em></li>
+          <li><b>이미지에서 글자 뽑기</b><br><em>쪽이나 영역을 골라 텍스트로</em></li>
+          <li>무료 기능 전부 포함</li>
+        </ul>
+        <div class="soon">아직 준비 중입니다</div>
+      </div>
+    </div>
+    <div class="note">
+      <b>왜 이것만 유료인가</b> — 글자를 읽어 내는 일은 서버가 대신 계산합니다.
+      쪽마다 30초 안팎이 걸리고 그만큼 전기와 장비가 듭니다. 나머지는 여러분
+      기기에서 도니 받을 이유가 없습니다.
+    </div>
   </div>
 
   <div class="card">
