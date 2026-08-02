@@ -4,6 +4,16 @@ import '../../../core/tokens.dart';
 import '../ocr_client.dart';
 import '../ocr_settings.dart';
 
+/// 시트가 돌려주는 답 — 어떤 설정으로, 어디까지 돌릴지
+class OcrStart {
+  const OcrStart(this.settings, {this.onlyThisPage = false});
+
+  final OcrSettings settings;
+
+  /// 지금 보고 있는 쪽 하나만. 두 시간을 걸기 전에 시험해 보는 용도다
+  final bool onlyThisPage;
+}
+
 /// 스캔본을 글자로 바꾸기 전에 뜨는 화면.
 ///
 /// 여기서 하는 일은 셋이다 — 서버 주소를 받고, **정말 닿는지 먼저 확인하고**,
@@ -15,6 +25,7 @@ class OcrSheet extends StatefulWidget {
     required this.settings,
     required this.pageCount,
     required this.remaining,
+    required this.currentPage,
   });
 
   final OcrSettings settings;
@@ -22,6 +33,9 @@ class OcrSheet extends StatefulWidget {
   /// 전체 쪽 수 / 아직 글자가 없는 쪽 수
   final int pageCount;
   final int remaining;
+
+  /// 지금 보고 있는 쪽. "이 쪽만" 이 가리키는 곳이다
+  final int currentPage;
 
   @override
   State<OcrSheet> createState() => _OcrSheetState();
@@ -164,6 +178,16 @@ class _OcrSheetState extends State<OcrSheet> {
               ),
             ),
             const SizedBox(height: AppTokens.space4),
+            // **한 쪽만 먼저 돌려 볼 수 있게 한다.** 두 시간을 걸어 놓고
+            // 결과가 엉망인 것을 알게 되는 것보다, 30초로 확인하는 편이 낫다
+            OutlinedButton.icon(
+              onPressed: _current.configured
+                  ? () => Navigator.pop(context, OcrStart(_current, onlyThisPage: true))
+                  : null,
+              icon: const Icon(Icons.science_outlined),
+              label: Text('먼저 이 쪽(${widget.currentPage}쪽)만 시험'),
+            ),
+            const SizedBox(height: AppTokens.space2),
             Row(
               children: [
                 Expanded(
@@ -177,9 +201,9 @@ class _OcrSheetState extends State<OcrSheet> {
                   flex: 2,
                   child: FilledButton(
                     onPressed: _current.configured
-                        ? () => Navigator.pop(context, _current)
+                        ? () => Navigator.pop(context, OcrStart(_current))
                         : null,
-                    child: const Text('시작'),
+                    child: const Text('남은 쪽 모두'),
                   ),
                 ),
               ],

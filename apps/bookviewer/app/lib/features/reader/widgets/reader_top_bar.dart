@@ -80,11 +80,100 @@ class ReaderTopBar extends StatelessWidget {
   /// 폰 세로에서 아이콘 여섯 개가 기본 크기로 늘어서면 제목이 밀려 사라진다
   static double iconSizeFor(double width) => width < 400 ? 20 : (width < 600 ? 22 : 24);
 
+  /// 아이콘 하나가 실제로 먹는 폭. 뒤로 버튼과 제목 자리도 빼야 한다
+  static const _slot = 42.0;
+  static const _titleRoom = 120.0;
+
+  /// 한 줄에 다 들어가는가.
+  ///
+  /// 안 들어가면 조용히 잘려 나가 **아이콘이 아예 없는 것처럼 보인다.**
+  /// 그럴 바에는 두 줄로 나눠 전부 보이게 하는 편이 낫다
+  static bool fitsOneRow(double width, int iconCount) =>
+      width >= _slot * (iconCount + 1) + _titleRoom;
+
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
     final iconSize = iconSizeFor(width);
     final density = width < 600 ? VisualDensity.compact : VisualDensity.standard;
+
+    // 아이콘을 목록으로 만든다. 한 줄에 다 못 들어가면 두 줄로 나눈다 —
+    // 예전에는 넘치는 만큼 조용히 잘려서 **아이콘이 없는 것처럼 보였다.**
+    final icons = <Widget>[
+      IconButton(
+        onPressed: canSearch ? onToggleSearch : null,
+        icon: Icon(searchOpen ? Icons.search_off : Icons.search),
+        tooltip: searchDisabledReason ?? '이 책에서 찾기',
+        iconSize: iconSize,
+        visualDensity: density,
+      ),
+      IconButton(
+        onPressed: onToggleSplit,
+        icon: const Icon(Icons.vertical_split),
+        tooltip: splitOn ? '한 장씩 보기' : '좌우 나눠 보기',
+        color: splitOn ? AppTokens.amber : null,
+        iconSize: iconSize,
+        visualDensity: density,
+      ),
+      IconButton(
+        onPressed: onToggleZoomLock,
+        icon: Icon(zoomLocked ? Icons.lock : Icons.lock_open),
+        tooltip: zoomLocked ? '좌우 고정 풀기' : '좌우·크기 고정',
+        color: zoomLocked ? AppTokens.amber : null,
+        iconSize: iconSize,
+        visualDensity: density,
+      ),
+      IconButton(
+        onPressed: onToggleHighlight,
+        icon: const Icon(Icons.brush),
+        tooltip: highlighting ? '형광펜 끄기' : '형광펜',
+        color: highlighting ? AppTokens.amber : null,
+        iconSize: iconSize,
+        visualDensity: density,
+      ),
+      IconButton(
+        onPressed: onToggleBookmark,
+        icon: Icon(bookmarked ? Icons.bookmark : Icons.bookmark_border),
+        tooltip: bookmarked ? '북마크 빼기' : '이 쪽 북마크',
+        color: bookmarked ? AppTokens.amber : null,
+        iconSize: iconSize,
+        visualDensity: density,
+      ),
+      IconButton(
+        onPressed: onOpenMarks,
+        icon: const Icon(Icons.list),
+        tooltip: '하이라이트·북마크 목록',
+        iconSize: iconSize,
+        visualDensity: density,
+      ),
+      // 보기 관련은 시트 하나로 모은다.
+      // 도구막대에 토글이 여섯 개 늘어서면 무엇이 무엇인지 알 수 없다
+      IconButton(
+        onPressed: onOpenViewSheet,
+        icon: const Icon(Icons.tune),
+        tooltip: '보기 — 맞춤 · 여백 · 테마',
+        iconSize: iconSize,
+        visualDensity: density,
+        color: viewChanged ? AppTokens.amber : null,
+      ),
+      IconButton(
+        onPressed: canCapture ? onCapture : null,
+        icon: const Icon(Icons.crop_free),
+        tooltip: '영역 캡처',
+        iconSize: iconSize,
+        visualDensity: density,
+      ),
+    ];
+
+    final oneRow = fitsOneRow(width, icons.length);
+
+    final back = IconButton(
+      onPressed: onBack,
+      icon: const Icon(Icons.chevron_left),
+      tooltip: '서재로',
+      iconSize: iconSize,
+      visualDensity: density,
+    );
 
     return Positioned(
       top: 0,
@@ -98,13 +187,7 @@ class ReaderTopBar extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  IconButton(
-                    onPressed: onBack,
-                    icon: const Icon(Icons.chevron_left),
-                    tooltip: '서재로',
-                    iconSize: iconSize,
-                    visualDensity: density,
-                  ),
+                  back,
                   Expanded(
                     child: Text(
                       title,
@@ -113,66 +196,16 @@ class ReaderTopBar extends StatelessWidget {
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                   ),
-                  IconButton(
-                    onPressed: canSearch ? onToggleSearch : null,
-                    icon: Icon(searchOpen ? Icons.search_off : Icons.search),
-                    tooltip: searchDisabledReason ?? '이 책에서 찾기',
-                    iconSize: iconSize,
-                    visualDensity: density,
-                  ),
-                  IconButton(
-                    onPressed: onToggleSplit,
-                    icon: const Icon(Icons.vertical_split),
-                    tooltip: splitOn ? '한 장씩 보기' : '좌우 나눠 보기',
-                    color: splitOn ? AppTokens.amber : null,
-                    iconSize: iconSize,
-                    visualDensity: density,
-                  ),
-                  IconButton(
-                    onPressed: onToggleZoomLock,
-                    icon: Icon(zoomLocked ? Icons.lock : Icons.lock_open),
-                    tooltip: zoomLocked ? '좌우 고정 풀기' : '좌우·크기 고정',
-                    color: zoomLocked ? AppTokens.amber : null,
-                  ),
-                  IconButton(
-                    onPressed: onToggleHighlight,
-                    icon: const Icon(Icons.brush),
-                    tooltip: highlighting ? '형광펜 끄기' : '형광펜',
-                    color: highlighting ? AppTokens.amber : null,
-                  ),
-                  IconButton(
-                    onPressed: onToggleBookmark,
-                    icon: Icon(bookmarked ? Icons.bookmark : Icons.bookmark_border),
-                    tooltip: bookmarked ? '북마크 빼기' : '이 쪽 북마크',
-                    color: bookmarked ? AppTokens.amber : null,
-                  ),
-                  IconButton(
-                    onPressed: onOpenMarks,
-                    icon: const Icon(Icons.list),
-                    tooltip: '하이라이트·북마크 목록',
-                    iconSize: iconSize,
-                    visualDensity: density,
-                  ),
-                  // 보기 관련은 시트 하나로 모은다.
-                  // 도구막대에 토글이 여섯 개 늘어서면 무엇이 무엇인지 알 수 없다
-                  IconButton(
-                    onPressed: onOpenViewSheet,
-                    icon: const Icon(Icons.tune),
-                    tooltip: '보기 — 맞춤 · 여백 · 테마',
-                    iconSize: iconSize,
-                    visualDensity: density,
-                    color: viewChanged ? AppTokens.amber : null,
-                  ),
-                  IconButton(
-                    onPressed: canCapture ? onCapture : null,
-                    icon: const Icon(Icons.crop_free),
-                    tooltip: '영역 캡처',
-                    iconSize: iconSize,
-                    visualDensity: density,
-                  ),
-                  const SizedBox(width: AppTokens.space1),
+                  // 한 줄에 들어가면 제목 옆에 그대로 붙인다
+                  if (oneRow) ...[...icons, const SizedBox(width: AppTokens.space1)],
                 ],
               ),
+              // 좁으면 아랫줄에 고르게 펼친다. 잘려 보이는 것보다 낫다
+              if (!oneRow)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: icons,
+                ),
               ?searchSheet,
             ],
           ),

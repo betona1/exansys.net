@@ -945,29 +945,30 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
     final pending = await OcrController(db).pendingPages(widget.book.id, doc.pages.length);
     if (!mounted) return;
 
-    final chosen = await showModalBottomSheet<OcrSettings>(
+    final chosen = await showModalBottomSheet<OcrStart>(
       context: context,
       isScrollControlled: true,
       builder: (ctx) => OcrSheet(
         settings: settings,
         pageCount: doc.pages.length,
         remaining: pending.length,
+        currentPage: _page,
       ),
     );
     if (chosen == null || !mounted) return;
-    await chosen.save(db);
-    await _runOcr(doc, chosen);
+    await chosen.settings.save(db);
+    await _runOcr(doc, chosen.settings, only: chosen.onlyThisPage ? [_page] : null);
   }
 
   /// 스캔본을 글자로 바꾼다.
   ///
   /// 화면을 덮지 않는다 — 두 시간이 걸릴 수 있어서 그동안 책을 못 읽으면
   /// 안 된다. 한 쪽 끝날 때마다 DB 에 남으므로 중간에 멈춰도 잃는 것이 없다.
-  Future<void> _runOcr(PdfDocument doc, OcrSettings settings) async {
+  Future<void> _runOcr(PdfDocument doc, OcrSettings settings, {List<int>? only}) async {
     final cancel = ExportCancelToken();
     setState(() {
       _ocrCancel = cancel;
-      _ocrProgress = (done: 0, total: doc.pages.length);
+      _ocrProgress = (done: 0, total: only?.length ?? doc.pages.length);
     });
 
     final client = OcrClient(endpoint: settings.endpoint, model: settings.model);
@@ -979,6 +980,7 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
         cropFor: _settings.cropFor,
         split: _settings.splitPages,
         cancel: cancel,
+        only: only,
       );
       await for (final p in stream) {
         if (!mounted) return;
@@ -986,7 +988,14 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
       }
       if (!mounted) return;
       setState(() => _hasTextLayer = true);
-      _toast(cancel.isCancelled ? '멈췄습니다. 다음에 이어서 합니다' : '글자로 바꿨습니다. 이제 찾을 수 있습니다');
+      if (cancel.isCancelled) {
+        _toast('멈췄습니다. 다음에 이어서 합니다');
+      } else if (only != null) {
+        // 시험이니 결과를 바로 보여 준다. 잘 읽었는지는 눈으로 봐야 안다
+        await _showOcrSample(only.first);
+      } else {
+        _toast('글자로 바꿨습니다. 이제 찾을 수 있습니다');
+      }
     } on Object catch (e) {
       if (mounted) _toast('$e');
     } finally {
@@ -1009,6 +1018,43 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
     final next = _help.copyWith(readerIntroSeen: true, showTips: never ? false : null);
     _help = next;
     unawaited(next.save(ref.read(databaseProvider)));
+  }
+
+  /// 시험으로 읽은 한 쪽을 보여 준다.
+  ///
+  /// "됐습니다"만 띄우면 잘 읽었는지 알 수 없다. 글자를 직접 보고
+  /// 나머지를 맡길지 정하게 한다
+  Future<void> _showOcrSample(int pageNo) async {
+    final db = ref.read(databaseProvider);
+    final row = await (db.select(db.pageTexts)
+          ..where((t) => t.bookId.equals(widget.book.id))
+          ..where((t) => t.pageNo.equals(pageNo)))
+        .getSingleOrNull();
+    if (!mounted) return;
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('$pageNo쪽을 이렇게 읽었습니다'),
+        content: SizedBox(
+          width: 460,
+          child: SingleChildScrollView(
+            child: Text(
+              (row?.raw.isNotEmpty ?? false) ? row!.raw : '글자를 찾지 못했습니다',
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('닫기')),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              unawaited(_offerOcr());
+            },
+            child: const Text('나머지도 진행'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _toast(String message) {

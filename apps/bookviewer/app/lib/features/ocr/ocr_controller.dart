@@ -74,17 +74,22 @@ class OcrController {
     required CropRect Function(int pageNumber) cropFor,
     required bool split,
     required ExportCancelToken cancel,
+    List<int>? only,
   }) async* {
     final total = doc.pages.length;
-    final pending = await pendingPages(bookId, total);
+    // [only] 를 주면 그 쪽만. 두 시간짜리 일을 걸기 전에 한 쪽으로 시험해
+    // 보게 하려는 것이다 — 서버·모델·판형이 맞는지 30초면 안다
+    final pending = only ?? await pendingPages(bookId, total);
 
-    await _mark(bookId, done: total - pending.length, total: total, status: 'running', client: client);
-    yield OcrProgress(done: total - pending.length, total: total);
+    // 한 쪽만 돌릴 때는 진행률도 그 한 쪽 기준이어야 한다
+    final scope = only != null ? only.length : total;
+    var done = only != null ? 0 : total - pending.length;
 
-    var done = total - pending.length;
+    await _mark(bookId, done: done, total: scope, status: 'running', client: client);
+    yield OcrProgress(done: done, total: scope);
     for (final pageNo in pending) {
       if (cancel.isCancelled) {
-        await _mark(bookId, done: done, total: total, status: 'paused', client: client);
+        await _mark(bookId, done: done, total: scope, status: 'paused', client: client);
         return;
       }
       try {
@@ -106,15 +111,15 @@ class OcrController {
         final text = parts.where((t) => t.isNotEmpty).join('\n\n');
         if (text.isNotEmpty) await _savePage(bookId, pageNo, text);
         done++;
-        await _mark(bookId, done: done, total: total, status: 'running', client: client);
-        yield OcrProgress(done: done, total: total, text: text);
+        await _mark(bookId, done: done, total: scope, status: 'running', client: client);
+        yield OcrProgress(done: done, total: scope, text: text);
       } on Object catch (e) {
         // 한 쪽이 실패해도 멈추지 않는다. 이미 끝낸 쪽은 그대로 두고,
         // 남은 쪽은 다음에 다시 돌리면 된다
         await _mark(
           bookId,
           done: done,
-          total: total,
+          total: scope,
           status: 'failed',
           client: client,
           error: '$pageNo쪽: $e',
@@ -123,8 +128,9 @@ class OcrController {
       }
     }
 
-    await _mark(bookId, done: done, total: total, status: 'done', client: client);
-    // 이제 글자가 생겼다. 검색이 되도록 표시한다
+    await _mark(bookId, done: done, total: scope, status: only != null ? 'paused' : 'done', client: client);
+    // 이제 글자가 생겼다. 검색이 되도록 표시한다.
+    // 한 쪽만 돌렸어도 그 쪽은 찾을 수 있어야 하므로 똑같이 표시한다
     await (_db.update(_db.books)..where((t) => t.id.equals(bookId)))
         .write(const BooksCompanion(hasTextLayer: Value(true), isIndexed: Value(true)));
   }
