@@ -103,6 +103,10 @@ class _LinkSheetState extends State<LinkSheet> {
       final account = await widget.service.pollLink(link.device);
       if (account == null || !mounted) return;
       t.cancel();
+      // **로그인 창을 닫아 준다.** 안 닫으면 브라우저가 앱을 덮은 채로 남아
+      // 사용자는 뒤로가기를 눌러야 하고, 그때까지 "안 된다" 로 보인다
+      await closeInAppWebView();
+      if (!mounted) return;
       Navigator.pop(context, account);
     } on Object catch (e) {
       t.cancel();
