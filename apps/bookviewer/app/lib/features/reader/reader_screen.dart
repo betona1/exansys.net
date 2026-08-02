@@ -1187,8 +1187,10 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
     page: _page,
     pageCount: _pageCount,
     sideLabel: _settings.splitPages ? (_view.isEven ? '좌' : '우') : null,
-    canSearch: _hasTextLayer,
-    searchDisabledReason: _hasTextLayer ? null : '스캔본이라 글자를 찾을 수 없습니다',
+    // 상단바와 같다 — 막지 않고, 눌렀을 때 사정을 설명하고 OCR 을 권한다.
+    // 비활성 버튼은 왜 안 되는지 알 길이 없다
+    canSearch: true,
+    searchDisabledReason: _hasTextLayer ? null : '이 책은 스캔본입니다',
     viewChanged: _settings.splitPages ||
         _settings.cropEnabled ||
         _settings.theme == ReadingTheme.dark,
@@ -1198,7 +1200,7 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
     },
     onSearch: () {
       if (!_hasTextLayer) {
-        _offerOcr();
+        unawaited(_offerOcr());
         return;
       }
       setState(() => _search = true);
