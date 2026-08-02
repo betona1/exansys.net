@@ -17,7 +17,7 @@
  */
 import { Hono } from "hono";
 import type { Context } from "hono";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 
 import { users } from "../../db/schema";
@@ -75,29 +75,39 @@ async function currentUserId(c: Context<{ Bindings: Env }>) {
   return session?.userId ?? null;
 }
 
-/** 요금제를 읽어 앱이 쓸 모양으로 만든다 */
+/** 요금제를 읽어 앱이 쓸 모양으로 만든다.
+ *
+ * **raw SQL 로 읽는다.** `plan`·`pro_until` 은 Drizzle 스키마에 없는 컬럼이라
+ * `db.select().from(users)` 는 그 둘을 아예 SELECT 하지 않는다. 그러면 값이
+ * undefined 가 되어 **누구든 항상 무료로 나온다** — 실제로 이 버그로
+ * Pro 를 켜 놔도 앱에서 잠겨 있었다.
+ */
 async function entitlement(env: Env, userId: number) {
   const db = drizzle(env.DB);
   await ensureColumns(db, "users", PLAN_COLUMNS);
-  const rows = await db
-    .select()
-    .from(users)
-    .where(eq(users.id, userId))
-    .limit(1);
-  const row = rows[0] as (typeof rows)[0] & { plan?: string; pro_until?: number | null };
+  const rows = await db.all<{
+    id: number;
+    name: string;
+    avatar_url: string | null;
+    role: string;
+    plan: string | null;
+    pro_until: number | null;
+  }>(sql`SELECT id, name, avatar_url, role, plan, pro_until
+         FROM users WHERE id = ${userId} LIMIT 1`);
+  const row = rows[0];
   if (!row) return null;
 
-  const proUntil = (row as { pro_until?: number | null }).pro_until ?? null;
+  const proUntil = row.pro_until ?? null;
   // 기한이 지났으면 무료로 본다. 만료를 배치로 지우지 않는 이유는,
   // 지우는 배치가 죽으면 유료가 영원히 유지되기 때문이다
   const active =
-    ((row as { plan?: string }).plan ?? "free") === "pro" &&
+    (row.plan ?? "free") === "pro" &&
     (proUntil === null || proUntil * 1000 > Date.now());
 
   return {
     userId: row.id,
     name: row.name,
-    avatarUrl: row.avatarUrl,
+    avatarUrl: row.avatar_url,
     role: row.role,
     plan: active ? "pro" : "free",
     proUntil: active ? proUntil : null,
