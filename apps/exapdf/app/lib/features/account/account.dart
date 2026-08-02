@@ -186,7 +186,10 @@ class AccountService {
     await clearToken();
   }
 
-  /// 브라우저로 열어 줄 주소. 코드를 미리 채워 손으로 옮겨 적지 않게 한다
+  /// 브라우저로 열어 줄 주소. 기기 번호를 실어 보내므로 사람이 옮겨 적을 것이 없다
+  Uri authorizeUrl(String device) => Uri.parse('$_base/exapdf/authorize?device=$device');
+
+  /// 브라우저를 못 열 때 쓰는 보조 수단 — 코드를 손으로 넣는 주소
   Uri linkUrl(String code) => Uri.parse('$_base/exapdf/link?code=$code');
 
   static String _readable(Object e) {

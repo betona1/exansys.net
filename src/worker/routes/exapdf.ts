@@ -137,6 +137,35 @@ exapdfRoutes.post("/link/confirm", async (c) => {
   return c.json(ok({ linked: true }));
 });
 
+/**
+ * 코드를 치지 않고 기기 번호로 바로 묶는다.
+ *
+ * 앱이 브라우저를 열어 `?device=` 를 넘겨 주므로 사람이 옮겨 적을 것이 없다.
+ * 기기 번호는 서버가 만든 32바이트 난수라 남이 맞힐 수 없다 —
+ * 코드 방식은 브라우저를 못 여는 곳(사내 PC 등)을 위한 보조 수단으로 남긴다.
+ */
+exapdfRoutes.post("/link/confirm-device", async (c) => {
+  const session = await readSession(c);
+  if (!session) return c.json(err("login_required"), 401);
+
+  const body = await c.req.json<{ device?: string }>().catch(() => ({}) as { device?: string });
+  const device = (body.device ?? "").trim();
+  if (!/^[a-f0-9]{64}$/.test(device)) return c.json(err("bad_device"), 400);
+
+  const code = await c.env.SESSIONS.get(`exapdf:dev:${device}`);
+  if (!code) return c.json(err("expired"), 404);
+
+  const raw = await c.env.SESSIONS.get(`exapdf:link:${code}`);
+  if (!raw) return c.json(err("expired"), 404);
+
+  const state = JSON.parse(raw) as LinkState;
+  state.userId = session.userId;
+  await c.env.SESSIONS.put(`exapdf:link:${code}`, JSON.stringify(state), {
+    expirationTtl: LINK_TTL,
+  });
+  return c.json(ok({ linked: true }));
+});
+
 /** 앱이 결과를 기다린다. 묶였으면 앱 토큰을 준다 */
 exapdfRoutes.get("/link/poll", async (c) => {
   const device = c.req.query("device") ?? "";
