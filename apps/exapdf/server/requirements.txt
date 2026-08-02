@@ -1,0 +1,7 @@
+# ExaPDF OCR 서버
+#
+# 라이선스 확인 — PyMuPDF 계열은 AGPL 이라 쓰지 않는다 (CLAUDE.md 절대 규칙 1)
+Django>=5.2,<7          # BSD-3
+pypdfium2>=4.30         # Apache-2.0 / PDFium BSD-3
+Pillow>=11.0            # MIT-CMU
+python-dotenv>=1.0      # BSD-3
