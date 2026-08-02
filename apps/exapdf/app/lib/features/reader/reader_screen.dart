@@ -27,6 +27,8 @@ import '../annotation/export_controller.dart';
 import '../annotation/widgets/highlight_bar.dart';
 import '../annotation/widgets/highlight_layer.dart';
 import '../annotation/widgets/marks_sheet.dart';
+import '../account/account.dart';
+import '../account/widgets/link_sheet.dart';
 import '../capture/capture_controller.dart';
 import '../help/help_settings.dart';
 import '../help/widgets/reader_coach.dart';
@@ -935,6 +937,8 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
   Future<void> _offerOcr() async {
     final doc = _doc;
     if (doc == null) return;
+    // 글자로 바꾸는 일은 서버가 대신 계산한다. 그래서 Pro 기능이다
+    if (!await _requirePro(ProFeature.ocr)) return;
     if (_ocrProgress != null) {
       _toast('이미 글자로 바꾸는 중입니다');
       return;
@@ -1055,6 +1059,69 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
         ],
       ),
     );
+  }
+
+  /// 유료 기능인지 확인하고, 아니면 안내한다.
+  ///
+  /// 막기만 하면 "왜 안 되는지" 를 알 길이 없다. 무엇이 유료이고 왜 그런지,
+  /// 무엇을 하면 되는지까지 한 화면에서 보여 준다.
+  Future<bool> _requirePro(String feature) async {
+    final service = ref.read(accountServiceProvider);
+    final account = await service.fetchMe();
+    if (account != null && account.can(feature)) return true;
+    if (!mounted) return false;
+
+    final action = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Pro 기능입니다'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              '스캔본을 글자로 바꾸는 일은 서버가 대신 계산합니다.\n'
+              '쪽마다 30초 안팎이 걸리고 그만큼 전기와 장비가 듭니다.\n\n'
+              '읽는 데 필요한 기능은 전부 무료입니다.',
+            ),
+            const SizedBox(height: AppTokens.space3),
+            Text(
+              account == null ? '아직 로그인하지 않으셨습니다.' : '${account.name} 님 · 무료 요금제',
+              style: Theme.of(ctx).textTheme.bodySmall,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('닫기')),
+          if (account == null)
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx, 'login'),
+              child: const Text('로그인'),
+            )
+          else
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx, 'plans'),
+              child: const Text('요금 보기'),
+            ),
+        ],
+      ),
+    );
+
+    if (action == 'login' && mounted) {
+      final linked = await showModalBottomSheet<Account>(
+        context: context,
+        isScrollControlled: true,
+        builder: (ctx) => LinkSheet(service: service),
+      );
+      if (linked != null) {
+        ref.invalidate(accountProvider);
+        if (linked.can(feature)) return true;
+        if (mounted) _toast('${linked.name} 님으로 연결했습니다. Pro 는 아직 아닙니다');
+      }
+    } else if (action == 'plans' && mounted) {
+      _toast('요금 안내는 exansys.net 에 있습니다');
+    }
+    return false;
   }
 
   void _toast(String message) {

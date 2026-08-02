@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import ExapdfLink from "./pages/ExapdfLink";
 import Home from "./pages/Home";
 import AppDetail from "./pages/AppDetail";
 import Admin from "./pages/Admin";
@@ -77,6 +78,7 @@ export default function App() {
         <Route path="/ai-edu" element={<AiEdu me={me} />} />
         <Route path="/ai-edu/:id" element={<AiEduDetail me={me} />} />
         <Route path="/techdex" element={<TechDex me={me} />} />
+        <Route path="/exapdf/link" element={<ExapdfLink me={me} />} />
         <Route path="/vibequest/reports" element={<VqReports me={me} />} />
         <Route path="/vibequest/privacy" element={<VqPrivacy />} />
         <Route path="/admin" element={<Admin me={me} meLoading={loading} />} />

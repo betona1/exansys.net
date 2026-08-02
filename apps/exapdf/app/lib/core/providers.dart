@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/db/database.dart';
 import '../data/repositories/annotation_repository_impl.dart';
+import '../features/account/account.dart';
 import '../data/repositories/library_repository_impl.dart';
 import '../data/repositories/search_repository_impl.dart';
 import '../domain/entities/annotation.dart';
@@ -54,4 +55,15 @@ final highlightsProvider = StreamProvider.family<List<Highlight>, int>(
 
 final bookmarksProvider = StreamProvider.family<List<BookmarkEntry>, int>(
   (ref, bookId) => ref.watch(annotationRepositoryProvider).watchBookmarks(bookId),
+);
+
+/// 계정·요금제. 앱을 켤 때마다 서버에 물어본다 —
+/// 유료 기한이 지났는지 앱이 스스로 알 수 없다
+final accountServiceProvider = Provider<AccountService>(
+  (ref) => AccountService(ref.watch(databaseProvider)),
+);
+
+/// 지금 로그인한 사람. 없으면 null (무료로 본다)
+final accountProvider = FutureProvider<Account?>(
+  (ref) => ref.watch(accountServiceProvider).fetchMe(),
 );

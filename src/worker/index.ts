@@ -14,6 +14,7 @@ import { appReviewRoutes } from "./routes/appreview";
 import { eduRoutes } from "./routes/edu";
 import { planRoutes } from "./routes/plan";
 import { techdexRoutes } from "./routes/techdex";
+import { exapdfRoutes } from "./routes/exapdf";
 import { vibequestRoutes } from "./routes/vibequest";
 
 const app = new Hono<{ Bindings: Env }>();
@@ -37,6 +38,7 @@ app.route("/api/appreview", appReviewRoutes);
 app.route("/api/plan", planRoutes); // 앱기획 (member 이상, 본인 것만)
 app.route("/api/techdex", techdexRoutes);
 app.route("/api/vibequest", vibequestRoutes); // VibeQuest 앱: 신고·원격 콘텐츠
+app.route("/api/exapdf", exapdfRoutes); // ExaPDF 앱: 연결 코드 로그인·요금제 권한
 app.route("/api/apps", appRoutes);
 app.route("/api/admin", adminRoutes);
 
