@@ -205,6 +205,14 @@ class AccountService {
   /// 브라우저를 못 열 때 쓰는 보조 수단 — 코드를 손으로 넣는 주소
   Uri linkUrl(String code) => Uri.parse('$loginBase/exapdf/link?code=$code');
 
+  /// 웹에서 쓰는 길. **연결 코드가 필요 없다.**
+  ///
+  /// 세션 쿠키가 `.exansys.net` 에 달려 있어 서브도메인에서도 그대로 통한다.
+  /// 그러니 로그인만 하고 제자리로 돌아오면 끝이다 — 코드를 옮겨 적거나
+  /// 새 창이 뜨기를 기다릴 이유가 없다.
+  Uri webLoginUrl() =>
+      Uri.parse('$loginBase/login?next=${Uri.encodeComponent(Uri.base.toString())}');
+
   static String _readable(Object e) {
     final s = '$e';
     if (s.contains('SocketException') || s.contains('Failed host lookup')) {

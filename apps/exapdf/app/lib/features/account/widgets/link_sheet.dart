@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -51,6 +52,8 @@ class _LinkSheetState extends State<LinkSheet> {
   /// 준비만 해 둔다. 브라우저는 사용자가 버튼을 눌러야 연다 —
   /// 열자마자 딴 앱으로 튀면 무슨 일이 일어난 건지 알 수 없다
   Future<void> _start() async {
+    // 웹은 준비할 것이 없다. 쿠키를 나눠 쓰므로 로그인만 하면 된다
+    if (kIsWeb) return;
     setState(() {
       _error = null;
       _link = null;
@@ -66,6 +69,14 @@ class _LinkSheetState extends State<LinkSheet> {
     } on Object catch (e) {
       if (mounted) setState(() => _error = '$e');
     }
+  }
+
+  /// 웹: 로그인 페이지로 통째로 옮겨 간다. 끝나면 제자리로 돌아온다
+  Future<void> _webLogin() async {
+    await launchUrl(
+      widget.service.webLoginUrl(),
+      webOnlyWindowName: '_self',
+    );
   }
 
   Future<void> _openBrowser() async {
@@ -136,7 +147,22 @@ class _LinkSheetState extends State<LinkSheet> {
             ),
             const SizedBox(height: AppTokens.space4),
 
-            if (_error != null) ...[
+            if (kIsWeb) ...[
+              FilledButton.icon(
+                onPressed: _webLogin,
+                icon: const Icon(Icons.login),
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: AppTokens.space4),
+                ),
+                label: const Text('로그인'),
+              ),
+              const SizedBox(height: AppTokens.space2),
+              Text(
+                '로그인하면 이 화면으로 돌아옵니다.',
+                style: t.textTheme.bodySmall,
+                textAlign: TextAlign.center,
+              ),
+            ] else if (_error != null) ...[
               Text(_error!, style: t.textTheme.bodyMedium?.copyWith(color: t.colorScheme.error)),
               const SizedBox(height: AppTokens.space3),
               FilledButton(onPressed: _start, child: const Text('다시 시도')),

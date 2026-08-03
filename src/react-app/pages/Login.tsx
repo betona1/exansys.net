@@ -36,7 +36,18 @@ export default function Login({ me, refresh }: { me: Me; refresh: () => Promise<
   // 돌아가야 일이 끝나는 흐름이 있다. 우리 사이트 안 경로만 받는다
   const nextPath = (() => {
     const raw = new URLSearchParams(window.location.search).get("next") ?? "/";
-    return raw.startsWith("/") && !raw.startsWith("//") ? raw : "/";
+    if (raw.startsWith("/") && !raw.startsWith("//")) return raw;
+    // 우리 서브도메인(exapdf.exansys.net 등)도 받는다 — 브라우저 저장소가
+    // 출처마다 따로라 그 주소로 돌아가야 서재가 보인다
+    try {
+      const u = new URL(raw);
+      if (u.protocol === "https:" && (u.hostname === "exansys.net" || u.hostname.endsWith(".exansys.net"))) {
+        return u.toString();
+      }
+    } catch {
+      /* 주소 모양이 아니면 홈으로 */
+    }
+    return "/";
   })();
   const [providers, setProviders] = useState<string[]>([]);
   const [emailLogin, setEmailLogin] = useState(false);
@@ -101,7 +112,9 @@ export default function Login({ me, refresh }: { me: Me; refresh: () => Promise<
     setBusy(false);
     if (res.ok) {
       await refresh();
-      navigate(nextPath, { replace: true });
+      // 다른 출처(서브도메인)면 라우터가 아니라 통째로 옮겨 가야 한다
+      if (nextPath.startsWith("http")) window.location.replace(nextPath);
+      else navigate(nextPath, { replace: true });
     } else {
       setMsg(
         res.error === "wrong_code"

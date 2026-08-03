@@ -41,8 +41,21 @@ const NEXT_COOKIE = "auth_next";
  */
 function safeNext(raw: string | undefined): string {
   const v = (raw ?? "").trim();
-  if (!v.startsWith("/") || v.startsWith("//")) return "/";
-  return v;
+  if (!v) return "/";
+  // 우리 사이트 안의 경로
+  if (v.startsWith("/") && !v.startsWith("//")) return v;
+  // **우리 서브도메인도 받는다.** ExaPDF 웹앱은 exapdf.exansys.net 에 살고,
+  // 브라우저 저장소는 출처마다 따로라 반드시 그 주소로 돌아가야 서재가 보인다.
+  try {
+    const u = new URL(v);
+    const host = u.hostname;
+    if (u.protocol === "https:" && (host === "exansys.net" || host.endsWith(".exansys.net"))) {
+      return u.toString();
+    }
+  } catch {
+    // 주소 모양이 아니면 그냥 홈으로
+  }
+  return "/";
 }
 
 /** 담아 둔 곳을 꺼내고 지운다 */
