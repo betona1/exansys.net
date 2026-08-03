@@ -391,8 +391,13 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
     if (mounted) _toast('좌우와 크기를 고정했습니다 · 세로는 그대로 밀립니다');
   }
 
-  Future<void> _toggleSplit() =>
-      _saveSettings(_settings.copyWith(splitPages: !_settings.splitPages, splitPrompted: true));
+  Future<void> _toggleSplit() async {
+    final next = !_settings.splitPages;
+    await _saveSettings(_settings.copyWith(splitPages: next, splitPrompted: true));
+    // 바뀐 것이 눈에 잘 안 띈다 — 특히 한 쪽짜리 책에서는 거의 그대로 보인다.
+    // 무엇으로 바뀌었는지 말로 알려 준다
+    if (mounted) _toast(next ? '좌우로 나눠 봅니다' : '한 장씩 봅니다');
+  }
 
   void _openViewSheet() {
     unawaited(
@@ -497,35 +502,12 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
     }
     if (wide < probe) return; // 한 쪽이라도 아니면 권하지 않는다
 
-    ScaffoldMessenger.of(context)
-      ..clearMaterialBanners()
-      ..showMaterialBanner(
-        MaterialBanner(
-          content: const Text('이 책은 한 장에 두 쪽이 들어 있는 것 같습니다.\n좌우로 나눠 한 쪽씩 볼까요?'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                ScaffoldMessenger.of(context).clearMaterialBanners();
-                unawaited(_saveSettings(_settings.copyWith(splitPrompted: true)));
-              },
-              child: const Text('아니요'),
-            ),
-            FilledButton(
-              onPressed: () {
-                ScaffoldMessenger.of(context).clearMaterialBanners();
-                unawaited(_toggleSplit());
-              },
-              child: const Text('나눠 보기'),
-            ),
-          ],
-        ),
-      );
-
-    // 그냥 두면 읽는 내내 붙어 있다. 잠시 뒤 스스로 걷는다 —
-    // 나눠 보기는 도구막대 아이콘으로 언제든 켤 수 있다
-    Future<void>.delayed(const Duration(seconds: 8), () {
-      if (mounted) ScaffoldMessenger.of(context).clearMaterialBanners();
-    });
+    _showBanner(
+      message: '이 책은 한 장에 두 쪽이 들어 있는 것 같습니다.\n좌우로 나눠 한 쪽씩 볼까요?',
+      onNo: () => unawaited(_saveSettings(_settings.copyWith(splitPrompted: true))),
+      yes: '나눠 보기',
+      onYes: () => unawaited(_toggleSplit()),
+    );
   }
 
   /// 좌우가 잘려 보이면 폭 맞춤을 권한다.
@@ -599,31 +581,14 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
         .reduce((a, b) => a > b ? a : b);
     if (biggest < 0.05) return;
 
-    ScaffoldMessenger.of(context)
-      ..clearMaterialBanners()
-      ..showMaterialBanner(
-        MaterialBanner(
-          content: const Text('여백이 넓습니다. 잘라내면 글자가 더 커집니다.'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                ScaffoldMessenger.of(context).clearMaterialBanners();
-                unawaited(_saveSettings(_settings.copyWith(cropPrompted: true)));
-              },
-              child: const Text('안 볼래요'),
-            ),
-            FilledButton(
-              onPressed: () {
-                ScaffoldMessenger.of(context).clearMaterialBanners();
-                unawaited(_openCropSheet(detectFirst: true));
-              },
-              child: const Text('맞춰 보기'),
-            ),
-          ],
-        ),
-      );
+    _showBanner(
+      message: '여백이 넓습니다. 잘라내면 글자가 더 커집니다.',
+      no: '안 볼래요',
+      onNo: () => unawaited(_saveSettings(_settings.copyWith(cropPrompted: true))),
+      yes: '맞춰 보기',
+      onYes: () => unawaited(_openCropSheet(detectFirst: true)),
+    );
   }
-
   // ── 캡처 ───────────────────────────────────────────────
 
   Future<void> _handleCapture(Rect localRect) async {
@@ -1286,6 +1251,49 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
         .getSingleOrNull();
     if (!mounted) return;
     setState(() => _boxes[pageNo] = TextBox.parse(row?.boxes));
+  }
+
+  /// 권유 배너. **반드시 스스로 걷힌다.**
+  ///
+  /// 예전에는 배너마다 따로 만들었는데 두 곳에 자동 닫힘을 빠뜨렸다.
+  /// 그러면 누르기 전까지 화면 위를 계속 차지한다 — 가로모드에서는
+  /// 그 자리가 특히 아깝다. 한곳에서 만들어 빠뜨릴 수 없게 한다.
+  void _showBanner({
+    required String message,
+    required String yes,
+    required VoidCallback onYes,
+    String no = '아니요',
+    VoidCallback? onNo,
+    Duration life = const Duration(seconds: 8),
+  }) {
+    if (!mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    messenger
+      ..clearMaterialBanners()
+      ..showMaterialBanner(
+        MaterialBanner(
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () {
+                messenger.clearMaterialBanners();
+                onNo?.call();
+              },
+              child: Text(no),
+            ),
+            FilledButton(
+              onPressed: () {
+                messenger.clearMaterialBanners();
+                onYes();
+              },
+              child: Text(yes),
+            ),
+          ],
+        ),
+      );
+    Future<void>.delayed(life, () {
+      if (mounted) messenger.clearMaterialBanners();
+    });
   }
 
   void _toast(String message) {
