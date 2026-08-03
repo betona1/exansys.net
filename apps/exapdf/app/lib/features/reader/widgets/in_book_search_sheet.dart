@@ -22,11 +22,15 @@ class InBookSearchSheet extends ConsumerStatefulWidget {
     required this.bookId,
     required this.onClose,
     required this.onGoToPage,
+    this.onQueryChanged,
   });
 
   final int bookId;
   final VoidCallback onClose;
   final ValueChanged<int> onGoToPage;
+
+  /// 찾는 말이 바뀌면 알려 준다. 읽기 화면이 그 말을 쪽 위에 칠한다
+  final ValueChanged<String>? onQueryChanged;
 
   @override
   ConsumerState<InBookSearchSheet> createState() => _InBookSearchSheetState();
@@ -70,6 +74,7 @@ class _InBookSearchSheetState extends ConsumerState<InBookSearchSheet> {
         _hits = const [];
         _lastQuery = '';
       });
+      widget.onQueryChanged?.call('');
       return;
     }
     setState(() => _searching = true);
@@ -84,6 +89,7 @@ class _InBookSearchSheetState extends ConsumerState<InBookSearchSheet> {
       _searching = false;
       _at = 0;
     });
+    widget.onQueryChanged?.call(q);
 
     // **찾았는지 못 찾았는지를 말로 알려 준다.** 목록만 바뀌면 눈치채기 어렵다
     if (!mounted) return;

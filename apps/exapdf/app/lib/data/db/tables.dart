@@ -281,6 +281,10 @@ class PageTexts extends Table {
   /// bigram 그림자 텍스트 — 이 필드를 unicode61 FTS5 에 넣는다
   TextColumn get bigram => text()();
 
+  /// 줄마다 글자와 사각형 (JSON). 찾은 낱말을 쪽 위에 칠하는 데 쓴다.
+  /// 서버가 PaddleOCR 로 읽었을 때만 채워진다 — 비전 모델은 좌표를 주지 않는다
+  TextColumn get boxes => text().nullable()();
+
   @override
   List<Set<Column<Object>>> get uniqueKeys => [
     {bookId, pageNo},

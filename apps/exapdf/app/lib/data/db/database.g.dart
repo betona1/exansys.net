@@ -5329,6 +5329,15 @@ class $PageTextsTable extends PageTexts
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _boxesMeta = const VerificationMeta('boxes');
+  @override
+  late final GeneratedColumn<String> boxes = GeneratedColumn<String>(
+    'boxes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -5338,6 +5347,7 @@ class $PageTextsTable extends PageTexts
     norm,
     nospace,
     bigram,
+    boxes,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -5402,6 +5412,12 @@ class $PageTextsTable extends PageTexts
     } else if (isInserting) {
       context.missing(_bigramMeta);
     }
+    if (data.containsKey('boxes')) {
+      context.handle(
+        _boxesMeta,
+        boxes.isAcceptableOrUnknown(data['boxes']!, _boxesMeta),
+      );
+    }
     return context;
   }
 
@@ -5443,6 +5459,10 @@ class $PageTextsTable extends PageTexts
         DriftSqlType.string,
         data['${effectivePrefix}bigram'],
       )!,
+      boxes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}boxes'],
+      ),
     );
   }
 
@@ -5468,6 +5488,10 @@ class PageTextRow extends DataClass implements Insertable<PageTextRow> {
 
   /// bigram 그림자 텍스트 — 이 필드를 unicode61 FTS5 에 넣는다
   final String bigram;
+
+  /// 줄마다 글자와 사각형 (JSON). 찾은 낱말을 쪽 위에 칠하는 데 쓴다.
+  /// 서버가 PaddleOCR 로 읽었을 때만 채워진다 — 비전 모델은 좌표를 주지 않는다
+  final String? boxes;
   const PageTextRow({
     required this.id,
     required this.bookId,
@@ -5476,6 +5500,7 @@ class PageTextRow extends DataClass implements Insertable<PageTextRow> {
     required this.norm,
     required this.nospace,
     required this.bigram,
+    this.boxes,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -5487,6 +5512,9 @@ class PageTextRow extends DataClass implements Insertable<PageTextRow> {
     map['norm'] = Variable<String>(norm);
     map['nospace'] = Variable<String>(nospace);
     map['bigram'] = Variable<String>(bigram);
+    if (!nullToAbsent || boxes != null) {
+      map['boxes'] = Variable<String>(boxes);
+    }
     return map;
   }
 
@@ -5499,6 +5527,9 @@ class PageTextRow extends DataClass implements Insertable<PageTextRow> {
       norm: Value(norm),
       nospace: Value(nospace),
       bigram: Value(bigram),
+      boxes: boxes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(boxes),
     );
   }
 
@@ -5515,6 +5546,7 @@ class PageTextRow extends DataClass implements Insertable<PageTextRow> {
       norm: serializer.fromJson<String>(json['norm']),
       nospace: serializer.fromJson<String>(json['nospace']),
       bigram: serializer.fromJson<String>(json['bigram']),
+      boxes: serializer.fromJson<String?>(json['boxes']),
     );
   }
   @override
@@ -5528,6 +5560,7 @@ class PageTextRow extends DataClass implements Insertable<PageTextRow> {
       'norm': serializer.toJson<String>(norm),
       'nospace': serializer.toJson<String>(nospace),
       'bigram': serializer.toJson<String>(bigram),
+      'boxes': serializer.toJson<String?>(boxes),
     };
   }
 
@@ -5539,6 +5572,7 @@ class PageTextRow extends DataClass implements Insertable<PageTextRow> {
     String? norm,
     String? nospace,
     String? bigram,
+    Value<String?> boxes = const Value.absent(),
   }) => PageTextRow(
     id: id ?? this.id,
     bookId: bookId ?? this.bookId,
@@ -5547,6 +5581,7 @@ class PageTextRow extends DataClass implements Insertable<PageTextRow> {
     norm: norm ?? this.norm,
     nospace: nospace ?? this.nospace,
     bigram: bigram ?? this.bigram,
+    boxes: boxes.present ? boxes.value : this.boxes,
   );
   PageTextRow copyWithCompanion(PageTextsCompanion data) {
     return PageTextRow(
@@ -5557,6 +5592,7 @@ class PageTextRow extends DataClass implements Insertable<PageTextRow> {
       norm: data.norm.present ? data.norm.value : this.norm,
       nospace: data.nospace.present ? data.nospace.value : this.nospace,
       bigram: data.bigram.present ? data.bigram.value : this.bigram,
+      boxes: data.boxes.present ? data.boxes.value : this.boxes,
     );
   }
 
@@ -5569,14 +5605,15 @@ class PageTextRow extends DataClass implements Insertable<PageTextRow> {
           ..write('raw: $raw, ')
           ..write('norm: $norm, ')
           ..write('nospace: $nospace, ')
-          ..write('bigram: $bigram')
+          ..write('bigram: $bigram, ')
+          ..write('boxes: $boxes')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode =>
-      Object.hash(id, bookId, pageNo, raw, norm, nospace, bigram);
+      Object.hash(id, bookId, pageNo, raw, norm, nospace, bigram, boxes);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -5587,7 +5624,8 @@ class PageTextRow extends DataClass implements Insertable<PageTextRow> {
           other.raw == this.raw &&
           other.norm == this.norm &&
           other.nospace == this.nospace &&
-          other.bigram == this.bigram);
+          other.bigram == this.bigram &&
+          other.boxes == this.boxes);
 }
 
 class PageTextsCompanion extends UpdateCompanion<PageTextRow> {
@@ -5598,6 +5636,7 @@ class PageTextsCompanion extends UpdateCompanion<PageTextRow> {
   final Value<String> norm;
   final Value<String> nospace;
   final Value<String> bigram;
+  final Value<String?> boxes;
   const PageTextsCompanion({
     this.id = const Value.absent(),
     this.bookId = const Value.absent(),
@@ -5606,6 +5645,7 @@ class PageTextsCompanion extends UpdateCompanion<PageTextRow> {
     this.norm = const Value.absent(),
     this.nospace = const Value.absent(),
     this.bigram = const Value.absent(),
+    this.boxes = const Value.absent(),
   });
   PageTextsCompanion.insert({
     this.id = const Value.absent(),
@@ -5615,6 +5655,7 @@ class PageTextsCompanion extends UpdateCompanion<PageTextRow> {
     required String norm,
     required String nospace,
     required String bigram,
+    this.boxes = const Value.absent(),
   }) : bookId = Value(bookId),
        pageNo = Value(pageNo),
        raw = Value(raw),
@@ -5629,6 +5670,7 @@ class PageTextsCompanion extends UpdateCompanion<PageTextRow> {
     Expression<String>? norm,
     Expression<String>? nospace,
     Expression<String>? bigram,
+    Expression<String>? boxes,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -5638,6 +5680,7 @@ class PageTextsCompanion extends UpdateCompanion<PageTextRow> {
       if (norm != null) 'norm': norm,
       if (nospace != null) 'nospace': nospace,
       if (bigram != null) 'bigram': bigram,
+      if (boxes != null) 'boxes': boxes,
     });
   }
 
@@ -5649,6 +5692,7 @@ class PageTextsCompanion extends UpdateCompanion<PageTextRow> {
     Value<String>? norm,
     Value<String>? nospace,
     Value<String>? bigram,
+    Value<String?>? boxes,
   }) {
     return PageTextsCompanion(
       id: id ?? this.id,
@@ -5658,6 +5702,7 @@ class PageTextsCompanion extends UpdateCompanion<PageTextRow> {
       norm: norm ?? this.norm,
       nospace: nospace ?? this.nospace,
       bigram: bigram ?? this.bigram,
+      boxes: boxes ?? this.boxes,
     );
   }
 
@@ -5685,6 +5730,9 @@ class PageTextsCompanion extends UpdateCompanion<PageTextRow> {
     if (bigram.present) {
       map['bigram'] = Variable<String>(bigram.value);
     }
+    if (boxes.present) {
+      map['boxes'] = Variable<String>(boxes.value);
+    }
     return map;
   }
 
@@ -5697,7 +5745,8 @@ class PageTextsCompanion extends UpdateCompanion<PageTextRow> {
           ..write('raw: $raw, ')
           ..write('norm: $norm, ')
           ..write('nospace: $nospace, ')
-          ..write('bigram: $bigram')
+          ..write('bigram: $bigram, ')
+          ..write('boxes: $boxes')
           ..write(')'))
         .toString();
   }
@@ -11060,6 +11109,7 @@ typedef $$PageTextsTableCreateCompanionBuilder =
       required String norm,
       required String nospace,
       required String bigram,
+      Value<String?> boxes,
     });
 typedef $$PageTextsTableUpdateCompanionBuilder =
     PageTextsCompanion Function({
@@ -11070,6 +11120,7 @@ typedef $$PageTextsTableUpdateCompanionBuilder =
       Value<String> norm,
       Value<String> nospace,
       Value<String> bigram,
+      Value<String?> boxes,
     });
 
 final class $$PageTextsTableReferences
@@ -11130,6 +11181,11 @@ class $$PageTextsTableFilterComposer
 
   ColumnFilters<String> get bigram => $composableBuilder(
     column: $table.bigram,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get boxes => $composableBuilder(
+    column: $table.boxes,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -11196,6 +11252,11 @@ class $$PageTextsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get boxes => $composableBuilder(
+    column: $table.boxes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$BooksTableOrderingComposer get bookId {
     final $$BooksTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -11246,6 +11307,9 @@ class $$PageTextsTableAnnotationComposer
 
   GeneratedColumn<String> get bigram =>
       $composableBuilder(column: $table.bigram, builder: (column) => column);
+
+  GeneratedColumn<String> get boxes =>
+      $composableBuilder(column: $table.boxes, builder: (column) => column);
 
   $$BooksTableAnnotationComposer get bookId {
     final $$BooksTableAnnotationComposer composer = $composerBuilder(
@@ -11306,6 +11370,7 @@ class $$PageTextsTableTableManager
                 Value<String> norm = const Value.absent(),
                 Value<String> nospace = const Value.absent(),
                 Value<String> bigram = const Value.absent(),
+                Value<String?> boxes = const Value.absent(),
               }) => PageTextsCompanion(
                 id: id,
                 bookId: bookId,
@@ -11314,6 +11379,7 @@ class $$PageTextsTableTableManager
                 norm: norm,
                 nospace: nospace,
                 bigram: bigram,
+                boxes: boxes,
               ),
           createCompanionCallback:
               ({
@@ -11324,6 +11390,7 @@ class $$PageTextsTableTableManager
                 required String norm,
                 required String nospace,
                 required String bigram,
+                Value<String?> boxes = const Value.absent(),
               }) => PageTextsCompanion.insert(
                 id: id,
                 bookId: bookId,
@@ -11332,6 +11399,7 @@ class $$PageTextsTableTableManager
                 norm: norm,
                 nospace: nospace,
                 bigram: bigram,
+                boxes: boxes,
               ),
           withReferenceMapper: (p0) => p0
               .map(

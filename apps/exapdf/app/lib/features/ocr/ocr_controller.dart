@@ -140,7 +140,7 @@ class OcrController {
   ///
   /// 글자 레이어에서 뽑을 때와 **똑같은 변환**을 거쳐야 한다. 한쪽만 다르면
   /// 검색이 그냥 안 된다 (CLAUDE.md §6-6)
-  Future<void> _savePage(int bookId, int pageNo, String raw) async {
+  Future<void> _savePage(int bookId, int pageNo, String raw, {String? boxes}) async {
     final norm = Korean.normalize(raw);
     await _db.into(_db.pageTexts).insert(
           PageTextsCompanion.insert(
@@ -150,6 +150,7 @@ class OcrController {
             norm: norm,
             nospace: Korean.stripSpaces(norm),
             bigram: Korean.bigrams(norm),
+            boxes: Value(boxes),
           ),
           mode: InsertMode.insertOrReplace,
         );
@@ -211,7 +212,7 @@ class OcrController {
     while (!cancel.isCancelled) {
       final (pages, latest) = await server.pages(uuid, since: since);
       for (final p in pages) {
-        if (p.text.isNotEmpty) await _savePage(bookId, p.pageNo, p.text);
+        if (p.text.isNotEmpty) await _savePage(bookId, p.pageNo, p.text, boxes: p.boxes);
         if (p.pageNo > since) since = p.pageNo;
       }
       job = latest;

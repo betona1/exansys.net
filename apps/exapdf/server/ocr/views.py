@@ -136,7 +136,10 @@ def job_pages(request, uuid):
         'status': job.status,
         'page_count': job.page_count,
         'done_pages': job.done_pages,
-        'pages': [{'page_no': p.page_no, 'text': p.text} for p in pages],
+        # boxes 는 줄마다 글자와 사각형(JSON 문자열). 찾은 낱말을 칠하는 데 쓴다
+        'pages': [
+            {'page_no': p.page_no, 'text': p.text, 'boxes': p.boxes} for p in pages
+        ],
     })
 
 

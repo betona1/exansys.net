@@ -20,6 +20,9 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils import timezone
 
+import json
+import tempfile
+
 from ocr import engine
 from ocr.models import Job, Page
 
@@ -60,13 +63,29 @@ class Command(BaseCommand):
             self._run(job)
             if opts['once']:
                 return
+        self._release()
         self.stdout.write('워커 멈춤')
 
     def _ask_stop(self, *_):
         if self.stop:  # 두 번 누르면 즉시
+            self._release()
             raise SystemExit(1)
         self.stop = True
         self.stdout.write('\n이 쪽을 마치고 멈춥니다. 한 번 더 누르면 즉시 중단')
+
+    def _release(self):
+        """잡고 있던 일감을 놓아 준다.
+
+        안 놓으면 임차가 만료될 때까지(15분) 아무도 못 집는다. 서비스를
+        다시 시작할 때마다 15분씩 멈춰 있는 셈이라, 고쳐 놓고도 안 도는
+        것처럼 보인다.
+        """
+        try:
+            Job.objects.filter(worker_id=self.worker_id).update(
+                worker_id='', lease_expires_at=None
+            )
+        except Exception:  # noqa: BLE001 — 끝나는 길목이라 무엇도 막으면 안 된다
+            pass
 
     def _claim(self):
         """일감 하나를 잡는다. 죽은 워커가 잡고 있던 것도 시간이 지나면 가져온다."""
@@ -155,8 +174,21 @@ class Command(BaseCommand):
         page.attempts += 1
         page.save(update_fields=['attempts', 'updated_at'])
         started = time.time()
+        backend = settings.OCR_BACKEND
         try:
-            text = engine.ocr_page(job.endpoint, job.model, path, page.page_no, job.split_pages)
+            text = ''
+            boxes = ''
+            # 좌표는 PaddleOCR 만 준다. 찾은 낱말을 쪽 위에 칠하려면 필요하다
+            if backend in ('paddle', 'both'):
+                lines, paddle_text = self._paddle(path, page.page_no, job.split_pages)
+                boxes = json.dumps([l.as_dict() for l in lines], ensure_ascii=False)
+                text = paddle_text
+            # 글자 품질은 비전 모델이 낫다 — 띄어쓰기가 살아 있다.
+            # both 면 글자는 이쪽 것을 쓰고 좌표만 위에서 얻은 것을 쓴다
+            if backend in ('ollama', 'both'):
+                text = engine.ocr_page(
+                    job.endpoint, job.model, path, page.page_no, job.split_pages
+                )
         except engine.OcrError as e:
             page.last_error = str(e)
             if page.attempts >= MAX_ATTEMPTS:
@@ -164,13 +196,45 @@ class Command(BaseCommand):
             page.save(update_fields=['status', 'last_error', 'updated_at'])
             self.stdout.write(self.style.WARNING(f'  {page.page_no}쪽 실패: {e}'))
             return
+        except Exception as e:  # noqa: BLE001 — PaddleOCR 이 무엇을 던질지 모른다
+            page.last_error = f'{type(e).__name__}: {e}'
+            if page.attempts >= MAX_ATTEMPTS:
+                page.status = Page.FAILED
+            page.save(update_fields=['status', 'last_error', 'updated_at'])
+            self.stdout.write(self.style.WARNING(f'  {page.page_no}쪽 실패: {e}'))
+            return
         page.text = text
+        page.boxes = boxes
         page.status = Page.DONE
         page.last_error = ''
-        page.save(update_fields=['text', 'status', 'last_error', 'updated_at'])
+        page.save(update_fields=['text', 'boxes', 'status', 'last_error', 'updated_at'])
         self.stdout.write(
-            f'  {page.page_no}/{job.page_count}쪽 · {len(text)}자 · {time.time() - started:.0f}초'
+            f'  {page.page_no}/{job.page_count}쪽 · {len(text)}자 · {time.time() - started:.1f}초'
         )
+
+    def _paddle(self, pdf_path, page_no, split):
+        """PaddleOCR 로 줄과 좌표를 읽는다.
+
+        반쪽이 둘이면 **오른쪽 반쪽의 x 를 0.5 만큼 밀어** 쪽 전체 기준으로
+        맞춘다. 안 그러면 오른쪽 글자가 왼쪽에 칠해진다.
+        """
+        from ocr import paddle_engine
+
+        all_lines = []
+        texts = []
+        with tempfile.TemporaryDirectory() as tmp:
+            files = engine.page_image_files(pdf_path, page_no, split, tmp)
+            for idx, (img_path, w, h) in enumerate(files):
+                lines = paddle_engine.read_lines(
+                    img_path, w, h, device=settings.OCR_PADDLE_DEVICE
+                )
+                if split:
+                    for l in lines:
+                        l.x0 = l.x0 / 2 + (0.5 if idx == 1 else 0)
+                        l.x1 = l.x1 / 2 + (0.5 if idx == 1 else 0)
+                all_lines.extend(lines)
+                texts.append(paddle_engine.lines_to_text(lines))
+        return all_lines, '\n\n'.join(t for t in texts if t)
 
     def _fail(self, job, message):
         job.status = Job.FAILED

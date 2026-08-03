@@ -35,10 +35,13 @@ class ServerJob {
 
 /// 서버가 읽어 준 쪽 하나
 class ServerPage {
-  const ServerPage({required this.pageNo, required this.text});
+  const ServerPage({required this.pageNo, required this.text, this.boxes});
 
   final int pageNo;
   final String text;
+
+  /// 줄마다 글자와 사각형 (JSON). PaddleOCR 로 읽었을 때만 온다
+  final String? boxes;
 }
 
 /// OCR 서버(Django)와 이야기한다.
@@ -145,6 +148,7 @@ class OcrServerClient {
           ServerPage(
             pageNo: ((p as Map<String, dynamic>)['page_no'] as num).toInt(),
             text: p['text'] as String? ?? '',
+            boxes: p['boxes'] as String?,
           ),
       ];
       final job = ServerJob(

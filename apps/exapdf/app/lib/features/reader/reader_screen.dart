@@ -41,6 +41,8 @@ import '../ocr/widgets/ocr_progress_bar.dart';
 import '../ocr/widgets/ocr_sheet.dart';
 import '../capture/widgets/capture_overlay.dart';
 import '../search/indexer.dart';
+import '../search/text_box.dart';
+import '../search/widgets/match_layer.dart';
 import 'crop_detector.dart';
 import 'widgets/crop_sheet.dart';
 import 'widgets/in_book_search_sheet.dart';
@@ -124,6 +126,12 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
 
   /// 하이라이트 긋는 중인가. 켜져 있으면 드래그가 칠하기가 된다
   bool _highlighting = false;
+
+  /// 지금 찾고 있는 말. 쪽 위에 칠하는 데 쓴다
+  String _query = '';
+
+  /// 쪽 번호 → 그 쪽의 줄과 좌표. 필요할 때만 읽어 담아 둔다
+  final Map<int, List<TextBox>> _boxes = {};
 
   /// 지금 고른 하이라이트. 옆에 색·메모·휴지통 막대가 뜨고 Del 로 지운다
   int? _selectedHighlight;
@@ -294,6 +302,7 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
       // 쪽을 넘기면 고른 것을 푼다. 안 보이는 것이 골라져 있으면 Del 이 엉뚱하게 먹는다
       _selectedHighlight = null;
     });
+    if (_search && _query.isNotEmpty) unawaited(_loadBoxes(_page));
     // 쪽을 넘길 때마다 쓰지 않는다 — 잠깐 멈췄을 때 한 번만 저장한다
     _saveDebounce?.cancel();
     _saveDebounce = Timer(const Duration(milliseconds: 700), _saveProgress);
@@ -1267,6 +1276,18 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
     return widget is EditableText;
   }
 
+  /// 지금 쪽의 줄·좌표를 읽어 둔다. 한 번 읽으면 담아 두고 다시 읽지 않는다
+  Future<void> _loadBoxes(int pageNo) async {
+    if (_boxes.containsKey(pageNo)) return;
+    final db = ref.read(databaseProvider);
+    final row = await (db.select(db.pageTexts)
+          ..where((t) => t.bookId.equals(widget.book.id))
+          ..where((t) => t.pageNo.equals(pageNo)))
+        .getSingleOrNull();
+    if (!mounted) return;
+    setState(() => _boxes[pageNo] = TextBox.parse(row?.boxes));
+  }
+
   void _toast(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context)
@@ -1502,6 +1523,15 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
                   ),
           ),
 
+          // 찾은 줄을 형광펜처럼 칠한다. 좌표가 없는 책에서는 아무것도 안 그린다
+          if (doc != null && _search && _query.isNotEmpty)
+            MatchLayer(
+              slice: _slice,
+              boxes: _boxes,
+              query: _query,
+              currentPage: _page,
+            ),
+
           // 하이라이트는 책 바로 위에 얹는다
           if (doc != null && !_capture)
             HighlightLayer(
@@ -1655,6 +1685,10 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
                       // **검색바를 닫지 않는다.** 닫아 버리면 다음 결과로
                       // 가려고 돋보기부터 다시 눌러야 한다
                       onGoToPage: _goToPage,
+                      onQueryChanged: (q) {
+                        setState(() => _query = q);
+                        unawaited(_loadBoxes(_page));
+                      },
                     )
                   : null,
             ),
@@ -1674,6 +1708,10 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
                     bookId: widget.book.id,
                     onClose: () => setState(() => _search = false),
                     onGoToPage: _goToPage,
+                    onQueryChanged: (q) {
+                      setState(() => _query = q);
+                      unawaited(_loadBoxes(_page));
+                    },
                   ),
                 ),
               ),
@@ -1712,6 +1750,10 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
                     bookId: widget.book.id,
                     onClose: () => setState(() => _search = false),
                     onGoToPage: _goToPage,
+                    onQueryChanged: (q) {
+                      setState(() => _query = q);
+                      unawaited(_loadBoxes(_page));
+                    },
                   ),
                 ),
               ),

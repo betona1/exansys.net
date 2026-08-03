@@ -100,6 +100,10 @@ class Page(models.Model):
     page_no = models.IntegerField()  # 1부터
     status = models.CharField(max_length=8, choices=STATUS, default=PENDING, db_index=True)
     text = models.TextField(blank=True, default='')
+
+    # 줄마다 글자와 사각형 (JSON). 찾은 낱말을 쪽 위에 칠하는 데 쓴다.
+    # 비전 모델만 쓰면 좌표가 없어 비어 있다
+    boxes = models.TextField(blank=True, default='')
     attempts = models.IntegerField(default=0)
     last_error = models.TextField(blank=True, default='')
     updated_at = models.DateTimeField(auto_now=True)

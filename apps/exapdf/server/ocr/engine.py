@@ -124,6 +124,21 @@ def read_image(endpoint: str, model: str, jpeg: bytes, timeout: int = 600) -> st
     return clean((body.get('response') or '').strip())
 
 
+def page_image_files(pdf_path: str, page_no: int, split: bool, out_dir) -> list[tuple[str, int, int]]:
+    """쪽 그림을 파일로 떨어뜨린다. PaddleOCR 은 바이트가 아니라 경로를 받는다.
+
+    돌려주는 것은 (경로, 폭, 높이) — 좌표를 0~1 로 정규화하려면 크기가 필요하다
+    """
+    out = []
+    for i, jpeg in enumerate(page_images(pdf_path, page_no, split)):
+        path = f'{out_dir}/p{page_no}_{i}.jpg'
+        with open(path, 'wb') as f:
+            f.write(jpeg)
+        with Image.open(path) as im:
+            out.append((path, im.width, im.height))
+    return out
+
+
 def ocr_page(endpoint: str, model: str, pdf_path: str, page_no: int, split: bool) -> str:
     """쪽 하나를 글자로. 반쪽이 둘이면 이어 붙인다."""
     parts = []

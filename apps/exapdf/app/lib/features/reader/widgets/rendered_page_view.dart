@@ -304,6 +304,7 @@ class _PageSliceState extends State<_PageSlice> {
     widget.onSlice(
       SliceMapper(
         pageNumber: widget.page.pageNumber,
+        pageSize: Size(widget.page.width, widget.page.height),
         pageRect: area,
         imageRect: Rect.fromLTWH(0, 0, drawnWidth, drawnHeight),
         transform: _transform.value.clone(),
@@ -626,6 +627,7 @@ class _PageSliceState extends State<_PageSlice> {
 class SliceMapper {
   const SliceMapper({
     required this.pageNumber,
+    required this.pageSize,
     required this.pageRect,
     required this.imageRect,
     required this.transform,
@@ -633,6 +635,9 @@ class SliceMapper {
 
   /// 1부터
   final int pageNumber;
+
+  /// 쪽 전체 크기 (PDF 포인트). 0~1 로 온 좌표를 되돌리는 데 쓴다
+  final Size pageSize;
 
   /// 이 조각이 차지하는 쪽 안의 영역 (PDF 포인트)
   final Rect pageRect;

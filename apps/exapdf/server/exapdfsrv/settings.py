@@ -47,6 +47,14 @@ OCR_MODEL = _env('OCR_MODEL', 'qwen2.5vl:7b')
 
 OCR_UPLOAD_DIR = Path(_env('UPLOAD_DIR') or (BASE_DIR / 'uploads'))
 
+# 어느 엔진으로 읽을지.
+#   ollama — 비전 모델만. 글자 품질이 가장 좋지만 좌표가 없다
+#   paddle — PaddleOCR 만. 7배 빠르고 좌표가 있으나 띄어쓰기가 뭉개진다
+#   both   — 글자는 비전 모델, 좌표는 PaddleOCR (기본).
+#            PaddleOCR 이 0.8초라 더 드는 시간이 13% 뿐이다
+OCR_BACKEND = _env('OCR_BACKEND', 'both')
+OCR_PADDLE_DEVICE = _env('PADDLE_DEVICE', 'gpu')
+
 # 스캔본은 크다. 통째로 메모리에 올리지 않고 파일로 흘린다
 FILE_UPLOAD_MAX_MEMORY_SIZE = 4 * 1024 * 1024
 DATA_UPLOAD_MAX_MEMORY_SIZE = 4 * 1024 * 1024
