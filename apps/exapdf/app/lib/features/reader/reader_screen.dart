@@ -1652,10 +1652,9 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
                   ? InBookSearchSheet(
                       bookId: widget.book.id,
                       onClose: () => setState(() => _search = false),
-                      onGoToPage: (p) {
-                        setState(() => _search = false);
-                        _goToPage(p);
-                      },
+                      // **검색바를 닫지 않는다.** 닫아 버리면 다음 결과로
+                      // 가려고 돋보기부터 다시 눌러야 한다
+                      onGoToPage: _goToPage,
                     )
                   : null,
             ),
@@ -1674,10 +1673,7 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
                   child: InBookSearchSheet(
                     bookId: widget.book.id,
                     onClose: () => setState(() => _search = false),
-                    onGoToPage: (p) {
-                      setState(() => _search = false);
-                      _goToPage(p);
-                    },
+                    onGoToPage: _goToPage,
                   ),
                 ),
               ),
@@ -1715,10 +1711,7 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
                   child: InBookSearchSheet(
                     bookId: widget.book.id,
                     onClose: () => setState(() => _search = false),
-                    onGoToPage: (p) {
-                      setState(() => _search = false);
-                      _goToPage(p);
-                    },
+                    onGoToPage: _goToPage,
                   ),
                 ),
               ),

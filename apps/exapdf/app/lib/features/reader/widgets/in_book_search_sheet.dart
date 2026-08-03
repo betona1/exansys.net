@@ -156,6 +156,11 @@ class _InBookSearchSheetState extends ConsumerState<InBookSearchSheet> {
                   decoration: InputDecoration(
                     hintText: '이 책에서 찾기',
                     prefixIcon: const Icon(Icons.search, size: 20),
+                    // 몇 번째 / 몇 곳인지를 입력창 안에 붙여 늘 보이게 한다.
+                    // 목록을 접어 두어도 어디쯤인지 알 수 있어야 한다
+                    suffixText: _lastQuery.isEmpty
+                        ? null
+                        : (_hits.isEmpty ? '없음' : '${_at + 1}/${_hits.length}'),
                     suffixIcon: _input.text.isEmpty
                         ? null
                         : IconButton(
@@ -171,7 +176,7 @@ class _InBookSearchSheetState extends ConsumerState<InBookSearchSheet> {
                 ),
               ),
               // 여러 곳에서 찾았으면 위·아래로 옮겨 다닌다
-              if (_hits.length > 1) ...[
+              if (_hits.isNotEmpty) ...[
                 IconButton(
                   onPressed: () => _step(-1),
                   icon: const Icon(Icons.keyboard_arrow_up),
