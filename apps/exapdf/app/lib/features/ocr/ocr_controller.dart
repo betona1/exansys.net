@@ -234,11 +234,17 @@ class OcrController {
         .write(const BooksCompanion(hasTextLayer: Value(true), isIndexed: Value(true)));
   }
 
-  /// 이미 받아 둔 마지막 쪽. 여기까지는 다시 받지 않는다
+  /// 이미 받아 둔 마지막 쪽. 여기까지는 다시 받지 않는다.
+  ///
+  /// **좌표까지 있는 쪽만 센다.** 예전에 글자만 받아 둔 책은 좌표가 없는데,
+  /// 글자만 보고 "다 있다"고 판단하면 서버에 좌표가 새로 생겨도 영영 못 받는다.
+  /// 다시 받아도 글자뿐이라 얼마 안 걸린다.
   Future<int> _highestSavedPage(int bookId) async {
     final rows = await (_db.select(_db.pageTexts)..where((t) => t.bookId.equals(bookId))).get();
     var max = 0;
     for (final r in rows) {
+      final boxes = r.boxes;
+      if (boxes == null || boxes.isEmpty) continue;
       if (r.pageNo > max) max = r.pageNo;
     }
     return max;
