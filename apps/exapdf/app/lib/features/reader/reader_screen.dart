@@ -925,6 +925,8 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
     final pending = await OcrController(db).pendingPages(widget.book.id, doc.pages.length);
     if (!mounted) return;
 
+    debugPrint('[OCR] configured=${settings.configured} useServer=${settings.useServer} '
+        'server="${settings.server}" tokenLen=${settings.serverToken.length}');
     // 서버 주소가 이미 있으면 설정 화면을 건너뛴다.
     // 쓸 때마다 주소를 다시 보게 하면 그것부터가 일이다
     if (settings.configured) {
@@ -936,6 +938,7 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
       }
       // 서버가 있으면 맡긴다 — 앱을 켜 둘 필요가 없어진다.
       // "이 쪽만" 은 30초면 끝나므로 앱이 직접 도는 편이 빠르다
+      debugPrint('[OCR] 고른 것=$go');
       if (settings.useServer && go == 'all') {
         await _runOcrOnServer(settings);
       } else {
@@ -1017,8 +1020,10 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
   /// 올려 두고 나가면 된다. 앱을 껐다 켜도 맡겨 둔 일감에 다시 붙어
   /// 남은 결과만 받아 온다.
   Future<void> _runOcrOnServer(OcrSettings settings) async {
+    debugPrint('[OCR] 서버 경로 진입 · 파일=${widget.book.filePath}');
     final bytes = await ref.read(libraryRepositoryProvider).bookBytes(widget.book.id) ??
         await _readBookBytes();
+    debugPrint('[OCR] 바이트=${bytes?.length ?? -1}');
     if (bytes == null) {
       _toast('책 파일을 읽지 못했습니다');
       return;

@@ -46,5 +46,20 @@
     * https://docs.flutter.dev/platform-integration/web/initialization
   -->
   <script src="flutter_bootstrap.js" async></script>
+  <script>
+    // Flutter 가 제 서비스워커를 폐기했다 — 지금 나오는
+    // flutter_service_worker.js 는 스스로를 등록 해제하는 정리용이라
+    // 그대로 두면 오프라인에서 앱이 아예 안 열린다. 우리 것을 따로 등록한다.
+    // Flutter 것이 자기를 지운 뒤에 붙도록 로드가 끝나면 건다
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        setTimeout(function () {
+          navigator.serviceWorker.register('exapdf_sw.js').catch(function (e) {
+            console.warn('ExaPDF 서비스워커 등록 실패:', e);
+          });
+        }, 2000);
+      });
+    }
+  </script>
 </body>
 </html>
