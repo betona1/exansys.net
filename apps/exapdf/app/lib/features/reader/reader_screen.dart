@@ -1255,6 +1255,18 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
     return false;
   }
 
+  /// 지금 글자를 치고 있는가.
+  ///
+  /// 읽기 화면은 스페이스·백스페이스·화살표를 쪽 넘김과 삭제에 쓴다.
+  /// 그대로 두면 **검색창에서 글자를 지울 수도, 띄어쓸 수도 없다** —
+  /// 백스페이스는 하이라이트를 지우려 들고 스페이스는 쪽을 넘긴다.
+  /// 입력 중일 때는 단축키가 비켜나야 한다.
+  bool get _isTyping {
+    final focus = FocusManager.instance.primaryFocus;
+    final widget = focus?.context?.widget;
+    return widget is EditableText;
+  }
+
   void _toast(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context)
@@ -1316,6 +1328,7 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
         actions: <Type, Action<Intent>>{
           _DeleteMarkIntent: CallbackAction<_DeleteMarkIntent>(
             onInvoke: (_) {
+              if (_isTyping) return null;
               final id = _selectedHighlight;
               if (id == null) return null;
               final list = ref.read(highlightsProvider(widget.book.id)).valueOrNull;
@@ -1326,6 +1339,7 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
           ),
           _DeselectIntent: CallbackAction<_DeselectIntent>(
             onInvoke: (_) {
+              if (_isTyping) return null;
               if (_selectedHighlight != null) {
                 setState(() => _selectedHighlight = null);
               }
@@ -1334,6 +1348,7 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
           ),
           _NextPageIntent: CallbackAction<_NextPageIntent>(
             onInvoke: (_) {
+              if (_isTyping) return null;
               _step(1);
               _flashZones();
               return null;
@@ -1341,6 +1356,7 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
           ),
           _PrevPageIntent: CallbackAction<_PrevPageIntent>(
             onInvoke: (_) {
+              if (_isTyping) return null;
               _step(-1);
               _flashZones();
               return null;
@@ -1348,24 +1364,28 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
           ),
           _FirstPageIntent: CallbackAction<_FirstPageIntent>(
             onInvoke: (_) {
+              if (_isTyping) return null;
               _goToPage(1);
               return null;
             },
           ),
           _LastPageIntent: CallbackAction<_LastPageIntent>(
             onInvoke: (_) {
+              if (_isTyping) return null;
               _goToPage(_pageCount);
               return null;
             },
           ),
           _FindIntent: CallbackAction<_FindIntent>(
             onInvoke: (_) {
+              if (_isTyping) return null;
               if (_hasTextLayer) setState(() => _search = true);
               return null;
             },
           ),
           _ToggleChromeIntent: CallbackAction<_ToggleChromeIntent>(
             onInvoke: (_) {
+              if (_isTyping) return null;
               setState(() => _chrome = !_chrome);
               return null;
             },
@@ -1638,6 +1658,29 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
                       },
                     )
                   : null,
+            ),
+
+          // **가로모드·태블릿에는 상단바가 없다.** 검색창이 상단바에만 붙어
+          // 있어서 돋보기를 눌러도 아무 일이 일어나지 않았다. 따로 얹는다
+          if (_search && chrome != ReaderChrome.bars)
+            Positioned(
+              top: 0,
+              left: chrome == ReaderChrome.rail ? ReaderRail.width : 0,
+              right: 0,
+              child: SafeArea(
+                bottom: false,
+                child: Material(
+                  color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.98),
+                  child: InBookSearchSheet(
+                    bookId: widget.book.id,
+                    onClose: () => setState(() => _search = false),
+                    onGoToPage: (p) {
+                      setState(() => _search = false);
+                      _goToPage(p);
+                    },
+                  ),
+                ),
+              ),
             ),
 
           if (_highlighting && !_capture)

@@ -2230,6 +2230,7 @@ file_selector_linux
 file_selector_macos
 file_selector_platform_interface
 file_selector_web
+file_selector_windows
 go_router
 path_provider
 path_provider_android
@@ -2245,6 +2246,7 @@ url_launcher_ios
 url_launcher_linux
 url_launcher_macos
 url_launcher_web
+url_launcher_windows
 
 Copyright 2013 The Flutter Authors
 
@@ -5923,9 +5925,11 @@ SOFTWARE.
 
 --------------------------------------------------------------------------------
 flutter_lints
+path_provider_windows
 plugin_platform_interface
 shared_preferences_linux
 shared_preferences_web
+shared_preferences_windows
 url_launcher
 url_launcher_platform_interface
 xdg_directories
