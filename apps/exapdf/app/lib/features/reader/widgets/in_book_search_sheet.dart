@@ -40,6 +40,9 @@ class _InBookSearchSheetState extends ConsumerState<InBookSearchSheet> {
   bool _searching = false;
   String _lastQuery = '';
 
+  /// 지금 몇 번째 결과를 보고 있는가 (0부터). 위·아래 화살표가 이걸 옮긴다
+  int _at = 0;
+
   @override
   void initState() {
     super.initState();
@@ -74,11 +77,60 @@ class _InBookSearchSheetState extends ConsumerState<InBookSearchSheet> {
         .read(searchRepositoryProvider)
         .search(q, bookId: widget.bookId);
     if (!mounted) return;
+    final hits = groups.isEmpty ? const <SearchHit>[] : groups.first.hits;
     setState(() {
-      _hits = groups.isEmpty ? const [] : groups.first.hits;
+      _hits = hits;
       _lastQuery = q;
       _searching = false;
+      _at = 0;
     });
+
+    // **찾았는지 못 찾았는지를 말로 알려 준다.** 목록만 바뀌면 눈치채기 어렵다
+    if (!mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.clearSnackBars();
+    if (hits.isEmpty) {
+      messenger.showSnackBar(
+        SnackBar(content: Text('"\$q" 을(를) 찾지 못했습니다'), duration: const Duration(seconds: 2)),
+      );
+      return;
+    }
+    // 하나뿐이면 묻지 않고 바로 간다. 두 번 누르게 할 이유가 없다
+    if (hits.length == 1) {
+      messenger.showSnackBar(
+        SnackBar(content: Text('\${hits.first.pageNo}쪽에서 찾았습니다'), duration: const Duration(seconds: 2)),
+      );
+      widget.onGoToPage(hits.first.pageNo);
+      return;
+    }
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text('\${hits.length}곳에서 찾았습니다 · 첫 곳은 \${hits.first.pageNo}쪽'),
+        duration: const Duration(seconds: 4),
+        action: SnackBarAction(
+          label: '이동',
+          onPressed: () => widget.onGoToPage(hits.first.pageNo),
+        ),
+      ),
+    );
+  }
+
+  /// 다음·이전 결과로. 끝에 닿으면 처음으로 돌아온다 —
+  /// 막다른 길에서 아무 반응이 없으면 고장으로 보인다
+  void _step(int delta) {
+    if (_hits.isEmpty) return;
+    final next = (_at + delta) % _hits.length;
+    setState(() => _at = next < 0 ? next + _hits.length : next);
+    final hit = _hits[_at];
+    ScaffoldMessenger.of(context)
+      ..clearSnackBars()
+      ..showSnackBar(
+        SnackBar(
+          content: Text('\${_at + 1} / \${_hits.length}번째 · \${hit.pageNo}쪽'),
+          duration: const Duration(milliseconds: 1200),
+        ),
+      );
+    widget.onGoToPage(hit.pageNo);
   }
 
   @override
@@ -118,10 +170,26 @@ class _InBookSearchSheetState extends ConsumerState<InBookSearchSheet> {
                   onSubmitted: (v) => unawaited(_run(v)),
                 ),
               ),
+              // 여러 곳에서 찾았으면 위·아래로 옮겨 다닌다
+              if (_hits.length > 1) ...[
+                IconButton(
+                  onPressed: () => _step(-1),
+                  icon: const Icon(Icons.keyboard_arrow_up),
+                  tooltip: '이전 결과',
+                  visualDensity: VisualDensity.compact,
+                ),
+                IconButton(
+                  onPressed: () => _step(1),
+                  icon: const Icon(Icons.keyboard_arrow_down),
+                  tooltip: '다음 결과',
+                  visualDensity: VisualDensity.compact,
+                ),
+              ],
               IconButton(
                 onPressed: widget.onClose,
                 icon: const Icon(Icons.close),
                 tooltip: '닫기',
+                visualDensity: VisualDensity.compact,
               ),
             ],
           ),
@@ -149,13 +217,17 @@ class _InBookSearchSheetState extends ConsumerState<InBookSearchSheet> {
                 final hit = _hits[i];
                 return ListTile(
                   dense: true,
+                  selected: i == _at,
                   leading: CircleAvatar(
                     radius: 15,
                     backgroundColor: AppTokens.slot,
                     child: Text('${hit.pageNo}', style: t.textTheme.labelSmall),
                   ),
                   title: SnippetText(snippet: hit.snippet),
-                  onTap: () => widget.onGoToPage(hit.pageNo),
+                  onTap: () {
+                    setState(() => _at = i);
+                    widget.onGoToPage(hit.pageNo);
+                  },
                 );
               },
             ),
