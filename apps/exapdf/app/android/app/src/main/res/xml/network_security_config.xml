@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  안드로이드 9(API 28)부터 평문 http 는 기본으로 막힌다.
+  우리 OCR 서버와 Ollama 는 사내망 http 라, 이 파일이 없으면 요청이
+  **나가지도 못한다** — 오류조차 안 보이고 조용히 실패한다.
+
+  전부 여는 대신 사내망 주소만 연다. 바깥으로 나가는 통신은 그대로 https 만.
+-->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">192.168.219.88</domain>
+        <domain includeSubdomains="false">192.168.219.111</domain>
+        <domain includeSubdomains="false">192.168.219.200</domain>
+        <domain includeSubdomains="false">10.0.2.2</domain>
+        <domain includeSubdomains="false">localhost</domain>
+    </domain-config>
+    <base-config cleartextTrafficPermitted="false" />
+</network-security-config>
