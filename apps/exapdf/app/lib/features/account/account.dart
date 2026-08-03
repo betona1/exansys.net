@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 import 'package:http/http.dart' as http;
 
 import '../../data/db/database.dart';
@@ -64,13 +66,24 @@ class LinkStart {
 /// 쿠키로 물어본다.
 class AccountService {
   AccountService(this._db, {this.client, String? baseUrl})
-      : _base = baseUrl ?? defaultBase;
+      : _base = baseUrl ?? (kIsWeb ? Uri.base.origin : defaultBase);
 
-  /// 계정 서버. 배포본은 exansys.net 을 본다
+  /// 계정 서버. 안드로이드·윈도우는 이 주소를 그대로 부른다
   static const defaultBase = String.fromEnvironment(
     'accountServer',
     defaultValue: 'https://exansys.net',
   );
+
+  /// **웹에서는 제 주소로 부른다.**
+  ///
+  /// exapdf.exansys.net 에서 exansys.net 을 부르면 다른 출처라 CORS 에 막힌다
+  /// (실제로 이것 때문에 웹 로그인이 되지 않았다). 두 주소를 같은 워커가
+  /// 서빙하므로 제 주소로 부르면 CORS 자체가 생기지 않고, 세션 쿠키는
+  /// `.exansys.net` 에 달려 있어 그대로 함께 간다.
+  ///
+  /// 로그인 창만은 exansys.net 으로 연다 — OAuth 콜백 주소가 거기로
+  /// 등록돼 있어서다.
+  static const loginBase = defaultBase;
 
   static const _keyToken = 'account.token';
 
@@ -187,10 +200,10 @@ class AccountService {
   }
 
   /// 브라우저로 열어 줄 주소. 기기 번호를 실어 보내므로 사람이 옮겨 적을 것이 없다
-  Uri authorizeUrl(String device) => Uri.parse('$_base/exapdf/authorize?device=$device');
+  Uri authorizeUrl(String device) => Uri.parse('$loginBase/exapdf/authorize?device=$device');
 
   /// 브라우저를 못 열 때 쓰는 보조 수단 — 코드를 손으로 넣는 주소
-  Uri linkUrl(String code) => Uri.parse('$_base/exapdf/link?code=$code');
+  Uri linkUrl(String code) => Uri.parse('$loginBase/exapdf/link?code=$code');
 
   static String _readable(Object e) {
     final s = '$e';
