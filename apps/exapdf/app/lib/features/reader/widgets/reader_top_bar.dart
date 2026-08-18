@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/tokens.dart';
+import 'measure_height.dart';
 
 /// 읽기 화면 상단 바 (techspec §4 compact).
 ///
 /// 뒤로 · 문서명 · 찾기 · 캡처. 검색을 열면 그 아래에 검색 패널이 붙는다.
+///
+/// 이 바는 책 **위에 떠 있다.** 그래서 자기가 얼마나 차지했는지를
+/// [onHeight] 로 알려 준다 — 읽기 화면이 그만큼 책 자리를 비켜 준다.
 class ReaderTopBar extends StatelessWidget {
   const ReaderTopBar({
     super.key,
@@ -29,6 +33,7 @@ class ReaderTopBar extends StatelessWidget {
     required this.onOpenMarks,
     required this.viewChanged,
     required this.onOpenViewSheet,
+    required this.onHeight,
     this.searchSheet,
   });
 
@@ -81,6 +86,9 @@ class ReaderTopBar extends StatelessWidget {
   final VoidCallback? onOpenViewSheet;
 
   final Widget? searchSheet;
+
+  /// 이 바가 실제로 차지한 높이. 책이 그만큼 아래에서 시작한다
+  final ValueChanged<double> onHeight;
 
   /// 좁은 화면에서는 아이콘을 줄여 다 들어가게 한다.
   /// 폰 세로에서 아이콘 여섯 개가 기본 크기로 늘어서면 제목이 밀려 사라진다
@@ -195,7 +203,9 @@ class ReaderTopBar extends StatelessWidget {
       top: 0,
       left: 0,
       right: 0,
-      child: Material(
+      child: MeasureHeight(
+        onHeight: onHeight,
+        child: Material(
         color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.96),
         child: SafeArea(
           bottom: false,
@@ -230,6 +240,7 @@ class ReaderTopBar extends StatelessWidget {
               ?searchSheet,
             ],
           ),
+        ),
         ),
       ),
     );

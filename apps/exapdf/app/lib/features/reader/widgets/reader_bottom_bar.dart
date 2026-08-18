@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/tokens.dart';
+import 'measure_height.dart';
 
 /// 읽기 화면 하단 바 — 이전/다음 · 쪽 번호 · 슬라이더 (techspec §6.1).
 ///
@@ -17,6 +18,7 @@ class ReaderBottomBar extends StatelessWidget {
     required this.onPageSettled,
     required this.onPrev,
     required this.onNext,
+    required this.onHeight,
     this.sideLabel,
     this.canPrev = true,
     this.canNext = true,
@@ -42,13 +44,18 @@ class ReaderBottomBar extends StatelessWidget {
   /// 좌우 나눠 보기일 때 '좌'/'우'. 아니면 null
   final String? sideLabel;
 
+  /// 이 바가 실제로 차지한 높이. 책이 그만큼 위에서 끝난다
+  final ValueChanged<double> onHeight;
+
   @override
   Widget build(BuildContext context) {
     return Positioned(
       left: 0,
       right: 0,
       bottom: 0,
-      child: Material(
+      child: MeasureHeight(
+        onHeight: onHeight,
+        child: Material(
         color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.96),
         child: SafeArea(
           top: false,
@@ -92,6 +99,7 @@ class ReaderBottomBar extends StatelessWidget {
               ],
             ),
           ),
+        ),
         ),
       ),
     );

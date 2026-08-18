@@ -156,6 +156,15 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
   Timer? _zonesTimer;
   Timer? _saveDebounce;
 
+  /// 위아래 바가 실제로 차지한 높이. 바가 재서 알려 준다.
+  ///
+  /// 예전에는 바가 책 **위에 떠 있었다.** 세로 폰에서는 아이콘이 한 줄에 안
+  /// 들어가 두 줄이 되므로 상단바만 150px 가까이 되는데, 그 아래가 곧 쪽의
+  /// 좌측 위였다 — **첫 글자부터 덮여 위가 잘린 것처럼 보였다.**
+  /// 가로모드는 바 대신 레일이라 이 증상이 없어 더 오래 살아남았다
+  double _topBarHeight = 0;
+  double _bottomBarHeight = 0;
+
   int get _perPage => _settings.splitPages ? 2 : 1;
 
   final _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -1482,6 +1491,14 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
     final bookmarks = ref.watch(bookmarksProvider(widget.book.id)).valueOrNull ?? const [];
     final bookmarked = bookmarks.any((b) => b.pageNo == _page);
 
+    // 바가 떠 있는 만큼 책 자리를 비켜 준다. 바가 없는 모드(레일·서랍)나
+    // 도구막대를 감춘 상태에서는 화면을 통째로 쓴다
+    final barsVisible = chrome == ReaderChrome.bars && _chrome && !_capture;
+    final topInset = barsVisible ? _topBarHeight : 0.0;
+    // 형광펜을 켜면 하단바 대신 색 고르는 막대가 뜬다 — 그건 얇아서 비켜 주지 않는다
+    final bottomInset = barsVisible && !_highlighting ? _bottomBarHeight : 0.0;
+    final railInset = chrome == ReaderChrome.rail ? ReaderRail.width : 0.0;
+
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: AppTokens.ink,
@@ -1498,65 +1515,93 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
       drawerEdgeDragWidth: 28,
       body: Stack(
         children: [
+          // 책과 그 위에 얹는 것들(하이라이트·검색 표시·캡처·넘김 영역)은
+          // **한 자리에 함께 둔다.** 따로 놓으면 좌표계가 달라져, 레일이 있는
+          // 화면에서는 칠한 자리가 레일 폭만큼 밀려 그려졌다
           Positioned(
-            left: chrome == ReaderChrome.rail ? ReaderRail.width : 0,
-            top: 0,
+            left: railInset,
+            top: topInset,
             right: 0,
-            bottom: 0,
+            bottom: bottomInset,
             child: doc == null
                 ? const Center(child: CircularProgressIndicator())
-                : GestureDetector(
-                    // 키는 Positioned 가 아니라 여기에 단다.
-                    // Positioned 는 RenderObject 를 만들지 않아 크기 조회가 어긋난다
-                    key: _viewerKey,
-                    behavior: HitTestBehavior.translucent,
-                    onTapUp: (d) => _handleTapAt(
-                      d.localPosition.dx,
-                      _viewerKey.currentContext?.size?.width ?? 0,
-                    ),
-                    child: RenderedPageView(
-                      key: _renderKey,
-                      document: doc,
-                      initialView: _view,
-                      split: _settings.splitPages,
-                      rightToLeft: _settings.splitRightToLeft,
-                      cropFor: _settings.cropFor,
-                      settings: _settings,
-                      onViewChanged: _onViewChanged,
-                      onSlice: (s) => _slice = s,
-                      onWheelTurn: (d) {
-                        _step(d);
-                        _flashZones();
-                      },
-                    ),
+                : Stack(
+                    children: [
+                      Positioned.fill(
+                        child: GestureDetector(
+                          // 키는 Positioned 가 아니라 여기에 단다.
+                          // Positioned 는 RenderObject 를 만들지 않아 크기 조회가 어긋난다
+                          key: _viewerKey,
+                          behavior: HitTestBehavior.translucent,
+                          onTapUp: (d) => _handleTapAt(
+                            d.localPosition.dx,
+                            _viewerKey.currentContext?.size?.width ?? 0,
+                          ),
+                          child: RenderedPageView(
+                            key: _renderKey,
+                            document: doc,
+                            initialView: _view,
+                            split: _settings.splitPages,
+                            rightToLeft: _settings.splitRightToLeft,
+                            cropFor: _settings.cropFor,
+                            settings: _settings,
+                            onViewChanged: _onViewChanged,
+                            onSlice: (s) => _slice = s,
+                            onWheelTurn: (d) {
+                              _step(d);
+                              _flashZones();
+                            },
+                          ),
+                        ),
+                      ),
+
+                      // 찾은 줄을 형광펜처럼 칠한다. 좌표가 없는 책에서는 아무것도 안 그린다
+                      if (_search && _query.isNotEmpty)
+                        MatchLayer(
+                          slice: _slice,
+                          boxes: _boxes,
+                          query: _query,
+                          currentPage: _page,
+                        ),
+
+                      // 하이라이트는 책 바로 위에 얹는다
+                      if (!_capture)
+                        HighlightLayer(
+                          slice: _slice,
+                          highlights: highlights,
+                          drawing: _highlighting,
+                          colorSlot: _colorSlot,
+                          selectedId: _selectedHighlight,
+                          onAdd: (r) => unawaited(_addHighlight(r)),
+                          onSelect: (h) => setState(() => _selectedHighlight = h?.id),
+                          onRecolor: (h, slot) => unawaited(
+                            ref
+                                .read(annotationRepositoryProvider)
+                                .updateHighlight(h.id, colorSlot: slot),
+                          ),
+                          onNote: (h) => unawaited(_editNote(h)),
+                          onDelete: _deleteHighlight,
+                        ),
+
+                      // 좌우 넘김 영역 — 늘 옅게, 넘길 때만 또렷하게
+                      if (!_capture)
+                        Positioned.fill(
+                          child: PageTurnZones(
+                            highlighted: _zonesVisible,
+                            canPrev: _canPrev,
+                            canNext: _canNext,
+                          ),
+                        ),
+
+                      if (_capture)
+                        CaptureOverlay(
+                          busy: capturing,
+                          onCapture: _handleCapture,
+                          onCancel: () => setState(() => _capture = false),
+                        ),
+                    ],
                   ),
           ),
-
-          // 찾은 줄을 형광펜처럼 칠한다. 좌표가 없는 책에서는 아무것도 안 그린다
-          if (doc != null && _search && _query.isNotEmpty)
-            MatchLayer(
-              slice: _slice,
-              boxes: _boxes,
-              query: _query,
-              currentPage: _page,
-            ),
-
-          // 하이라이트는 책 바로 위에 얹는다
-          if (doc != null && !_capture)
-            HighlightLayer(
-              slice: _slice,
-              highlights: highlights,
-              drawing: _highlighting,
-              colorSlot: _colorSlot,
-              selectedId: _selectedHighlight,
-              onAdd: (r) => unawaited(_addHighlight(r)),
-              onSelect: (h) => setState(() => _selectedHighlight = h?.id),
-              onRecolor: (h, slot) => unawaited(
-                ref.read(annotationRepositoryProvider).updateHighlight(h.id, colorSlot: slot),
-              ),
-              onNote: (h) => unawaited(_editNote(h)),
-              onDelete: _deleteHighlight,
-            ),
 
           if (_coach)
             ReaderCoach(
@@ -1589,28 +1634,6 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
               child: ColoredBox(
                 color: Color(0xCC0D1117),
                 child: Center(child: CircularProgressIndicator()),
-              ),
-            ),
-
-          if (_capture)
-            CaptureOverlay(
-              busy: capturing,
-              onCapture: _handleCapture,
-              onCancel: () => setState(() => _capture = false),
-            ),
-
-          // 좌우 넘김 영역 — 늘 옅게, 넘길 때만 또렷하게.
-          // 상주 레일 위에는 그리지 않는다 (화살표가 버튼을 덮는다)
-          if (!_capture)
-            Positioned(
-              left: chrome == ReaderChrome.rail ? ReaderRail.width : 0,
-              top: 0,
-              right: 0,
-              bottom: 0,
-              child: PageTurnZones(
-                highlighted: _zonesVisible,
-                canPrev: _canPrev,
-                canNext: _canNext,
               ),
             ),
 
@@ -1687,6 +1710,9 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
                   _settings.cropEnabled ||
                   _settings.theme == ReadingTheme.dark,
               onOpenViewSheet: doc == null ? null : _openViewSheet,
+              onHeight: (h) {
+                if (mounted && h != _topBarHeight) setState(() => _topBarHeight = h);
+              },
               searchSheet: _search
                   ? InBookSearchSheet(
                       bookId: widget.book.id,
@@ -1700,30 +1726,6 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
                       },
                     )
                   : null,
-            ),
-
-          // **가로모드·태블릿에는 상단바가 없다.** 검색창이 상단바에만 붙어
-          // 있어서 돋보기를 눌러도 아무 일이 일어나지 않았다. 따로 얹는다
-          if (_search && chrome != ReaderChrome.bars)
-            Positioned(
-              top: 0,
-              left: chrome == ReaderChrome.rail ? ReaderRail.width : 0,
-              right: 0,
-              child: SafeArea(
-                bottom: false,
-                child: Material(
-                  color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.98),
-                  child: InBookSearchSheet(
-                    bookId: widget.book.id,
-                    onClose: () => setState(() => _search = false),
-                    onGoToPage: _goToPage,
-                    onQueryChanged: (q) {
-                      setState(() => _query = q);
-                      unawaited(_loadBoxes(_page));
-                    },
-                  ),
-                ),
-              ),
             ),
 
           if (_highlighting && !_capture)
@@ -1744,8 +1746,15 @@ class _ReaderViewState extends ConsumerState<_ReaderView> with WidgetsBindingObs
               canNext: _canNext,
               onPageChanged: (v) => setState(() => _page = v),
               onPageSettled: _goToPage,
+              onHeight: (h) {
+                if (mounted && h != _bottomBarHeight) setState(() => _bottomBarHeight = h);
+              },
             ),
-          // 레일·서랍 모드에서는 검색 패널을 위에 따로 띄운다
+          // **가로모드·태블릿에는 상단바가 없다.** 검색창이 상단바에만 붙어
+          // 있어서 돋보기를 눌러도 아무 일이 없었다. 그래서 여기에 따로 얹는다.
+          //
+          // 예전에는 이 블록이 두 벌이었다 — 같은 조건에 같은 패널을 두 번
+          // 그려서, 가로로 들고 찾으면 검색창이 두 겹으로 겹쳐 떴다
           if (chrome != ReaderChrome.bars && _search && !_capture)
             Positioned(
               top: 0,
