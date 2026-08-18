@@ -100,7 +100,7 @@
 
 | 쓰이는 곳 | 무엇을 쓰는가 |
 |---|---|
-| 런처 아이콘 · 스토어 아이콘 | **바브바브** 얼굴+책 (`design/icon.png`, `scripts/gen_icon.py`) |
+| 런처 아이콘 · 스토어 아이콘 | **바브바브가 PDF 를 안은 그림** — 아이콘 v2 (`docs/exapdf_vavevave_app_icon.png`, `scripts/gen_icon_v2.py`). v1(빼꼼)은 `gen_icon.py` 로 복원 가능 |
 | 시작 스플래시 히어로(약 3초) · 빈 서재 | **바브바브 전신** (`app/assets/mascot/vave_full.png`, `scripts/gen_mascot.py`) |
 | 오류 화면(서재 로드 실패·PDF 열기 실패·잘못된 링크) | **바브바브 얼굴이 메시지 카드 위로 빼꼼** (`vave_face.png`, `ui/vave.dart` 의 `VaveErrorView`) |
 | 서재 앱바 | **바브바브 미니 배지** (`VaveBadge` — 네이비 라운드 박스 속 얼굴) |
@@ -125,11 +125,15 @@
 | `signal` | `#4CC2FF` | EXANSYS Signal | 모회사 액센트, 링크, 웹 CTA |
 | `paper` | `#F5F6F8` | Paper | 라이트 배경 |
 
-### 3.2 ExaPDF 제품 색
+### 3.2 ExaPDF 제품 색 (2026-08-18 아이콘 v2 에 맞춰 액센트 전환)
 
 | 토큰 | HEX | 용도 |
 |---|---|---|
-| `amber` | `#FFC24B` | **브랜드 액센트** — 아이콘, 캐릭터 동공, 일러스트, 스플래시 |
+| `vave-blue` | `#1583E9` | **브랜드 액센트** — 활성 상태 아이콘, 마스코트 장식 (아이콘 링 색) |
+| `vave-navy-hi` | `#0A4FC0` | 마스코트 배경 그라디언트 밝은 쪽 (스플래시 하단) |
+| `vave-navy-lo` | `#021B52` | 마스코트 배경 그라디언트 어두운 쪽 (스플래시 상단) |
+| `vave-cyan` | `#0FCDFF` | 발광·강조 (아이콘 체크마크 색) |
+| `amber` | `#FFC24B` | **찾기·마킹 기능색으로 축소** — 검색 하이라이트, 크롭 안내선. 종전 브랜드 액센트 |
 | `amber-deep` | `#C98A1E` | 라이트 배경 위 텍스트/아이콘용 앰버 (대비 확보) |
 | `action` | `#2F6BFF` | **UI 기능색** — 링크, 포커스 링, 선택, 체크박스 |
 

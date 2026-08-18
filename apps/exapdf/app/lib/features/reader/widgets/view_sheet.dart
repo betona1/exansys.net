@@ -83,7 +83,7 @@ class ViewSheet extends StatelessWidget {
             subtitle: const Text('한 장에 두 쪽이 들어 있는 스캔본을 반으로 갈라 봅니다'),
           ),
           ListTile(
-            leading: Icon(Icons.crop, color: cropOn ? AppTokens.amber : null),
+            leading: Icon(Icons.crop, color: cropOn ? AppTokens.vaveBlue : null),
             title: const Text('여백 잘라내기'),
             subtitle: Text(cropOn ? '켜져 있음 · 눌러서 조정' : '가장자리 흰 여백을 걷어 내 글자를 키웁니다'),
             trailing: const Icon(Icons.chevron_right),
@@ -93,7 +93,7 @@ class ViewSheet extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: Icon(Icons.contrast, color: darkOn ? AppTokens.amber : null),
+            leading: Icon(Icons.contrast, color: darkOn ? AppTokens.vaveBlue : null),
             title: const Text('테마 · 밝기'),
             subtitle: Text(darkOn ? '다크 리딩 켜짐' : '라이트 / 다크 / 세피아, 밝기와 대비'),
             trailing: const Icon(Icons.chevron_right),

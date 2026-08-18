@@ -118,10 +118,11 @@ class _SplashHeroState extends State<_SplashHero>
     return Material(
       child: DecoratedBox(
         decoration: const BoxDecoration(
+          // 아이콘과 같은 결 — 위는 깊은 남색, 캐릭터가 서는 아래로 갈수록 밝은 블루
           gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [AppTokens.vaveNavyHi, AppTokens.vaveNavyLo],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [AppTokens.vaveNavyLo, AppTokens.vaveNavyHi],
           ),
         ),
         child: SafeArea(

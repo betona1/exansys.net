@@ -60,7 +60,7 @@ class VaveBadge extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [AppTokens.vaveNavyHi, AppTokens.vaveNavyLo],
+          colors: [AppTokens.vaveNavyLo, AppTokens.vaveNavyHi],
         ),
       ),
       // 눈이 보여야 캐릭터다 — 머리털 위쪽을 잘라내고 눈가로 당겨 확대한다.

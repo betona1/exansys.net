@@ -83,7 +83,7 @@ class _Cover extends StatelessWidget {
         book.fileMissing ? Icons.link_off : Icons.menu_book,
         size: 20,
         // 표지 자리의 브랜드 액센트 — 누르는 요소가 아니므로 앰버를 써도 된다 (BRAND.md §3.2)
-        color: book.fileMissing ? Theme.of(context).colorScheme.error : AppTokens.amber,
+        color: book.fileMissing ? Theme.of(context).colorScheme.error : AppTokens.vaveBlue,
       ),
     );
   }

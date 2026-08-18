@@ -126,7 +126,7 @@ class _BookGroup extends StatelessWidget {
       initiallyExpanded: true,
       shape: const Border(),
       collapsedShape: const Border(),
-      leading: const Icon(Icons.menu_book, color: AppTokens.amber),
+      leading: const Icon(Icons.menu_book, color: AppTokens.vaveBlue),
       title: Text(group.bookTitle, maxLines: 1, overflow: TextOverflow.ellipsis),
       trailing: Text('${group.hits.length}건', style: Theme.of(context).textTheme.bodySmall),
       children: [

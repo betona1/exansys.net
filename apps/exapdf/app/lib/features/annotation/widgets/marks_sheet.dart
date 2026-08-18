@@ -120,7 +120,7 @@ class MarksSheet extends StatelessWidget {
                       itemBuilder: (_, i) {
                         final b = bookmarks[i];
                         return ListTile(
-                          leading: const Icon(Icons.bookmark, color: AppTokens.amber),
+                          leading: const Icon(Icons.bookmark, color: AppTokens.vaveBlue),
                           title: Text(b.label ?? '${b.pageNo}쪽'),
                           onTap: () {
                             Navigator.pop(context);
