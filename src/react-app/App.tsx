@@ -4,6 +4,7 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import ExapdfAuthorize from "./pages/ExapdfAuthorize";
 import ExapdfLink from "./pages/ExapdfLink";
+import ExapdfPrivacy from "./pages/ExapdfPrivacy";
 import Home from "./pages/Home";
 import AppDetail from "./pages/AppDetail";
 import Admin from "./pages/Admin";
@@ -81,6 +82,7 @@ export default function App() {
         <Route path="/techdex" element={<TechDex me={me} />} />
         <Route path="/exapdf/authorize" element={<ExapdfAuthorize me={me} />} />
         <Route path="/exapdf/link" element={<ExapdfLink me={me} />} />
+        <Route path="/exapdf/privacy" element={<ExapdfPrivacy />} />
         <Route path="/vibequest/reports" element={<VqReports me={me} />} />
         <Route path="/vibequest/privacy" element={<VqPrivacy />} />
         <Route path="/admin" element={<Admin me={me} meLoading={loading} />} />
