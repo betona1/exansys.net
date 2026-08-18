@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/tokens.dart';
+import '../../../ui/vave.dart';
 
 /// 서재가 비었을 때 (techspec §16 · BRAND.md §6.3).
 ///
-/// 마스코트는 앱 아이콘과 같은 그림을 쓴다 — 처음 여는 화면에서 아이콘과 이어져 보이게 (BRAND.md §2.5).
+/// 아이콘 타일 대신 바브바브 전신을 크게 — 처음 여는 화면이 곧 캐릭터 인사다.
+/// 스플래시와 같은 컷아웃이라 시작 화면에서 그대로 이어져 보인다 (BRAND.md §2.5).
 class EmptyLibrary extends StatelessWidget {
   const EmptyLibrary({super.key, required this.onPick});
 
@@ -14,22 +16,13 @@ class EmptyLibrary extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = Theme.of(context);
     return Center(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(AppTokens.space6),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // 아이콘 배경이 앱 배경과 같은 딥네이비라 그냥 두면 보이지 않는다.
-            // 테두리로 경계를 준다
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(AppTokens.radiusCard),
-                border: Border.all(color: AppTokens.borderDark),
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: Image.asset('assets/icon/icon.png', width: 104, height: 104),
-            ),
-            const SizedBox(height: AppTokens.space5),
+            const VaveHero(width: 200),
+            const SizedBox(height: AppTokens.space4),
             Text('아직 책이 없습니다', style: t.textTheme.titleLarge),
             const SizedBox(height: AppTokens.space2),
             Text(

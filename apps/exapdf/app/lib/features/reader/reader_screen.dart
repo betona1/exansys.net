@@ -15,6 +15,7 @@ import '../../data/source/book_source.dart';
 import '../../core/router.dart';
 import '../../core/tokens.dart';
 import '../../domain/entities/annotation.dart';
+import '../../ui/vave.dart';
 import '../../domain/entities/book.dart';
 import '../../domain/entities/crop_rect.dart';
 import '../../domain/entities/fit_mode.dart';
@@ -1813,29 +1814,11 @@ class ReaderError extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(AppTokens.space6),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.error_outline, size: 40),
-              const SizedBox(height: AppTokens.space3),
-              const Text('이 PDF 를 열지 못했습니다', style: TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(height: AppTokens.space2),
-              Text(
-                message,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-              const SizedBox(height: AppTokens.space5),
-              FilledButton(
-                onPressed: () => context.go(AppRoutes.library),
-                child: const Text('서재로'),
-              ),
-            ],
-          ),
-        ),
+      body: VaveErrorView(
+        title: '이 PDF 를 열지 못했습니다',
+        message: message,
+        actionLabel: '서재로',
+        onAction: () => context.go(AppRoutes.library),
       ),
     );
   }

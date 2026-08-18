@@ -7,6 +7,7 @@ import '../../data/source/book_source.dart';
 import '../../core/router.dart';
 import '../../core/tokens.dart';
 import '../../domain/entities/book.dart';
+import '../../ui/vave.dart';
 import '../account/widgets/account_button.dart';
 import 'widgets/book_tile.dart';
 import 'widgets/empty_library.dart';
@@ -68,6 +69,8 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        // 책이 쌓여 목록만 보이는 날에도 바브바브가 한 자리 차지한다 (BRAND.md §2.5)
+        leading: const Center(child: VaveBadge()),
         title: const Text('내 서재'),
         actions: [
           // 로그인은 눈에 보이는 자리에. 예전에는 스캔본 → 돋보기 → 유료 안내까지
@@ -120,19 +123,6 @@ class _LoadError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 오류는 "무엇이 실패 / 원인 / 다음 행동" 3요소를 갖춘다 (techspec §17)
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppTokens.space6),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('서재를 읽지 못했습니다', style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: AppTokens.space2),
-            Text(message, textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodySmall),
-          ],
-        ),
-      ),
-    );
+    return VaveErrorView(title: '서재를 읽지 못했습니다', message: message);
   }
 }

@@ -9,6 +9,7 @@ import 'package:pdfrx/pdfrx.dart';
 
 import 'core/router.dart';
 import 'core/theme.dart';
+import 'ui/splash_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,6 +30,8 @@ class ExaPDFApp extends StatelessWidget {
       themeMode: ThemeMode.dark,
       debugShowCheckedModeBanner: false,
       routerConfig: appRouter,
+      // 시작 시 바브바브 히어로 페이지 약 3초 — 뒤에서 첫 화면이 미리 그려진다
+      builder: (_, child) => SplashGate(child: child ?? const SizedBox.shrink()),
     );
   }
 }

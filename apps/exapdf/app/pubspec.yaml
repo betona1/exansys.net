@@ -95,6 +95,7 @@ flutter:
     - assets/
     # 하위 폴더는 따로 적어야 한다 — `assets/` 만으로는 포함되지 않는다
     - assets/icon/
+    - assets/mascot/
 
   # 한글 폰트를 직접 싣는다.
   # Flutter 웹은 한글 글리프를 들고 있지 않아 네모(□)로 깨진다.

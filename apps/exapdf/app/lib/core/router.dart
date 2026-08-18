@@ -5,6 +5,7 @@ import '../features/help/manual_screen.dart';
 import '../features/library/library_screen.dart';
 import '../features/reader/reader_screen.dart';
 import '../features/search/global_search_screen.dart';
+import '../ui/vave.dart';
 
 /// 라우팅 — `Navigator.push` 대신 go_router 를 쓴다 (CLAUDE.md §5).
 ///
@@ -74,18 +75,10 @@ class _BadLink extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('열 수 없는 주소입니다'),
-            const SizedBox(height: 12),
-            FilledButton(
-              onPressed: () => context.go(AppRoutes.library),
-              child: const Text('서재로'),
-            ),
-          ],
-        ),
+      body: VaveErrorView(
+        title: '열 수 없는 주소입니다',
+        actionLabel: '서재로',
+        onAction: () => context.go(AppRoutes.library),
       ),
     );
   }

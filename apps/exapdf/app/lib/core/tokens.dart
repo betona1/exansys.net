@@ -28,6 +28,14 @@ abstract final class AppTokens {
   /// UI 기능색 — 링크, 포커스 링, 선택, 체크박스. **누르는 것은 전부 이 색**
   static const action = Color(0xFF2F6BFF);
 
+  // ── 바브바브 마스코트 색 (BRAND.md §2.5 · scripts/gen_icon.py 와 동일) ──
+  //
+  // 앱 아이콘의 딥네이비+시안을 그대로 옮긴 것. 스플래시·히어로·마스코트
+  // 장식 전용이고, 본문 UI 색으로는 쓰지 않는다.
+  static const vaveNavyHi = Color(0xFF173E6B);
+  static const vaveNavyLo = Color(0xFF070F1B);
+  static const vaveCyan = Color(0xFF22B8FF);
+
   // ── 하이라이트 5색 (BRAND.md §3.3) ──────────────────────
   /// 슬롯 번호(1~5)로 저장한다. 색상값을 저장하면 테마를 바꿔도 따라오지 않는다
   static const highlights = <Color>[
